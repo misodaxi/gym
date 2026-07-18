@@ -1,4 +1,54 @@
 {
-  "accounts": {},
+  "accounts": {
+    "1": {
+      "password": "6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b",
+      "history": [],
+      "workouts": [],
+      "measurements": [],
+      "goals": [],
+      "water": {
+        "date": "2026-07-18",
+        "count": 0
+      },
+      "settings": {
+        "plateInventory": {
+          "5": {
+            "enabled": true,
+            "count": ""
+          },
+          "10": {
+            "enabled": true,
+            "count": ""
+          },
+          "15": {
+            "enabled": true,
+            "count": ""
+          },
+          "20": {
+            "enabled": true,
+            "count": ""
+          },
+          "25": {
+            "enabled": true,
+            "count": ""
+          },
+          "2.5": {
+            "enabled": true,
+            "count": ""
+          },
+          "1.25": {
+            "enabled": true,
+            "count": ""
+          },
+          "0.5": {
+            "enabled": false,
+            "count": ""
+          }
+        }
+      },
+      "theme": "dark",
+      "createdAt": "2026-07-18T19:14:46.193Z"
+    }
+  },
   "ranking": {}
 }
