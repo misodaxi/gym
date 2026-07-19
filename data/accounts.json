@@ -22,7 +22,7 @@
     "sleep": [],
     "water": {
       "date": "2026-07-19",
-      "count": 1
+      "count": 0
     },
     "settings": {
       "plateInventory": {
@@ -43,7 +43,7 @@
           "count": ""
         },
         "25": {
-          "enabled": true,
+          "enabled": false,
           "count": ""
         },
         "2.5": {
@@ -59,7 +59,7 @@
           "count": ""
         }
       },
-      "kcalGoal": 2200,
+      "kcalGoal": 2651,
       "stepsGoal": 10000,
       "waterServingMl": 300,
       "waterGoalMl": 3000
