@@ -1,23 +1,7 @@
 {
   "1": {
     "password": "1e216a7d57c1f23cb79e460a8916448b3d5615b1dc777a3ec72dfcaf199ce15e",
-    "history": [
-      {
-        "date": "19/7/2026, 22:36:29",
-        "gender": "male",
-        "bodyWeight": 90,
-        "benchPress": 200,
-        "benchReps": 1,
-        "squat": 200,
-        "squatReps": 1,
-        "deadlift": 200,
-        "deadliftReps": 1,
-        "wilksScore": 395.8681667581557,
-        "dotsScore": 400.9571737123019,
-        "level": "Avanzado",
-        "total1RM": 620.0999999999999
-      }
-    ],
+    "history": [],
     "workouts": [
       {
         "id": 1784493243615,
@@ -81,9 +65,9 @@
       "waterGoalMl": 3000
     },
     "profile": {
-      "age": null,
-      "heightCm": null,
-      "weightKg": null,
+      "age": 19,
+      "heightCm": 160,
+      "weightKg": 80,
       "bio": "",
       "isPublic": true
     },
