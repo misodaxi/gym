@@ -7,8 +7,8 @@
       "measurements": [],
       "goals": [],
       "water": {
-        "date": "2026-07-18",
-        "count": 0
+        "date": "2026-07-19",
+        "count": 1
       },
       "settings": {
         "plateInventory": {
@@ -47,7 +47,11 @@
         }
       },
       "theme": "dark",
-      "createdAt": "2026-07-18T19:14:46.193Z"
+      "createdAt": "2026-07-18T19:14:46.193Z",
+      "progressPhotos": [],
+      "profile": {
+        "avatar": null
+      }
     }
   },
   "ranking": {}
