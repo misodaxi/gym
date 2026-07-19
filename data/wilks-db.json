@@ -216,6 +216,64 @@
           "hours": 6
         }
       ]
+    },
+    "huevo": {
+      "password": "396d65bcec625cc90f802d163a15d8c116846b3175fdfb3c4839dd7f2c1011eb",
+      "history": [],
+      "workouts": [],
+      "measurements": [],
+      "goals": [],
+      "progressPhotos": [],
+      "nutrition": [],
+      "steps": [],
+      "sleep": [],
+      "water": {
+        "date": "2026-07-19",
+        "count": 0
+      },
+      "settings": {
+        "plateInventory": {
+          "5": {
+            "enabled": true,
+            "count": ""
+          },
+          "10": {
+            "enabled": true,
+            "count": ""
+          },
+          "15": {
+            "enabled": true,
+            "count": ""
+          },
+          "20": {
+            "enabled": true,
+            "count": ""
+          },
+          "25": {
+            "enabled": true,
+            "count": ""
+          },
+          "2.5": {
+            "enabled": true,
+            "count": ""
+          },
+          "1.25": {
+            "enabled": true,
+            "count": ""
+          },
+          "0.5": {
+            "enabled": false,
+            "count": ""
+          }
+        },
+        "kcalGoal": 2200,
+        "stepsGoal": 10000
+      },
+      "profile": {
+        "avatar": null
+      },
+      "theme": "dark",
+      "createdAt": "2026-07-19T01:06:50.811Z"
     }
   },
   "ranking": {},
