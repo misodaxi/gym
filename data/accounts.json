@@ -95,5 +95,68 @@
     },
     "theme": "dark",
     "createdAt": "2026-07-19T20:31:49.947Z"
+  },
+  "misodaxi": {
+    "password": "8b73227dfc0cea11dfef929d91274da093a02fd8ec345c09f85756cf7cbc05ce",
+    "history": [],
+    "workouts": [],
+    "measurements": [],
+    "goals": [],
+    "nutrition": [],
+    "steps": [],
+    "sleep": [],
+    "water": {
+      "date": "2026-07-19",
+      "count": 0
+    },
+    "settings": {
+      "plateInventory": {
+        "5": {
+          "enabled": true,
+          "count": ""
+        },
+        "10": {
+          "enabled": true,
+          "count": ""
+        },
+        "15": {
+          "enabled": true,
+          "count": ""
+        },
+        "20": {
+          "enabled": true,
+          "count": ""
+        },
+        "25": {
+          "enabled": true,
+          "count": ""
+        },
+        "2.5": {
+          "enabled": true,
+          "count": ""
+        },
+        "1.25": {
+          "enabled": true,
+          "count": ""
+        },
+        "0.5": {
+          "enabled": false,
+          "count": ""
+        }
+      },
+      "kcalGoal": 2200,
+      "stepsGoal": 10000,
+      "waterServingMl": 250,
+      "waterGoalMl": 2000
+    },
+    "profile": {
+      "age": null,
+      "heightCm": null,
+      "weightKg": null,
+      "bio": "",
+      "isPublic": true
+    },
+    "theme": "dark",
+    "createdAt": "2026-07-19T21:06:00.001Z"
   }
 }
