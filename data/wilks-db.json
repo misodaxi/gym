@@ -3,12 +3,22 @@
     "1": {
       "password": "6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b",
       "history": [],
-      "workouts": [],
+      "workouts": [
+        {
+          "id": 1784419626708,
+          "date": "2026-07-19",
+          "exercise": "sentadilla",
+          "weight": 300,
+          "reps": 1,
+          "sets": 1,
+          "notes": ""
+        }
+      ],
       "measurements": [],
       "goals": [],
       "water": {
         "date": "2026-07-19",
-        "count": 1
+        "count": 7
       },
       "settings": {
         "plateInventory": {
