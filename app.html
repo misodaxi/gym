@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Wilks Pro — Suite de Fuerza</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23141419'/%3E%3Cline x1='10' y1='32' x2='54' y2='32' stroke='%23d4af37' stroke-width='4'/%3E%3Crect x='6' y='24' width='7' height='16' rx='2' fill='%23b7a1ff'/%3E%3Crect x='51' y='24' width='7' height='16' rx='2' fill='%23b7a1ff'/%3E%3Crect x='16' y='19' width='7' height='26' rx='2' fill='%23d4af37'/%3E%3Crect x='41' y='19' width='7' height='26' rx='2' fill='%23d4af37'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+<datalist id="exerciseList"></datalist>
+
+<div id="appScreen" class="hidden">
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="mark">
+        <svg class="ic" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#d4af37" stroke-width="2" stroke-linecap="round"><line x1="2" y1="12" x2="22" y2="12"></line><rect x="2" y="9" width="3" height="6" rx="1"></rect><rect x="19" y="9" width="3" height="6" rx="1"></rect><rect x="6" y="7" width="3" height="10" rx="1"></rect><rect x="15" y="7" width="3" height="10" rx="1"></rect></svg>
+      </div>
+      <div><div class="name">Wilks Pro</div><div class="tag">Suite de fuerza</div></div>
+    </div>
+    <nav class="side-nav">
+      <button class="side-link active" data-tab="dashboard" onclick="showTab('dashboard')">
+        <svg class="ic" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"></rect><rect x="14" y="3" width="7" height="7" rx="1"></rect><rect x="3" y="14" width="7" height="7" rx="1"></rect><rect x="14" y="14" width="7" height="7" rx="1"></rect></svg>
+        Panel
+      </button>
+      <button class="side-link" data-tab="calculators" onclick="showTab('calculators')">
+        <svg class="ic" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="2"></rect><line x1="8" y1="6" x2="16" y2="6"></line><line x1="8" y1="12" x2="8" y2="12"></line><line x1="12" y1="12" x2="12" y2="12"></line><line x1="16" y1="12" x2="16" y2="12"></line><line x1="8" y1="16" x2="8" y2="16"></line><line x1="12" y1="16" x2="12" y2="16"></line><line x1="16" y1="16" x2="16" y2="19"></line></svg>
+        Calculadoras
+      </button>
+      <button class="side-link" data-tab="training" onclick="showTab('training')">
+        <svg class="ic" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="4" width="14" height="17" rx="2"></rect><rect x="9" y="2" width="6" height="4" rx="1"></rect><line x1="8" y1="11" x2="16" y2="11"></line><line x1="8" y1="15" x2="16" y2="15"></line><line x1="8" y1="19" x2="13" y2="19"></line></svg>
+        Entrenamiento
+      </button>
+      <button class="side-link" data-tab="health" onclick="showTab('health')">
+        <svg class="ic" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-4.35-9.5-8.5C.7 8.6 3 4.5 7 4.5c2 0 3.6 1.4 5 3.3 1.4-1.9 3-3.3 5-3.3 4 0 6.3 4.1 4.5 8-2.5 4.15-9.5 8.5-9.5 8.5Z"></path></svg>
+        Salud
+      </button>
+      <button class="side-link" data-tab="progress" onclick="showTab('progress')">
+        <svg class="ic" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 17 9 11 13 15 21 6"></polyline><polyline points="15 6 21 6 21 12"></polyline></svg>
+        Progreso
+      </button>
+      <button class="side-link" data-tab="community" onclick="showTab('community')">
+        <svg class="ic" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.2"></circle><path d="M2.5 20a6.5 6.5 0 0 1 13 0"></path><circle cx="17.5" cy="9" r="2.6"></circle><path d="M15 12.2a5.2 5.2 0 0 1 6.5 5"></path></svg>
+        Comunidad
+      </button>
+      <button class="side-link" data-tab="ranking" onclick="showTab('ranking')">
+        <svg class="ic" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 21h8"></path><path d="M12 17v4"></path><path d="M7 4h10v5a5 5 0 0 1-10 0V4Z"></path><path d="M17 5h3a2 2 0 0 1-2 4h-1"></path><path d="M7 5H4a2 2 0 0 0 2 4h1"></path></svg>
+        Ranking
+      </button>
+      <button class="side-link" data-tab="settings" onclick="showTab('settings')">
+        <svg class="ic" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1 1.55V21a2 2 0 0 1-4 0v-.09A1.7 1.7 0 0 0 9 19.4a1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-1.55-1H3a2 2 0 0 1 0-4h.09A1.7 1.7 0 0 0 4.6 9a1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.7 1.7 0 0 0 9 4.6a1.7 1.7 0 0 0 1-1.55V3a2 2 0 0 1 4 0v.09a1.7 1.7 0 0 0 1 1.55 1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.7 1.7 0 0 0 19.4 9a1.7 1.7 0 0 0 1.55 1H21a2 2 0 0 1 0 4h-.09a1.7 1.7 0 0 0-1.51 1Z"></path></svg>
+        Ajustes
+      </button>
+    </nav>
+    <div class="sidebar-footer">
+      <button class="side-link" onclick="logout()">
+        <svg class="ic" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+        Cerrar sesión
+      </button>
+    </div>
+  </aside>
+
+  <div class="main-area">
+    <div class="topbar">
+      <div class="topbar-title" id="pageTitle">Panel</div>
+      <div class="topbar-actions">
+        <span class="chip" id="syncChip">Modo local</span>
+        <span class="chip" id="streakChip">0 días</span>
+        <span class="chip" id="userChip">—</span>
+        <label class="switch" title="Modo claro">
+          <input type="checkbox" id="themeToggle" onchange="toggleTheme()">
+          <span class="slider-toggle"></span>
+        </label>
+      </div>
+    </div>
+
+    <div class="content">
+      <!-- ---------- DASHBOARD ---------- -->
+      <div class="tab-panel active" id="tab-dashboard">
+        <div class="panel-card"><h2>Resumen</h2><div class="grid grid-4" id="dashboardStats"></div></div>
+        <div class="panel-card"><h2>Evolución de Wilks</h2><canvas id="dashboardChart" height="100"></canvas></div>
+        <div class="grid grid-2">
+          <div class="panel-card"><h2>Agua de hoy</h2><div id="waterWidget"></div></div>
+          <div class="panel-card"><h2>Logros recientes</h2><div id="dashboardBadges"></div></div>
+        </div>
+      </div>
+
+      <!-- ---------- CALCULATORS ---------- -->
+      <div class="tab-panel" id="tab-calculators">
+        <div class="subtab-bar">
+          <button class="subtab-btn active" data-sub="calc-wilks" onclick="showSub('calc-wilks')">Wilks / DOTS</button>
+          <button class="subtab-btn" data-sub="calc-1rm" onclick="showSub('calc-1rm')">1RM</button>
+          <button class="subtab-btn" data-sub="calc-plates" onclick="showSub('calc-plates')">Discos</button>
+          <button class="subtab-btn" data-sub="calc-bmi" onclick="showSub('calc-bmi')">IMC</button>
+          <button class="subtab-btn" data-sub="calc-bf" onclick="showSub('calc-bf')">% Grasa</button>
+          <button class="subtab-btn" data-sub="calc-tdee" onclick="showSub('calc-tdee')">TDEE / Macros</button>
+        </div>
+        <div class="sub-panel active" id="sub-calc-wilks">
+          <div class="panel-card">
+            <h2>Calculadora de Wilks / DOTS</h2>
+            <form id="wilksForm">
+              <label for="gender">Género</label>
+              <select id="gender"><option value="male">Hombre</option><option value="female">Mujer</option></select>
+              <label for="bodyWeight">Peso corporal (kg)</label>
+              <input type="number" id="bodyWeight" placeholder="kg">
+              <label>Press de banca</label>
+              <div class="input-group"><input type="number" id="benchPress" placeholder="kg"><input type="number" id="benchReps" placeholder="reps" min="1" style="max-width:100px;"></div>
+              <label>Sentadilla</label>
+              <div class="input-group"><input type="number" id="squat" placeholder="kg"><input type="number" id="squatReps" placeholder="reps" min="1" style="max-width:100px;"></div>
+              <label>Peso muerto</label>
+              <div class="input-group"><input type="number" id="deadlift" placeholder="kg"><input type="number" id="deadliftReps" placeholder="reps" min="1" style="max-width:100px;"></div>
+              <div class="button-group">
+                <button type="button" class="flex1" onclick="calculateWilks()">Calcular y guardar</button>
+                <button type="button" class="flex1 ghost" onclick="resetForm()">Limpiar</button>
+              </div>
+            </form>
+            <div id="result" class="result hidden"></div>
+            <h3>Niveles de Wilks</h3>
+            <table><thead><tr><th>Nivel</th><th>Puntaje</th></tr></thead>
+              <tbody><tr><td>Principiante</td><td>120</td></tr><tr><td>Novato</td><td>200</td></tr><tr><td>Intermedio</td><td>238</td></tr><tr><td>Avanzado</td><td>326</td></tr><tr><td>Élite</td><td>414</td></tr></tbody>
+            </table>
+            <p class="muted">Escala de referencia orientativa, no es un estándar oficial de la IPF.</p>
+          </div>
+        </div>
+        <div class="sub-panel" id="sub-calc-1rm">
+          <div class="panel-card">
+            <h2>Calculadora de 1RM</h2>
+            <label>Peso levantado (kg)</label><input type="number" id="rmWeight" placeholder="kg">
+            <label>Repeticiones realizadas</label><input type="number" id="rmReps" placeholder="reps" min="1" max="30">
+            <div class="button-group"><button class="flex1" onclick="calcStandalone1RM()">Calcular 1RM</button></div>
+            <div id="rmResult" class="result hidden"></div>
+            <div id="rmTable"></div>
+          </div>
+        </div>
+        <div class="sub-panel" id="sub-calc-plates">
+          <div class="panel-card">
+            <h2>Inventario de discos de tu gym</h2>
+            <p class="muted">Selecciona los discos disponibles y, si quieres limitar la cantidad por lado, indica cuántos hay (déjalo vacío para ilimitado).</p>
+            <div id="plateInventoryForm"></div>
+            <div class="button-group"><button class="flex1 ghost" onclick="savePlateInventory()">Guardar inventario</button></div>
+          </div>
+          <div class="panel-card">
+            <h2>Calculadora de discos</h2>
+            <p class="muted">Vista de perfil: los discos se muestran como se verían mirando la barra de lado, apilados por orden de tamaño.</p>
+            <div class="grid grid-2">
+              <div><label>Peso objetivo total (kg)</label><input type="number" id="plateTarget" placeholder="kg"></div>
+              <div><label>Peso de la barra (kg)</label><input type="number" id="plateBar" value="20"></div>
+            </div>
+            <div class="button-group"><button class="flex1" onclick="calcPlates()">Calcular carga</button></div>
+            <div id="plateResult"></div>
+            <div class="barbell-row" id="plateViz"></div>
+            <div class="plate-legend" id="plateLegend"></div>
+          </div>
+        </div>
+        <div class="sub-panel" id="sub-calc-bmi">
+          <div class="panel-card">
+            <h2>Índice de masa corporal (IMC)</h2>
+            <div class="grid grid-2"><div><label>Peso (kg)</label><input type="number" id="bmiWeight"></div><div><label>Altura (cm)</label><input type="number" id="bmiHeight"></div></div>
+            <div class="button-group"><button class="flex1" onclick="calcBMI()">Calcular IMC</button></div>
+            <div id="bmiResult" class="result hidden"></div>
+          </div>
+        </div>
+        <div class="sub-panel" id="sub-calc-bf">
+          <div class="panel-card">
+            <h2>Porcentaje de grasa corporal — método Navy</h2>
+            <select id="bfGender" style="margin-bottom:10px;"><option value="male">Hombre</option><option value="female">Mujer</option></select>
+            <div class="grid grid-2">
+              <div><label>Altura (cm)</label><input type="number" id="bfHeight"></div>
+              <div><label>Cuello (cm)</label><input type="number" id="bfNeck"></div>
+              <div><label>Cintura (cm)</label><input type="number" id="bfWaist"></div>
+              <div id="bfHipWrap"><label>Cadera (cm) — solo mujeres</label><input type="number" id="bfHip"></div>
+            </div>
+            <div class="button-group"><button class="flex1" onclick="calcBodyFat()">Calcular % grasa</button></div>
+            <div id="bfResult" class="result hidden"></div>
+          </div>
+        </div>
+        <div class="sub-panel" id="sub-calc-tdee">
+          <div class="panel-card">
+            <h2>TDEE y macronutrientes</h2>
+            <div class="grid grid-2">
+              <div><label>Género</label><select id="tdeeGender"><option value="male">Hombre</option><option value="female">Mujer</option></select></div>
+              <div><label>Edad</label><input type="number" id="tdeeAge"></div>
+              <div><label>Peso (kg)</label><input type="number" id="tdeeWeight"></div>
+              <div><label>Altura (cm)</label><input type="number" id="tdeeHeight"></div>
+              <div><label>Actividad</label>
+                <select id="tdeeActivity">
+                  <option value="1.2">Sedentario</option><option value="1.375">Ligera (1-3 días/sem)</option>
+                  <option value="1.55" selected>Moderada (3-5 días/sem)</option><option value="1.725">Alta (6-7 días/sem)</option><option value="1.9">Muy alta (atleta)</option>
+                </select>
+              </div>
+              <div><label>Objetivo</label>
+                <select id="tdeeGoal"><option value="0">Mantener peso</option><option value="-0.2">Déficit (perder grasa)</option><option value="0.15">Superávit (ganar masa)</option></select>
+              </div>
+            </div>
+            <div class="button-group"><button class="flex1" onclick="calcTDEE()">Calcular</button></div>
+            <div id="tdeeResult" class="result hidden"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ---------- TRAINING ---------- -->
+      <div class="tab-panel" id="tab-training">
+        <div class="subtab-bar">
+          <button class="subtab-btn active" data-sub="tr-log" onclick="showSub('tr-log')">Registro</button>
+          <button class="subtab-btn" data-sub="tr-pr" onclick="showSub('tr-pr')">Récords (PRs)</button>
+          <button class="subtab-btn" data-sub="tr-compare" onclick="showSub('tr-compare')">Comparar</button>
+          <button class="subtab-btn" data-sub="tr-timer" onclick="showSub('tr-timer')">Temporizador</button>
+        </div>
+        <div class="sub-panel active" id="sub-tr-log">
+          <div class="panel-card">
+            <h2>Registrar sesión</h2>
+            <p class="muted">Los ejercicios son categorías abiertas: escribe uno nuevo o elige uno ya creado por la comunidad para que tus marcas se puedan comparar.</p>
+            <div class="grid grid-2">
+              <div><label>Fecha</label><input type="date" id="wkDate"></div>
+              <div><label>Ejercicio</label><input type="text" id="wkExercise" list="exerciseList" placeholder="Ej: Sentadilla"></div>
+              <div><label>Peso (kg)</label><input type="number" id="wkWeight"></div>
+              <div><label>Reps x series</label><div class="input-group"><input type="number" id="wkReps" placeholder="reps" min="1" max="30"><input type="number" id="wkSets" placeholder="series" min="1" value="1"></div></div>
+            </div>
+            <label>Notas</label><textarea id="wkNotes" placeholder="Sensaciones, RPE, técnica..."></textarea>
+            <label>Foto o vídeo (opcional, hasta 3 min / 20 MB)</label>
+            <div class="upload-control">
+              <input type="file" id="wkMedia" accept="image/*,video/*" onchange="handleWkFileSelected(event)">
+              <button type="button" onclick="document.getElementById('wkMedia').click()"><svg class="ic" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21V9"></path><polyline points="7 13 12 8 17 13"></polyline><path d="M5 20h14"></path></svg> Subir archivo</button>
+              <button type="button" onclick="openCameraModal('workoutMedia', true)"><svg class="ic" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2Z"></path><circle cx="12" cy="13" r="4"></circle></svg> Usar cámara</button>
+            </div>
+            <div id="wkMediaPreview"></div>
+            <label>o enlace a un vídeo (YouTube, TikTok, Instagram...)</label>
+            <input type="text" id="wkVideoLink" placeholder="https://...">
+            <p class="muted">Los archivos subidos o grabados admiten imágenes o clips cortos (hasta 20 MB). Para vídeos largos o en alta resolución, pega mejor un enlace.</p>
+            <div class="button-group"><button class="flex1" onclick="addWorkout()">Guardar sesión</button></div>
+          </div>
+          <div class="panel-card">
+            <div class="row" style="justify-content:space-between; margin-bottom:10px;">
+              <h2 style="margin:0;">Historial de entrenamientos</h2>
+              <input type="text" id="wkFilter" placeholder="Filtrar por ejercicio" oninput="renderWorkouts()" style="max-width:220px; margin:0;">
+            </div>
+            <div id="workoutList"><p class="muted">Aún no hay sesiones registradas.</p></div>
+          </div>
+        </div>
+        <div class="sub-panel" id="sub-tr-pr">
+          <div class="panel-card">
+            <h2>Récords personales estimados</h2>
+            <p class="muted">1RM estimado con la fórmula de Epley a partir de tu registro de entrenamientos.</p>
+            <div id="prBoard"><p class="muted">Registra sesiones para ver tus récords.</p></div>
+          </div>
+        </div>
+        <div class="sub-panel" id="sub-tr-compare">
+          <div class="panel-card">
+            <h2>Comparar ejercicio con la comunidad</h2>
+            <p class="muted">Escribe o elige un ejercicio de la lista compartida y compara tu mejor 1RM estimado con el de otros usuarios de tu misma base de datos.</p>
+            <label>Ejercicio</label><input type="text" id="compareExercise" list="exerciseList" placeholder="Ej: Sentadilla">
+            <div class="button-group"><button class="flex1" onclick="loadExerciseLeaderboard()">Ver comparativa</button></div>
+            <div id="exerciseLeaderboard"></div>
+          </div>
+        </div>
+        <div class="sub-panel" id="sub-tr-timer">
+          <div class="panel-card">
+            <h2>Temporizador de descanso</h2>
+            <div class="row">
+              <button class="small ghost" onclick="setTimerPreset(60)">60s</button>
+              <button class="small ghost" onclick="setTimerPreset(90)">90s</button>
+              <button class="small ghost" onclick="setTimerPreset(120)">120s</button>
+              <button class="small ghost" onclick="setTimerPreset(180)">180s</button>
+              <input type="number" id="customTimerSeconds" placeholder="Personalizado (s)" style="max-width:160px; margin:0;">
+              <button class="small ghost" onclick="setTimerPreset(null)">Usar valor</button>
+            </div>
+            <div class="timer-display" id="timerDisplay">01:30</div>
+            <div class="button-group" style="justify-content:center;">
+              <button onclick="startTimer()"><svg class="ic" width="15" height="15" viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="6 4 20 12 6 20 6 4"></polygon></svg> Iniciar</button>
+              <button class="ghost" onclick="pauseTimer()"><svg class="ic" width="15" height="15" viewBox="0 0 24 24" fill="currentColor" stroke="none"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg> Pausar</button>
+              <button class="ghost" onclick="resetTimer()"><svg class="ic" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-3-6.7"></path><polyline points="21 3 21 9 15 9"></polyline></svg> Reiniciar</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ---------- HEALTH ---------- -->
+      <div class="tab-panel" id="tab-health">
+        <div class="subtab-bar">
+          <button class="subtab-btn active" data-sub="hl-nutrition" onclick="showSub('hl-nutrition')">Nutrición</button>
+          <button class="subtab-btn" data-sub="hl-steps" onclick="showSub('hl-steps')">Pasos</button>
+          <button class="subtab-btn" data-sub="hl-sleep" onclick="showSub('hl-sleep')">Sueño</button>
+        </div>
+        <div class="sub-panel active" id="sub-hl-nutrition">
+          <div class="panel-card">
+            <h2>Registrar alimento</h2>
+            <div class="grid grid-2">
+              <div><label>Fecha</label><input type="date" id="nutDate"></div>
+              <div><label>Alimento</label><input type="text" id="nutName" placeholder="Ej: Pollo a la plancha"></div>
+              <div><label>Calorías (kcal)</label><input type="number" id="nutKcal"></div>
+              <div><label>Proteína (g)</label><input type="number" id="nutProtein"></div>
+              <div><label>Carbohidratos (g)</label><input type="number" id="nutCarbs"></div>
+              <div><label>Grasa (g)</label><input type="number" id="nutFat"></div>
+            </div>
+            <div class="button-group"><button class="flex1" onclick="addNutritionLog()">Añadir</button></div>
+          </div>
+          <div class="panel-card">
+            <div class="row" style="justify-content:space-between;"><h2 style="margin:0;">Hoy</h2><button class="small ghost" onclick="setKcalGoalPrompt()">Cambiar objetivo</button></div>
+            <div id="nutritionToday"></div>
+          </div>
+          <div class="panel-card"><h2>Últimos 7 días</h2><canvas id="nutritionChart" height="90"></canvas></div>
+        </div>
+        <div class="sub-panel" id="sub-hl-steps">
+          <div class="panel-card">
+            <div class="row" style="justify-content:space-between;"><h2 style="margin:0;">Pasos de hoy</h2><button class="small ghost" onclick="setStepsGoalPrompt()">Cambiar objetivo</button></div>
+            <div id="stepsToday"></div>
+            <div class="row" style="margin-top:14px;"><input type="number" id="stepsInput" placeholder="Añadir pasos" style="max-width:180px; margin:0;"><button class="ghost" onclick="addSteps()">Añadir</button></div>
+          </div>
+          <div class="panel-card"><h2>Últimos 7 días</h2><canvas id="stepsChart" height="90"></canvas></div>
+        </div>
+        <div class="sub-panel" id="sub-hl-sleep">
+          <div class="panel-card">
+            <h2>Registrar sueño</h2>
+            <div class="grid grid-2"><div><label>Fecha</label><input type="date" id="sleepDate"></div><div><label>Horas dormidas</label><input type="number" id="sleepHours" step="0.5"></div></div>
+            <div class="button-group"><button class="flex1" onclick="saveSleepLog()">Guardar</button></div>
+          </div>
+          <div class="panel-card"><h2>Historial reciente</h2><div id="sleepHistory"></div></div>
+        </div>
+      </div>
+
+      <!-- ---------- PROGRESS ---------- -->
+      <div class="tab-panel" id="tab-progress">
+        <div class="subtab-bar">
+          <button class="subtab-btn active" data-sub="pr-measure" onclick="showSub('pr-measure')">Medidas</button>
+          <button class="subtab-btn" data-sub="pr-photos" onclick="showSub('pr-photos')">Fotos</button>
+          <button class="subtab-btn" data-sub="pr-goals" onclick="showSub('pr-goals')">Objetivos</button>
+          <button class="subtab-btn" data-sub="pr-badges" onclick="showSub('pr-badges')">Logros</button>
+        </div>
+        <div class="sub-panel active" id="sub-pr-measure">
+          <div class="panel-card">
+            <h2>Añadir medidas corporales</h2>
+            <div class="grid grid-3">
+              <div><label>Fecha</label><input type="date" id="mDate"></div>
+              <div><label>Peso (kg)</label><input type="number" id="mWeight"></div>
+              <div><label>Cintura (cm)</label><input type="number" id="mWaist"></div>
+              <div><label>Pecho (cm)</label><input type="number" id="mChest"></div>
+              <div><label>Brazo (cm)</label><input type="number" id="mArm"></div>
+              <div><label>Muslo (cm)</label><input type="number" id="mThigh"></div>
+            </div>
+            <div class="button-group"><button class="flex1" onclick="addMeasurement()">Guardar medidas</button></div>
+          </div>
+          <div class="panel-card">
+            <h2>Evolución</h2>
+            <select id="measureMetric" onchange="renderMeasurementChart()" style="max-width:220px; margin-bottom:12px;">
+              <option value="weight">Peso</option><option value="waist">Cintura</option><option value="chest">Pecho</option><option value="arm">Brazo</option><option value="thigh">Muslo</option>
+            </select>
+            <canvas id="measureChart" height="100"></canvas>
+            <div id="measureHistory"></div>
+          </div>
+        </div>
+        <div class="sub-panel" id="sub-pr-photos">
+          <div class="panel-card">
+            <h2>Añadir foto de progreso</h2>
+            <div class="grid grid-2"><div><label>Fecha</label><input type="date" id="photoDate"></div><div><label>Nota</label><input type="text" id="photoNote" placeholder="Ej: Semana 4"></div></div>
+            <div class="upload-control">
+              <input type="file" id="photoFile" accept="image/*" onchange="stagePhoto(event)">
+              <button type="button" onclick="document.getElementById('photoFile').click()"><svg class="ic" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21V9"></path><polyline points="7 13 12 8 17 13"></polyline><path d="M5 20h14"></path></svg> Subir foto</button>
+              <button type="button" onclick="openCameraModal('progressPhoto', false)"><svg class="ic" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2Z"></path><circle cx="12" cy="13" r="4"></circle></svg> Usar cámara</button>
+            </div>
+            <p class="muted">Las fotos se comprimen automáticamente antes de guardarse en tu base de datos.</p>
+          </div>
+          <div class="panel-card"><h2>Galería de progreso</h2><div class="photo-grid" id="photoGallery"></div></div>
+        </div>
+        <div class="sub-panel" id="sub-pr-goals">
+          <div class="panel-card">
+            <h2>Nuevo objetivo</h2>
+            <div class="grid grid-2">
+              <div><label>Descripción</label><input type="text" id="goalDesc" placeholder="Ej: Sentadilla 100 kg"></div>
+              <div><label>Unidad</label><input type="text" id="goalUnit" placeholder="Ej: kg, %, cm"></div>
+              <div><label>Valor actual</label><input type="number" id="goalCurrent"></div>
+              <div><label>Valor objetivo</label><input type="number" id="goalTarget"></div>
+            </div>
+            <div class="button-group"><button class="flex1" onclick="addGoal()">Crear objetivo</button></div>
+          </div>
+          <div class="panel-card"><h2>Mis objetivos</h2><div id="goalList"><p class="muted">Todavía no has creado objetivos.</p></div></div>
+        </div>
+        <div class="sub-panel" id="sub-pr-badges"><div class="panel-card"><h2>Logros</h2><div id="achievementList"></div></div></div>
+      </div>
+
+      <!-- ---------- COMMUNITY ---------- -->
+      <div class="tab-panel" id="tab-community">
+        <div class="panel-card">
+          <h2>Perfiles públicos</h2>
+          <p class="muted">Explora los perfiles de otros usuarios de tu base de datos compartida, apóyalos y comenta.</p>
+          <div id="communityGrid"><p class="muted">Cargando...</p></div>
+        </div>
+        <div class="panel-card hidden" id="communityDetail"></div>
+      </div>
+
+      <!-- ---------- RANKING ---------- -->
+      <div class="tab-panel" id="tab-ranking">
+        <div class="panel-card">
+          <h2>Ranking global</h2>
+          <p class="muted">Tu mejor puntaje de Wilks y DOTS se comparte con el resto de usuarios de tu base de datos compartida para el ranking.</p>
+          <div class="button-group"><button class="flex1" onclick="loadRanking()">Actualizar ranking</button></div>
+          <div id="rankingList"></div>
+        </div>
+      </div>
+
+      <!-- ---------- SETTINGS ---------- -->
+      <div class="tab-panel" id="tab-settings">
+        <div class="subtab-bar">
+          <button class="subtab-btn active" data-sub="set-sync" onclick="showSub('set-sync')">Sincronización</button>
+          <button class="subtab-btn" data-sub="set-profile" onclick="showSub('set-profile')">Perfil</button>
+          <button class="subtab-btn" data-sub="set-appearance" onclick="showSub('set-appearance')">Apariencia</button>
+          <button class="subtab-btn" data-sub="set-data" onclick="showSub('set-data')">Datos</button>
+          <button class="subtab-btn" data-sub="set-danger" onclick="showSub('set-danger')">Cuenta</button>
+        </div>
+        <div class="sub-panel active" id="sub-set-sync">
+          <div class="panel-card">
+            <h2>Base de datos compartida (GitHub)</h2>
+            <div class="status-bar" style="margin-bottom:16px;"><span class="status-dot off" id="settingsStatusDot"></span><span id="settingsStatusText">Modo local</span></div>
+            <div id="ghSettingsSummary" class="muted" style="margin-bottom:14px;"></div>
+            <div class="button-group">
+              <button class="flex1 ghost" onclick="goEditConnection()">Editar conexión</button>
+              <button class="flex1 ghost" onclick="syncNow()">Sincronizar ahora</button>
+            </div>
+            <p class="muted" style="margin-top:14px;">Configura el mismo repositorio y token en cada dispositivo para compartir cuentas, ranking y progreso entre ellos. Los datos se guardan en varios archivos: <code>accounts.json</code>, <code>media.json</code>, <code>ranking.json</code>, <code>exercises.json</code>, <code>social.json</code>.</p>
+          </div>
+        </div>
+        <div class="sub-panel" id="sub-set-profile">
+          <div class="panel-card">
+            <h2>Foto de perfil</h2>
+            <div class="row" style="gap:16px;">
+              <div class="avatar-preview" id="avatarPreview"></div>
+              <div class="upload-control" style="margin-top:0;">
+                <input type="file" id="avatarFile" accept="image/*" onchange="uploadAvatar(event)">
+                <button type="button" onclick="document.getElementById('avatarFile').click()">Subir foto</button>
+                <button type="button" onclick="openCameraModal('avatar', false)">Usar cámara</button>
+                <button type="button" class="ghost danger" onclick="removeAvatar()">Quitar foto</button>
+              </div>
+            </div>
+          </div>
+          <div class="panel-card">
+            <h2>Datos públicos</h2>
+            <div class="grid grid-3">
+              <div><label>Edad</label><input type="number" id="profileAge"></div>
+              <div><label>Altura (cm)</label><input type="number" id="profileHeight"></div>
+              <div><label>Peso (kg)</label><input type="number" id="profileWeight"></div>
+            </div>
+            <label>Biografía</label>
+            <textarea id="profileBio" placeholder="Cuéntale algo a la comunidad..."></textarea>
+            <div class="row" style="margin-top:14px; justify-content:space-between;">
+              <span>Perfil público (visible en Comunidad)</span>
+              <label class="switch"><input type="checkbox" id="profilePublicToggle" onchange="toggleProfilePublic()"><span class="slider-toggle"></span></label>
+            </div>
+            <div class="button-group"><button class="flex1 ghost" onclick="saveProfileFields()">Guardar datos</button></div>
+          </div>
+        </div>
+        <div class="sub-panel" id="sub-set-appearance">
+          <div class="panel-card">
+            <h2>Apariencia</h2>
+            <div class="row"><span>Modo claro</span><label class="switch"><input type="checkbox" id="themeToggle2" onchange="toggleTheme()"><span class="slider-toggle"></span></label></div>
+          </div>
+        </div>
+        <div class="sub-panel" id="sub-set-data">
+          <div class="panel-card">
+            <h2>Datos</h2>
+            <p class="muted">Exporta una copia de todos tus datos o impórtalos desde un archivo previamente exportado.</p>
+            <div class="upload-control">
+              <button onclick="exportData()"><svg class="ic" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"></path><polyline points="7 11 12 16 17 11"></polyline><path d="M5 20h14"></path></svg> Exportar datos</button>
+              <input type="file" id="importFile" accept="application/json" onchange="importData(event)">
+              <button onclick="document.getElementById('importFile').click()"><svg class="ic" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21V9"></path><polyline points="7 13 12 8 17 13"></polyline><path d="M5 20h14"></path></svg> Importar datos</button>
+            </div>
+          </div>
+        </div>
+        <div class="sub-panel" id="sub-set-danger">
+          <div class="panel-card">
+            <h2>Zona de riesgo</h2>
+            <div class="button-group">
+              <button class="flex1 danger" onclick="deleteHistoryOnly()">Borrar historial de Wilks</button>
+              <button class="flex1 danger" onclick="deleteMyAccount()">Borrar mi cuenta</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <footer class="small-note">Wilks Pro — calculadoras y seguimiento de fuerza, con base de datos compartida</footer>
+    </div>
+  </div>
+
+  <nav class="mobile-nav">
+    <button class="mobile-nav-item active" data-tab="dashboard" onclick="showTab('dashboard')">
+      <svg class="ic" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"></rect><rect x="14" y="3" width="7" height="7" rx="1"></rect><rect x="3" y="14" width="7" height="7" rx="1"></rect><rect x="14" y="14" width="7" height="7" rx="1"></rect></svg>
+      Panel
+    </button>
+    <button class="mobile-nav-item" data-tab="calculators" onclick="showTab('calculators')">
+      <svg class="ic" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="2"></rect><line x1="8" y1="6" x2="16" y2="6"></line></svg>
+      Calc.
+    </button>
+    <button class="mobile-nav-item" data-tab="training" onclick="showTab('training')">
+      <svg class="ic" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="4" width="14" height="17" rx="2"></rect><rect x="9" y="2" width="6" height="4" rx="1"></rect></svg>
+      Entreno
+    </button>
+    <button class="mobile-nav-item" data-tab="health" onclick="showTab('health')">
+      <svg class="ic" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-4.35-9.5-8.5C.7 8.6 3 4.5 7 4.5c2 0 3.6 1.4 5 3.3 1.4-1.9 3-3.3 5-3.3 4 0 6.3 4.1 4.5 8-2.5 4.15-9.5 8.5-9.5 8.5Z"></path></svg>
+      Salud
+    </button>
+    <button class="mobile-nav-item" data-tab="progress" onclick="showTab('progress')">
+      <svg class="ic" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 17 9 11 13 15 21 6"></polyline></svg>
+      Progreso
+    </button>
+    <button class="mobile-nav-item" data-tab="community" onclick="showTab('community')">
+      <svg class="ic" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.2"></circle><path d="M2.5 20a6.5 6.5 0 0 1 13 0"></path></svg>
+      Gente
+    </button>
+    <button class="mobile-nav-item" data-tab="ranking" onclick="showTab('ranking')">
+      <svg class="ic" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4h10v5a5 5 0 0 1-10 0V4Z"></path></svg>
+      Ranking
+    </button>
+    <button class="mobile-nav-item" data-tab="settings" onclick="showTab('settings')">
+      <svg class="ic" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle></svg>
+      Ajustes
+    </button>
+  </nav>
+</div>
+
+<!-- Cámara -->
+<div class="camera-modal" id="cameraModal">
+  <div class="camera-modal-inner">
+    <video id="cameraPreview" autoplay playsinline muted></video>
+    <canvas id="cameraCanvas" class="hidden"></canvas>
+    <div class="camera-controls">
+      <span id="cameraTimer" class="muted"></span>
+      <button class="ghost" onclick="closeCameraModal()">Cancelar</button>
+      <button id="cameraPhotoBtn" onclick="takeCameraPhoto()">Tomar foto</button>
+      <button id="cameraVideoBtn" class="hidden" onclick="toggleCameraVideoRecording()">Grabar vídeo</button>
+    </div>
+  </div>
+</div>
+
+<div class="lightbox" id="lightbox" onclick="closeLightbox()"><img id="lightboxImg" src="" alt="Imagen ampliada"></div>
+<div class="toast-wrap" id="toastWrap"></div>
+
+<script src="storage.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
