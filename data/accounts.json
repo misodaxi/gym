@@ -98,7 +98,23 @@
   },
   "misodaxi": {
     "password": "8b73227dfc0cea11dfef929d91274da093a02fd8ec345c09f85756cf7cbc05ce",
-    "history": [],
+    "history": [
+      {
+        "date": "19/7/2026, 23:09:13",
+        "gender": "male",
+        "bodyWeight": 80,
+        "benchPress": 250,
+        "benchReps": 1,
+        "squat": 100,
+        "squatReps": 1,
+        "deadlift": 400,
+        "deadliftReps": 1,
+        "wilksScore": 529.0231375214288,
+        "dotsScore": 534.3295472725761,
+        "level": "Élite",
+        "total1RM": 774.9000000000001
+      }
+    ],
     "workouts": [],
     "measurements": [],
     "goals": [],
