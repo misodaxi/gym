@@ -115,7 +115,19 @@
         "total1RM": 774.9000000000001
       }
     ],
-    "workouts": [],
+    "workouts": [
+      {
+        "id": 1784495551255,
+        "date": "2026-07-19",
+        "exercise": "asdasd",
+        "weight": 56756,
+        "reps": 5,
+        "sets": 1,
+        "notes": "",
+        "mediaId": null,
+        "videoLink": null
+      }
+    ],
     "measurements": [],
     "goals": [],
     "nutrition": [],
@@ -166,9 +178,9 @@
       "waterGoalMl": 2000
     },
     "profile": {
-      "age": 19,
-      "heightCm": 160,
-      "weightKg": 80,
+      "age": null,
+      "heightCm": null,
+      "weightKg": null,
       "bio": "",
       "isPublic": true
     },
