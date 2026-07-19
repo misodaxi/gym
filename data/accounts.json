@@ -49,8 +49,8 @@
       },
       "kcalGoal": 2200,
       "stepsGoal": 10000,
-      "waterServingMl": 250,
-      "waterGoalMl": 2000
+      "waterServingMl": 300,
+      "waterGoalMl": 3000
     },
     "profile": {
       "age": null,
