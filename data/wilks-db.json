@@ -45,7 +45,80 @@
           "notes": ""
         }
       ],
-      "measurements": [],
+      "measurements": [
+        {
+          "date": "2026-07-19",
+          "weight": 345,
+          "waist": 345,
+          "chest": 34,
+          "arm": 4,
+          "thigh": 5
+        },
+        {
+          "date": "2026-07-19",
+          "weight": 345,
+          "waist": 345,
+          "chest": 34,
+          "arm": 4,
+          "thigh": 5
+        },
+        {
+          "date": "2026-07-19",
+          "weight": 345,
+          "waist": 345,
+          "chest": 34,
+          "arm": 4,
+          "thigh": 5
+        },
+        {
+          "date": "2026-07-19",
+          "weight": 345,
+          "waist": 345,
+          "chest": 34,
+          "arm": 4,
+          "thigh": 5
+        },
+        {
+          "date": "2026-07-19",
+          "weight": 345,
+          "waist": 345,
+          "chest": 34,
+          "arm": 4,
+          "thigh": 5
+        },
+        {
+          "date": "2026-07-19",
+          "weight": 345,
+          "waist": 345,
+          "chest": 34,
+          "arm": 4,
+          "thigh": 5
+        },
+        {
+          "date": "2026-07-19",
+          "weight": 453,
+          "waist": null,
+          "chest": null,
+          "arm": null,
+          "thigh": null
+        },
+        {
+          "date": "2026-07-19",
+          "weight": 4533,
+          "waist": null,
+          "chest": null,
+          "arm": null,
+          "thigh": null
+        },
+        {
+          "date": "2026-07-19",
+          "weight": 434,
+          "waist": null,
+          "chest": null,
+          "arm": null,
+          "thigh": null
+        }
+      ],
       "goals": [],
       "water": {
         "date": "2026-07-19",
