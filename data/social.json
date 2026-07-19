@@ -1,7 +1,9 @@
 {
   "1": {
-    "kudos": 0,
-    "kudosBy": [],
+    "kudos": 1,
+    "kudosBy": [
+      "1"
+    ],
     "comments": [
       {
         "id": 1784493357455,
