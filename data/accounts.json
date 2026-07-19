@@ -2,7 +2,19 @@
   "1": {
     "password": "1e216a7d57c1f23cb79e460a8916448b3d5615b1dc777a3ec72dfcaf199ce15e",
     "history": [],
-    "workouts": [],
+    "workouts": [
+      {
+        "id": 1784493243615,
+        "date": "2026-07-19",
+        "exercise": "asdasd",
+        "weight": 23,
+        "reps": 2,
+        "sets": 1,
+        "notes": "",
+        "mediaId": "m1784493243615",
+        "videoLink": null
+      }
+    ],
     "measurements": [],
     "goals": [],
     "nutrition": [],
@@ -31,7 +43,7 @@
           "count": ""
         },
         "25": {
-          "enabled": false,
+          "enabled": true,
           "count": ""
         },
         "2.5": {
