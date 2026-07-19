@@ -115,24 +115,34 @@
         "total1RM": 774.9000000000001
       }
     ],
-    "workouts": [
-      {
-        "id": 1784495551255,
-        "date": "2026-07-19",
-        "exercise": "asdasd",
-        "weight": 56756,
-        "reps": 5,
-        "sets": 1,
-        "notes": "",
-        "mediaId": null,
-        "videoLink": null
-      }
-    ],
+    "workouts": [],
     "measurements": [],
     "goals": [],
     "nutrition": [],
-    "steps": [],
-    "sleep": [],
+    "steps": [
+      {
+        "date": "2026-07-19",
+        "steps": 7688
+      }
+    ],
+    "sleep": [
+      {
+        "date": "2026-07-19",
+        "hours": 8
+      },
+      {
+        "date": "2026-07-18",
+        "hours": 8
+      },
+      {
+        "date": "2026-07-16",
+        "hours": 8
+      },
+      {
+        "date": "2026-07-17",
+        "hours": 8
+      }
+    ],
     "water": {
       "date": "2026-07-19",
       "count": 0
@@ -178,9 +188,9 @@
       "waterGoalMl": 2000
     },
     "profile": {
-      "age": null,
-      "heightCm": null,
-      "weightKg": null,
+      "age": 19,
+      "heightCm": 160,
+      "weightKg": 80,
       "bio": "",
       "isPublic": true
     },
