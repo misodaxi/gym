@@ -45,6 +45,7 @@
   .container{
     background:var(--panel); border:1px solid var(--border); border-radius:var(--radius); box-shadow:var(--shadow);
     width:100%; max-width:440px; padding:32px; box-sizing:border-box; text-align:left;
+    animation:fadeIn .25s ease;
   }
   .container .brand-mark{display:flex; align-items:center; gap:12px; margin-bottom:22px;}
   .container .brand-mark .mark{width:40px; height:40px; border-radius:9px; background:var(--gold-soft); display:flex; align-items:center; justify-content:center;}
@@ -68,13 +69,15 @@
     transition:background-color .15s, color .15s, border-color .15s, transform .08s;
   }
   button:hover{background:var(--btn-hover-bg); color:var(--btn-hover-text); border-color:var(--btn-hover-bg);}
-  button:active{transform:scale(0.98);}
+  button:active{transform:scale(0.97);}
   button:disabled{opacity:.5; cursor:not-allowed;}
   button.flex1{flex:1;}
   button.danger{background:var(--danger-bg); color:var(--danger); border-color:var(--danger);}
   button.danger:hover{background:var(--danger); color:#fff;}
   button.ghost{background:transparent; color:var(--text-dim); border-color:var(--border);}
   button.ghost:hover{color:var(--text); border-color:var(--text-dim); background:var(--panel-alt);}
+  button.ghost.danger{color:var(--danger); border-color:var(--danger); background:transparent;}
+  button.ghost.danger:hover{background:var(--danger-bg);}
   button.small{padding:7px 12px; font-size:.82em;}
   button.link-btn{background:transparent; border:none; color:var(--gold); padding:4px; font-weight:600;}
   button.link-btn:hover{background:transparent; color:var(--text); text-decoration:underline;}
@@ -85,19 +88,23 @@
   .muted{color:var(--text-dim); font-size:.85em;}
   code{background:var(--panel-alt2); padding:1px 6px; border-radius:4px; font-size:.88em;}
 
-  .status-bar{
-    display:flex; align-items:center; gap:8px; background:var(--panel-alt); border:1px solid var(--border);
-    border-radius:20px; padding:7px 14px; font-size:.8em; color:var(--text-dim); font-weight:600;
-  }
+  .status-bar{display:flex; align-items:center; gap:8px; background:var(--panel-alt); border:1px solid var(--border); border-radius:20px; padding:7px 14px; font-size:.8em; color:var(--text-dim); font-weight:600;}
   .status-dot{width:8px; height:8px; border-radius:50%; background:var(--text-dim);}
   .status-dot.on{background:var(--ok);}
   .status-dot.off{background:var(--danger);}
 
+  .pw-checklist{list-style:none; padding:0; margin:10px 0 0; display:flex; flex-direction:column; gap:5px;}
+  .pw-checklist li{font-size:.78em; color:var(--text-dim); display:flex; align-items:center; gap:7px; transition:color .2s;}
+  .pw-checklist li:before{content:''; width:14px; height:14px; border-radius:50%; border:1.5px solid var(--border); flex-shrink:0; transition:all .2s; background:transparent;}
+  .pw-checklist li.met{color:var(--ok);}
+  .pw-checklist li.met:before{background:var(--ok); border-color:var(--ok); box-shadow:0 0 0 3px var(--ok-soft);}
+
+  .avatar-preview{width:64px; height:64px; border-radius:50%; background:var(--panel-alt2); border:1px solid var(--border); overflow:hidden; display:flex; align-items:center; justify-content:center; flex-shrink:0; color:var(--text-dim);}
+  .avatar-preview img{width:100%; height:100%; object-fit:cover; display:block;}
+  .avatar-sm{width:20px; height:20px; border-radius:50%; object-fit:cover; margin-right:2px; vertical-align:middle;}
+
   #appScreen{display:flex; min-height:100vh;}
-  .sidebar{
-    width:236px; flex-shrink:0; background:var(--sidebar-bg); border-right:1px solid var(--border);
-    display:flex; flex-direction:column; padding:20px 14px; position:sticky; top:0; height:100vh;
-  }
+  .sidebar{width:236px; flex-shrink:0; background:var(--sidebar-bg); border-right:1px solid var(--border); display:flex; flex-direction:column; padding:20px 14px; position:sticky; top:0; height:100vh;}
   .sidebar .brand{display:flex; align-items:center; gap:10px; padding:6px 8px 22px;}
   .sidebar .brand .mark{width:34px; height:34px; border-radius:8px; background:var(--gold-soft); display:flex; align-items:center; justify-content:center;}
   .sidebar .brand .name{font-family:var(--font-display); font-weight:700; font-size:1.05em; line-height:1.1;}
@@ -120,7 +127,7 @@
   .tab-panel.active{display:block; animation:fadeIn .2s ease;}
   @keyframes fadeIn{from{opacity:0; transform:translateY(4px);} to{opacity:1; transform:none;}}
 
-  .panel-card{background:var(--panel); border:1px solid var(--border); border-radius:var(--radius); box-shadow:var(--shadow); padding:22px; margin-bottom:18px;}
+  .panel-card{background:var(--panel); border:1px solid var(--border); border-radius:var(--radius); box-shadow:var(--shadow); padding:22px; margin-bottom:18px; transition:border-color .2s;}
   h2{color:var(--text); font-size:1.08em; margin:0 0 14px; font-weight:700;}
   h3{color:var(--text); font-size:.98em; margin:16px 0 8px; font-weight:700;}
   .grid{display:grid; gap:14px;}
@@ -128,9 +135,10 @@
   .grid-3{grid-template-columns:repeat(auto-fit, minmax(150px,1fr));}
   .grid-4{grid-template-columns:repeat(auto-fit, minmax(130px,1fr));}
 
-  .stat-card{background:var(--panel-alt); border:1px solid var(--border); border-radius:var(--radius-sm); padding:16px;}
+  .stat-card{background:var(--panel-alt); border:1px solid var(--border); border-radius:var(--radius-sm); padding:16px; transition:transform .15s, border-color .15s;}
+  .stat-card:hover{transform:translateY(-2px); border-color:var(--gold);}
   .stat-card .stat-top{display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;}
-  .stat-card .stat-value{font-family:var(--font-display); font-size:1.5em; font-weight:700; color:var(--text);}
+  .stat-card .stat-value{font-family:var(--font-display); font-size:1.5em; font-weight:700; color:var(--text); font-variant-numeric:tabular-nums;}
   .stat-card .stat-label{font-size:.74em; color:var(--text-dim); text-transform:uppercase; letter-spacing:.4px;}
   .trend{display:inline-flex; align-items:center; gap:3px; font-size:.72em; font-weight:700; padding:2px 6px; border-radius:10px;}
   .trend.up{color:var(--ok); background:var(--ok-soft);}
@@ -138,13 +146,14 @@
   .trend.flat{color:var(--text-dim); background:var(--panel-alt2);}
 
   .progress-track{background:var(--panel-alt2); border-radius:20px; height:10px; overflow:hidden; border:1px solid var(--border);}
-  .progress-fill{background:var(--gold); height:100%; transition:width .4s;}
+  .progress-fill{background:var(--gold); height:100%; transition:width .5s ease;}
   .progress-fill.complete{background:var(--ok);}
 
   .badge{display:inline-flex; align-items:center; gap:7px; background:var(--panel-alt); border:1px solid var(--border); border-radius:20px; padding:7px 13px; font-size:.8em; margin:3px 4px 3px 0; font-weight:600; color:var(--text-dim);}
   .badge.locked svg{opacity:.5;}
-  .badge.unlocked{border-color:var(--gold); color:var(--text); background:var(--gold-soft);}
+  .badge.unlocked{border-color:var(--gold); color:var(--text); background:var(--gold-soft); animation:badgePop .3s ease;}
   .badge.unlocked svg{color:var(--gold);}
+  @keyframes badgePop{from{transform:scale(0.85); opacity:0;} to{transform:scale(1); opacity:1;}}
 
   .toast-wrap{position:fixed; bottom:20px; right:20px; z-index:999; display:flex; flex-direction:column; gap:8px; max-width:320px;}
   .toast{background:var(--panel); color:var(--text); padding:12px 14px; border-radius:var(--radius-sm); box-shadow:var(--shadow); border:1px solid var(--border); border-left:3px solid var(--gold); font-size:.86em; animation:slideIn .2s ease; display:flex; align-items:flex-start; gap:9px;}
@@ -156,22 +165,38 @@
   .subtab-btn.active{color:var(--gold); border-bottom-color:var(--gold); background:transparent;}
   .subtab-btn:hover{color:var(--text); background:transparent; border-color:transparent; border-bottom-color:var(--border);}
   .sub-panel{display:none;}
-  .sub-panel.active{display:block;}
+  .sub-panel.active{display:block; animation:fadeIn .2s ease;}
 
   table{width:100%; margin-top:8px; border-collapse:collapse; border-radius:8px; overflow:hidden;}
   table, th, td{border:1px solid var(--border);}
   th, td{padding:10px; text-align:center; font-size:.86em;}
   th{background:var(--panel-alt2); color:var(--text-dim); font-weight:700; text-transform:uppercase; font-size:.72em; letter-spacing:.4px;}
   tr:nth-child(even) td{background:rgba(255,255,255,0.015);}
-  .result, .card{margin-top:16px; text-align:left; background:var(--panel-alt); padding:16px; border-radius:var(--radius-sm); border:1px solid var(--border);}
+  .result, .card{margin-top:16px; text-align:left; background:var(--panel-alt); padding:16px; border-radius:var(--radius-sm); border:1px solid var(--border); animation:fadeIn .25s ease;}
   .result p{margin:6px 0;}
   .wilks-score{color:var(--gold); font-weight:700; font-family:var(--font-display);}
   .hidden{display:none !important;}
 
   .timer-display{font-family:var(--font-display); font-size:3.2em; font-weight:700; color:var(--text); text-align:center; margin:16px 0; font-variant-numeric:tabular-nums;}
   .row{display:flex; gap:10px; align-items:center; flex-wrap:wrap;}
-  .plate-viz{display:flex; align-items:center; justify-content:center; gap:3px; margin:18px 0; flex-wrap:wrap; min-height:70px;}
-  .plate{background:var(--gold); color:#181008; font-weight:700; border-radius:3px; display:flex; align-items:center; justify-content:center; font-size:.68em;}
+
+  /* Barbell / plate visualization */
+  .barbell-row{display:flex; align-items:center; gap:0; margin:20px 0; overflow-x:auto; padding:10px 0;}
+  .bar-end{width:16px; height:16px; border-radius:3px; background:var(--panel-alt2); border:1px solid var(--border); flex-shrink:0;}
+  .bar-line{flex:0 0 36px; height:9px; background:linear-gradient(180deg, var(--text-dim), var(--panel-alt2)); flex-shrink:0; border-radius:2px;}
+  .plate-stack{display:flex; align-items:center; gap:2px;}
+  .bar-collar{width:7px; height:38px; background:var(--gold); border-radius:2px; margin-left:3px; flex-shrink:0;}
+  .plate-disc{
+    border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:.62em;
+    position:relative; border:2px solid rgba(0,0,0,.35); flex-shrink:0;
+    animation:plateDropIn .35s ease both; box-shadow:inset 0 0 0 3px rgba(255,255,255,0.08);
+  }
+  .plate-hole{position:absolute; width:26%; height:26%; border-radius:50%; background:rgba(0,0,0,.35); box-shadow:inset 0 0 0 1px rgba(255,255,255,.15);}
+  @keyframes plateDropIn{from{transform:scale(0.4) translateY(-10px); opacity:0;} to{transform:none; opacity:1;}}
+  .plate-legend{display:flex; gap:10px; flex-wrap:wrap; margin-top:10px;}
+  .plate-legend-item{display:flex; align-items:center; gap:6px; font-size:.74em; color:var(--text-dim);}
+  .plate-legend-dot{width:12px; height:12px; border-radius:50%; border:1px solid rgba(0,0,0,.3); flex-shrink:0;}
+
   .list-item{background:var(--panel-alt); border:1px solid var(--border); border-radius:var(--radius-sm); padding:12px 14px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap;}
   .rank-item{background:var(--panel-alt); border:1px solid var(--border); border-radius:var(--radius-sm); padding:13px 16px; margin:8px 0; display:flex; justify-content:space-between; align-items:center; gap:12px;}
   .rank-item.top1{border-color:var(--gold);}
@@ -184,7 +209,7 @@
   .rank-scores .metric-label{font-size:.68em; color:var(--text-dim); text-transform:uppercase;}
 
   .water-row{display:flex; gap:6px; flex-wrap:wrap; margin-bottom:12px;}
-  .water-cell{width:26px; height:34px; border-radius:4px; border:1.5px solid var(--border); background:var(--panel-alt2);}
+  .water-cell{width:26px; height:34px; border-radius:4px; border:1.5px solid var(--border); background:var(--panel-alt2); transition:background .2s, border-color .2s;}
   .water-cell.filled{background:var(--gold-soft); border-color:var(--gold);}
 
   .plate-inv-row{display:flex; align-items:center; gap:10px; padding:9px 0; border-bottom:1px solid var(--border);}
@@ -192,7 +217,16 @@
   .plate-inv-row label{margin:0; text-transform:none; font-size:.9em; color:var(--text); font-weight:600; width:90px;}
   .plate-inv-row input[type="checkbox"]{width:17px; height:17px; margin:0; accent-color:var(--gold);}
   .plate-inv-row input[type="number"]{margin:0; max-width:140px;}
-  .plate-swatch{width:14px; height:26px; border-radius:2px; background:var(--gold); flex-shrink:0;}
+  .plate-swatch{width:16px; height:16px; border-radius:50%; flex-shrink:0; border:1px solid rgba(0,0,0,.3);}
+
+  .photo-grid{display:grid; grid-template-columns:repeat(auto-fill, minmax(140px,1fr)); gap:12px; margin-top:8px;}
+  .photo-card{background:var(--panel-alt); border:1px solid var(--border); border-radius:var(--radius-sm); overflow:hidden; animation:fadeIn .25s ease;}
+  .photo-card img{width:100%; height:140px; object-fit:cover; display:block; cursor:pointer; transition:transform .2s;}
+  .photo-card img:hover{transform:scale(1.04);}
+  .photo-meta{display:flex; justify-content:space-between; align-items:center; padding:8px 10px; gap:6px;}
+  .lightbox{position:fixed; inset:0; background:rgba(0,0,0,.85); display:flex; align-items:center; justify-content:center; z-index:1000; opacity:0; pointer-events:none; transition:opacity .2s; cursor:zoom-out;}
+  .lightbox.open{opacity:1; pointer-events:auto;}
+  .lightbox img{max-width:90vw; max-height:90vh; border-radius:8px; box-shadow:var(--shadow);}
 
   .switch{position:relative; display:inline-block; width:42px; height:23px; flex-shrink:0;}
   .switch input{opacity:0; width:0; height:0;}
@@ -250,7 +284,14 @@
     <label for="newUsername">Usuario</label>
     <input type="text" id="newUsername" placeholder="Elige un usuario">
     <label for="newPassword">Contraseña</label>
-    <input type="password" id="newPassword" placeholder="Elige una contraseña">
+    <input type="password" id="newPassword" placeholder="Elige una contraseña" oninput="updatePwChecklist()">
+    <ul class="pw-checklist" id="pwChecklist">
+      <li data-rule="len">Al menos 8 caracteres</li>
+      <li data-rule="upper">Una letra mayúscula</li>
+      <li data-rule="lower">Una letra minúscula</li>
+      <li data-rule="num">Un número</li>
+      <li data-rule="special">Un carácter especial</li>
+    </ul>
     <p class="msg-text" id="registrationMessage"></p>
     <div class="button-group">
       <button class="flex1" id="registerBtn" onclick="register()">Registrar</button>
@@ -259,6 +300,7 @@
     <div class="divider"></div>
     <p class="muted">Zona de administración (demo)</p>
     <div class="button-group">
+      <button class="flex1 ghost small" onclick="showScreen('admin')">Ver usuarios registrados</button>
       <button class="flex1 ghost small" onclick="openDeleteAccountsForm()">Borrar todas las cuentas</button>
     </div>
   </div>
@@ -272,6 +314,21 @@
       <button class="flex1 danger" onclick="deleteAllAccounts()">Confirmar borrado</button>
       <button class="flex1 ghost" onclick="showScreen('register')">Cancelar</button>
     </div>
+  </div>
+
+  <div class="container hidden" id="adminPanelForm" style="max-width:640px;">
+    <h1>Panel de administración</h1>
+    <p class="subtitle">Introduce la contraseña de administrador para ver los usuarios registrados.</p>
+    <div id="adminGate">
+      <label for="adminViewPassword">Contraseña de administrador</label>
+      <input type="password" id="adminViewPassword" placeholder="Contraseña">
+      <p class="error-text" id="adminViewError"></p>
+      <div class="button-group">
+        <button class="flex1" onclick="viewAllUsers()">Ver usuarios</button>
+        <button class="flex1 ghost" onclick="showScreen('register')">Volver</button>
+      </div>
+    </div>
+    <div id="adminUsersResult" class="hidden"></div>
   </div>
 
   <div class="container hidden" id="githubConfigForm" style="max-width:520px;">
@@ -288,7 +345,7 @@
     <label for="ghToken">Token de acceso personal</label>
     <input type="password" id="ghToken" placeholder="ghp_... o github_pat_...">
     <p class="muted" style="margin-top:10px;">
-      Crea un token de acceso <strong>fine-grained</strong> en GitHub limitado a este repositorio, con permiso de lectura y escritura sobre "Contents". El token se guarda únicamente en este navegador/dispositivo. Usa un repositorio <strong>privado</strong>: los datos (historiales, medidas, contraseñas cifradas) quedarán dentro del archivo JSON del repositorio.
+      Crea un token de acceso <strong>fine-grained</strong> en GitHub limitado a este repositorio, con permiso de lectura y escritura sobre "Contents". El token se guarda únicamente en este navegador/dispositivo. Usa un repositorio <strong>privado</strong>: los datos (historiales, medidas, fotos, contraseñas cifradas) quedarán dentro del archivo JSON del repositorio.
     </p>
     <p class="error-text" id="ghConfigError"></p>
     <p class="msg-text" id="ghConfigMsg"></p>
@@ -467,7 +524,8 @@
             </div>
             <div class="button-group"><button class="flex1" onclick="calcPlates()">Calcular carga</button></div>
             <div id="plateResult"></div>
-            <div class="plate-viz" id="plateViz"></div>
+            <div class="barbell-row" id="plateViz"></div>
+            <div class="plate-legend" id="plateLegend"></div>
           </div>
         </div>
 
@@ -603,6 +661,7 @@
       <div class="tab-panel" id="tab-progress">
         <div class="subtab-bar">
           <button class="subtab-btn active" data-sub="pr-measure" onclick="showSub('pr-measure')">Medidas</button>
+          <button class="subtab-btn" data-sub="pr-photos" onclick="showSub('pr-photos')">Fotos</button>
           <button class="subtab-btn" data-sub="pr-goals" onclick="showSub('pr-goals')">Objetivos</button>
           <button class="subtab-btn" data-sub="pr-badges" onclick="showSub('pr-badges')">Logros</button>
         </div>
@@ -630,6 +689,24 @@
             </select>
             <canvas id="measureChart" height="100"></canvas>
             <div id="measureHistory"></div>
+          </div>
+        </div>
+        <div class="sub-panel" id="sub-pr-photos">
+          <div class="panel-card">
+            <h2>Añadir foto de progreso</h2>
+            <div class="grid grid-2">
+              <div><label>Fecha</label><input type="date" id="photoDate"></div>
+              <div><label>Nota</label><input type="text" id="photoNote" placeholder="Ej: Semana 4"></div>
+            </div>
+            <div class="button-group">
+              <button class="flex1 ghost" onclick="document.getElementById('photoFile').click()">Seleccionar y guardar foto</button>
+              <input type="file" id="photoFile" accept="image/*" class="hidden" onchange="stagePhoto(event)">
+            </div>
+            <p class="muted">Las fotos se comprimen automáticamente antes de guardarse en tu base de datos.</p>
+          </div>
+          <div class="panel-card">
+            <h2>Galería de progreso</h2>
+            <div class="photo-grid" id="photoGallery"></div>
           </div>
         </div>
         <div class="sub-panel" id="sub-pr-goals">
@@ -667,6 +744,7 @@
       <div class="tab-panel" id="tab-settings">
         <div class="subtab-bar">
           <button class="subtab-btn active" data-sub="set-sync" onclick="showSub('set-sync')">Sincronización</button>
+          <button class="subtab-btn" data-sub="set-profile" onclick="showSub('set-profile')">Perfil</button>
           <button class="subtab-btn" data-sub="set-appearance" onclick="showSub('set-appearance')">Apariencia</button>
           <button class="subtab-btn" data-sub="set-data" onclick="showSub('set-data')">Datos</button>
           <button class="subtab-btn" data-sub="set-danger" onclick="showSub('set-danger')">Cuenta</button>
@@ -685,6 +763,20 @@
               <button class="flex1 ghost" onclick="syncNow()">Sincronizar ahora</button>
             </div>
             <p class="muted" style="margin-top:14px;">Configura el mismo repositorio y token (o uno con acceso al mismo repositorio) en cada dispositivo para compartir cuentas, ranking y progreso entre ellos.</p>
+          </div>
+        </div>
+
+        <div class="sub-panel" id="sub-set-profile">
+          <div class="panel-card">
+            <h2>Foto de perfil</h2>
+            <div class="row" style="gap:16px;">
+              <div class="avatar-preview" id="avatarPreview"></div>
+              <div class="button-group" style="margin-top:0;">
+                <button class="ghost" onclick="document.getElementById('avatarFile').click()">Subir foto</button>
+                <button class="ghost danger" onclick="removeAvatar()">Quitar foto</button>
+              </div>
+              <input type="file" id="avatarFile" accept="image/*" class="hidden" onchange="uploadAvatar(event)">
+            </div>
           </div>
         </div>
 
@@ -735,6 +827,7 @@
   </div>
 </div>
 
+<div class="lightbox" id="lightbox" onclick="closeLightbox()"><img id="lightboxImg" src="" alt="Foto de progreso ampliada"></div>
 <div class="toast-wrap" id="toastWrap"></div>
 
 <script>
@@ -751,6 +844,7 @@ const ICONS = {
   down:'<line x1="12" y1="5" x2="12" y2="19"></line><polyline points="19 12 12 19 5 12"></polyline>',
   flat:'<line x1="5" y1="12" x2="19" y2="12"></line>',
   droplet:'<path d="M12 2s7 7.5 7 12a7 7 0 0 1-14 0c0-4.5 7-12 7-12Z"></path>',
+  user:'<circle cx="12" cy="8" r="4"></circle><path d="M4 21a8 8 0 0 1 16 0"></path>',
 };
 function icon(name, size=15){
   return `<svg class="ic" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${ICONS[name]||''}</svg>`;
@@ -761,48 +855,74 @@ function icon(name, size=15){
 ========================================================= */
 let currentUser = null;
 let account = null;
-let githubConfig = null;      // {owner, repo, branch, path, token}
-let dbCache = null;           // cache of last-read GitHub JSON db
+let githubConfig = null;
+let dbCache = null;
 let lastSyncTime = null;
+const ADMIN_PASSWORD = 'admin123';
 
 /* =========================================================
-   ALMACENAMIENTO LOCAL (config y modo local de respaldo)
-   Usa window.storage cuando está disponible (Claude.ai); si no
-   existe (por ejemplo, alojado fuera de Claude, en GitHub Pages),
-   recurre a localStorage del propio dispositivo.
+   CAPA DE ALMACENAMIENTO
+   Usa window.storage cuando está disponible (Claude.ai). Si no
+   existe -por ejemplo alojado fuera de Claude, en GitHub Pages,
+   o si la llamada falla- recurre siempre a localStorage del
+   propio navegador, para que registro/inicio de sesión NUNCA
+   fallen silenciosamente por falta de almacenamiento.
+   La disponibilidad se comprueba en cada llamada (no se cachea)
+   para evitar condiciones de carrera con la inyección del host.
 ========================================================= */
-const hasClaudeStorage = (typeof window.storage !== 'undefined');
+function claudeStorageAvailable(){
+  try{ return typeof window.storage !== 'undefined' && window.storage !== null; }catch(e){ return false; }
+}
 
 async function localConfigGet(key){
-  if(hasClaudeStorage){
-    try{ const r = await window.storage.get(key, false); return r ? r.value : null; }catch(e){ return null; }
+  if(claudeStorageAvailable()){
+    try{ const r = await window.storage.get(key, false); if(r) return r.value; }catch(e){}
   }
-  try{ return localStorage.getItem(key); }catch(e){ return null; }
+  try{ return localStorage.getItem('wilkslocal:'+key); }catch(e){ return null; }
 }
 async function localConfigSet(key, value){
-  if(hasClaudeStorage){
-    try{ return await window.storage.set(key, value, false); }catch(e){ return null; }
+  if(claudeStorageAvailable()){
+    try{ const r = await window.storage.set(key, value, false); if(r) return r; }catch(e){}
   }
-  try{ localStorage.setItem(key, value); return true; }catch(e){ return null; }
+  try{ localStorage.setItem('wilkslocal:'+key, value); return true; }catch(e){ return null; }
 }
 async function localConfigDelete(key){
-  if(hasClaudeStorage){
-    try{ return await window.storage.delete(key, false); }catch(e){ return null; }
+  if(claudeStorageAvailable()){
+    try{ const r = await window.storage.delete(key, false); if(r) return r; }catch(e){}
   }
-  try{ localStorage.removeItem(key); return true; }catch(e){ return null; }
+  try{ localStorage.removeItem('wilkslocal:'+key); return true; }catch(e){ return null; }
 }
 
 async function storageGet(key, shared=false){
-  try{ const r = await window.storage.get(key, shared); return r ? r.value : null; }catch(e){ return null; }
+  if(claudeStorageAvailable()){
+    try{ const r = await window.storage.get(key, shared); if(r) return r.value; return null; }catch(e){}
+  }
+  try{ return localStorage.getItem('wilkslocal:'+key); }catch(e){ return null; }
 }
 async function storageSet(key, value, shared=false){
-  try{ return await window.storage.set(key, value, shared); }catch(e){ return null; }
+  if(claudeStorageAvailable()){
+    try{ const r = await window.storage.set(key, value, shared); if(r) return r; }catch(e){}
+  }
+  try{ localStorage.setItem('wilkslocal:'+key, value); return {key,value}; }catch(e){ return null; }
 }
 async function storageDeleteKey(key, shared=false){
-  try{ return await window.storage.delete(key, shared); }catch(e){ return null; }
+  if(claudeStorageAvailable()){
+    try{ const r = await window.storage.delete(key, shared); if(r) return r; }catch(e){}
+  }
+  try{ localStorage.removeItem('wilkslocal:'+key); return true; }catch(e){ return null; }
 }
 async function storageListKeys(prefix, shared=false){
-  try{ const r = await window.storage.list(prefix, shared); return (r && r.keys) ? r.keys : []; }catch(e){ return []; }
+  if(claudeStorageAvailable()){
+    try{ const r = await window.storage.list(prefix, shared); if(r) return r.keys; }catch(e){}
+  }
+  try{
+    const keys = [];
+    for(let i=0;i<localStorage.length;i++){
+      const k = localStorage.key(i);
+      if(k && k.indexOf('wilkslocal:'+prefix)===0){ keys.push(k.replace('wilkslocal:','')); }
+    }
+    return keys;
+  }catch(e){ return []; }
 }
 
 function toast(msg, type='info', ms=3600){
@@ -832,12 +952,29 @@ function b64ToUtf8(b64){
 }
 
 /* =========================================================
-   HASH DE CONTRASEÑA (SHA-256)
+   HASH DE CONTRASEÑA (SHA-256) Y REGLAS DE SEGURIDAD
 ========================================================= */
 async function hashPassword(pw){
   const enc = new TextEncoder().encode(pw);
   const buf = await crypto.subtle.digest('SHA-256', enc);
   return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+function passwordRuleResults(pw){
+  return {
+    len: pw.length>=8,
+    upper: /[A-Z]/.test(pw),
+    lower: /[a-z]/.test(pw),
+    num: /[0-9]/.test(pw),
+    special: /[^A-Za-z0-9]/.test(pw)
+  };
+}
+function updatePwChecklist(){
+  const pw = document.getElementById('newPassword').value;
+  const res = passwordRuleResults(pw);
+  Object.keys(res).forEach(rule=>{
+    const li = document.querySelector(`#pwChecklist li[data-rule="${rule}"]`);
+    if(li) li.classList.toggle('met', res[rule]);
+  });
 }
 
 /* =========================================================
@@ -875,23 +1012,16 @@ function updateStatusIndicators(){
   if(summary){
     summary.textContent = on
       ? `Archivo: ${githubConfig.path} · Última sincronización: ${lastSyncTime ? lastSyncTime.toLocaleTimeString('es-ES') : 'aún no'}`
-      : 'No hay ningún repositorio conectado. Los datos solo se guardan en este dispositivo.';
+      : 'No hay ningún repositorio conectado. Los datos solo se guardan en este dispositivo (localStorage/almacenamiento de Claude).';
   }
   const syncChip = document.getElementById('syncChip');
   if(syncChip) syncChip.textContent = on ? `GitHub: ${githubConfig.repo}` : 'Modo local';
 }
 
 function ghHeaders(){
-  return {
-    'Authorization': `Bearer ${githubConfig.token}`,
-    'Accept': 'application/vnd.github+json',
-    'X-GitHub-Api-Version': '2022-11-28'
-  };
+  return { 'Authorization': `Bearer ${githubConfig.token}`, 'Accept': 'application/vnd.github+json', 'X-GitHub-Api-Version': '2022-11-28' };
 }
-function ghUrl(){
-  const { owner, repo, path } = githubConfig;
-  return `https://api.github.com/repos/${owner}/${repo}/contents/${path}`;
-}
+function ghUrl(){ const { owner, repo, path } = githubConfig; return `https://api.github.com/repos/${owner}/${repo}/contents/${path}`; }
 
 async function ghFetchFile(){
   const url = `${ghUrl()}?ref=${encodeURIComponent(githubConfig.branch||'main')}`;
@@ -907,14 +1037,10 @@ async function ghFetchFile(){
   return { content: parsed, sha: data.sha };
 }
 async function ghWriteFile(contentObj, sha, message){
-  const body = {
-    message: message || 'Actualizar datos de Wilks Pro',
-    content: utf8ToB64(JSON.stringify(contentObj, null, 2)),
-    branch: githubConfig.branch || 'main'
-  };
+  const body = { message: message || 'Actualizar datos de Wilks Pro', content: utf8ToB64(JSON.stringify(contentObj, null, 2)), branch: githubConfig.branch || 'main' };
   if(sha) body.sha = sha;
   const res = await fetch(ghUrl(), { method:'PUT', headers: { ...ghHeaders(), 'Content-Type':'application/json' }, body: JSON.stringify(body) });
-  if(res.status===409) return null; // conflicto, reintentar
+  if(res.status===409) return null;
   if(!res.ok){ throw new Error(`GitHub respondió ${res.status} al guardar el archivo.`); }
   return await res.json();
 }
@@ -929,9 +1055,7 @@ async function dbUpdate(mutatorFn, message){
 }
 async function dbFetchFresh(){
   const { content } = await ghFetchFile();
-  dbCache = content;
-  lastSyncTime = new Date();
-  updateStatusIndicators();
+  dbCache = content; lastSyncTime = new Date(); updateStatusIndicators();
   return content;
 }
 
@@ -952,13 +1076,9 @@ async function connectGithub(){
   githubConfig = testConfig;
   try{
     const { content, sha } = await ghFetchFile();
-    if(sha===null){
-      // el archivo no existe todavía: lo creamos vacío para confirmar permisos de escritura
-      await ghWriteFile(content, null, 'Inicializar base de datos de Wilks Pro');
-    }
+    if(sha===null){ await ghWriteFile(content, null, 'Inicializar base de datos de Wilks Pro'); }
     await saveGithubConfigToStorage(testConfig);
-    dbCache = content;
-    lastSyncTime = new Date();
+    dbCache = content; lastSyncTime = new Date();
     msgEl.textContent = 'Conectado correctamente. Ya puedes iniciar sesión o crear una cuenta.';
     updateStatusIndicators();
   }catch(e){
@@ -993,9 +1113,10 @@ function goEditConnection(){
 function defaultAccount(passwordHash){
   return {
     password: passwordHash,
-    history: [], workouts: [], measurements: [], goals: [],
+    history: [], workouts: [], measurements: [], goals: [], progressPhotos: [],
     water: { date: todayStr(), count: 0 },
     settings: { plateInventory: defaultPlateInventory() },
+    profile: { avatar: null },
     theme: 'dark',
     createdAt: new Date().toISOString()
   };
@@ -1006,6 +1127,19 @@ function defaultPlateInventory(){
     "10":{enabled:true,count:''}, "5":{enabled:true,count:''}, "2.5":{enabled:true,count:''},
     "1.25":{enabled:true,count:''}, "0.5":{enabled:false,count:''}
   };
+}
+function ensureAccountShape(acc){
+  acc.history = acc.history || [];
+  acc.workouts = acc.workouts || [];
+  acc.measurements = acc.measurements || [];
+  acc.goals = acc.goals || [];
+  acc.progressPhotos = acc.progressPhotos || [];
+  acc.settings = acc.settings || {};
+  acc.settings.plateInventory = acc.settings.plateInventory || defaultPlateInventory();
+  acc.profile = acc.profile || { avatar: null };
+  acc.water = acc.water || { date: todayStr(), count: 0 };
+  if(acc.water.date !== todayStr()) acc.water = { date: todayStr(), count: 0 };
+  return acc;
 }
 
 async function accountExists(username){
@@ -1030,7 +1164,8 @@ async function persistAccount(){
   if(isGithubMode()){
     await dbUpdate(db=>{ db.accounts[currentUser] = account; }, `Actualizar datos de ${currentUser}`);
   } else {
-    await storageSet(`wilks:account:${currentUser}`, JSON.stringify(account), false);
+    const result = await storageSet(`wilks:account:${currentUser}`, JSON.stringify(account), false);
+    if(!result) throw new Error('No se pudo guardar en el almacenamiento local del navegador.');
   }
 }
 async function removeAccount(username){
@@ -1065,6 +1200,29 @@ async function fetchRankingList(){
   for(const k of keys){ const raw = await storageGet(k, true); if(raw){ try{ arr.push(JSON.parse(raw)); }catch(e){} } }
   return arr;
 }
+async function listAllAccountSummaries(){
+  if(isGithubMode()){
+    const db = await dbFetchFresh();
+    return Object.keys(db.accounts).map(u=>{
+      const a = db.accounts[u];
+      const bestWilks = (a.history||[]).reduce((m,h)=>Math.max(m,h.wilksScore),0);
+      return { username:u, createdAt:a.createdAt, workouts:(a.workouts||[]).length, bestWilks, avatar:(a.profile&&a.profile.avatar)||null };
+    });
+  }
+  const keys = await storageListKeys('wilks:account:', false);
+  const arr = [];
+  for(const k of keys){
+    const raw = await storageGet(k, false);
+    if(raw){
+      try{
+        const a = JSON.parse(raw);
+        const bestWilks = (a.history||[]).reduce((m,h)=>Math.max(m,h.wilksScore),0);
+        arr.push({ username:k.replace('wilks:account:',''), createdAt:a.createdAt, workouts:(a.workouts||[]).length, bestWilks, avatar:(a.profile&&a.profile.avatar)||null });
+      }catch(e){}
+    }
+  }
+  return arr;
+}
 
 /* =========================================================
    AUTENTICACIÓN
@@ -1073,6 +1231,7 @@ function showScreen(which){
   document.getElementById('loginFormContainer').classList.toggle('hidden', which!=='login');
   document.getElementById('registerFormContainer').classList.toggle('hidden', which!=='register');
   document.getElementById('deleteAccountsForm').classList.toggle('hidden', which!=='delete');
+  document.getElementById('adminPanelForm').classList.toggle('hidden', which!=='admin');
   document.getElementById('githubConfigForm').classList.toggle('hidden', which!=='github');
   document.getElementById('loginError').textContent = '';
   document.getElementById('registrationMessage').textContent = '';
@@ -1082,8 +1241,45 @@ function showScreen(which){
     document.getElementById('ghBranch').value = githubConfig.branch || 'main';
     document.getElementById('ghPath').value = githubConfig.path || 'data/wilks-db.json';
   }
+  if(which==='admin'){
+    document.getElementById('adminViewPassword').value = '';
+    document.getElementById('adminViewError').textContent = '';
+    document.getElementById('adminUsersResult').classList.add('hidden');
+    document.getElementById('adminUsersResult').innerHTML = '';
+  }
 }
 function openDeleteAccountsForm(){ showScreen('delete'); }
+
+async function viewAllUsers(){
+  const pw = document.getElementById('adminViewPassword').value;
+  const errEl = document.getElementById('adminViewError');
+  if(pw !== ADMIN_PASSWORD){ errEl.textContent = 'Contraseña de administrador incorrecta.'; return; }
+  errEl.textContent = '';
+  const resultEl = document.getElementById('adminUsersResult');
+  resultEl.classList.remove('hidden');
+  resultEl.innerHTML = '<p class="muted">Cargando usuarios...</p>';
+  try{
+    const summaries = await listAllAccountSummaries();
+    if(summaries.length===0){ resultEl.innerHTML = '<p class="muted">No hay usuarios registrados todavía.</p>'; return; }
+    summaries.sort((a,b)=> (b.createdAt||'').localeCompare(a.createdAt||''));
+    resultEl.innerHTML = `
+      <div class="divider"></div>
+      <h3>${summaries.length} usuario(s) registrado(s)</h3>
+      ${summaries.map(u=>`
+        <div class="list-item">
+          <div class="row" style="gap:10px;">
+            <div class="avatar-preview" style="width:36px;height:36px;">${u.avatar?`<img src="${u.avatar}" alt="">`:icon('user',18)}</div>
+            <div>
+              <strong>${escapeHTML(u.username)}</strong>
+              <div class="muted">Creada: ${u.createdAt ? new Date(u.createdAt).toLocaleDateString('es-ES') : '—'} · ${u.workouts} entrenamientos · Mejor Wilks: ${u.bestWilks?u.bestWilks.toFixed(1):'—'}</div>
+            </div>
+          </div>
+        </div>
+      `).join('')}
+      <div class="button-group"><button class="flex1 ghost" onclick="showScreen('register')">Volver</button></div>
+    `;
+  }catch(e){ resultEl.innerHTML = `<p class="muted">Error al cargar usuarios: ${escapeHTML(e.message)}</p>`; }
+}
 
 async function register(){
   const username = document.getElementById('newUsername').value.trim();
@@ -1091,6 +1287,11 @@ async function register(){
   const msgEl = document.getElementById('registrationMessage');
   const btn = document.getElementById('registerBtn');
   if(!username || !password){ msgEl.textContent = 'Completa usuario y contraseña.'; return; }
+  const rules = passwordRuleResults(password);
+  if(!Object.values(rules).every(Boolean)){
+    msgEl.textContent = 'La contraseña no cumple los requisitos de seguridad marcados en la lista.';
+    return;
+  }
   btn.disabled = true; btn.textContent = 'Creando...';
   try{
     const existing = await accountExists(username);
@@ -1098,9 +1299,15 @@ async function register(){
     const hash = await hashPassword(password);
     const acc = defaultAccount(hash);
     await createAccount(username, acc);
+    const verify = await fetchAccount(username);
+    if(!verify){
+      msgEl.textContent = 'No se pudo guardar la cuenta (fallo de almacenamiento). Comprueba tu conexión o la configuración de GitHub e inténtalo de nuevo.';
+      return;
+    }
     msgEl.textContent = 'Cuenta creada correctamente. Ya puedes iniciar sesión.';
     document.getElementById('newUsername').value = '';
     document.getElementById('newPassword').value = '';
+    updatePwChecklist();
   }catch(e){
     msgEl.textContent = 'Error: ' + e.message;
   }finally{
@@ -1120,15 +1327,11 @@ async function login(){
     const acc = await fetchAccount(username);
     if(!acc){ errEl.textContent = 'Usuario o contraseña incorrectos.'; return; }
     const hash = await hashPassword(password);
-    const legacyMatch = acc.password === password; // compatibilidad con cuentas antiguas sin hash
+    const legacyMatch = acc.password === password;
     if(acc.password !== hash && !legacyMatch){ errEl.textContent = 'Usuario o contraseña incorrectos.'; return; }
-    if(legacyMatch){ acc.password = hash; } // migrar a hash en el próximo guardado
+    if(legacyMatch){ acc.password = hash; }
     currentUser = username;
-    account = acc;
-    account.settings = account.settings || { plateInventory: defaultPlateInventory() };
-    account.settings.plateInventory = account.settings.plateInventory || defaultPlateInventory();
-    account.water = account.water || { date: todayStr(), count: 0 };
-    if(account.water.date !== todayStr()) account.water = { date: todayStr(), count: 0 };
+    account = ensureAccountShape(acc);
     await enterApp();
   }catch(e){
     errEl.textContent = 'Error al iniciar sesión: ' + e.message;
@@ -1140,12 +1343,12 @@ async function login(){
 async function enterApp(){
   document.getElementById('authWrap').classList.add('hidden');
   document.getElementById('appScreen').classList.remove('hidden');
-  document.getElementById('userChip').innerHTML = `<svg class="ic" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"></circle><path d="M4 21a8 8 0 0 1 16 0"></path></svg> ${escapeHTML(currentUser)}`;
   applyTheme(account.theme || 'dark');
   document.getElementById('themeToggle').checked = (account.theme === 'light');
   document.getElementById('themeToggle2').checked = (account.theme === 'light');
   document.getElementById('wkDate').value = todayStr();
   document.getElementById('mDate').value = todayStr();
+  document.getElementById('photoDate').value = todayStr();
   updateStatusIndicators();
   showTab('dashboard');
   renderAll();
@@ -1166,8 +1369,7 @@ async function saveAccount(){ await persistAccount(); }
 async function deleteAllAccounts(){
   const password = document.getElementById('deletePassword').value;
   const errEl = document.getElementById('deleteAdminError');
-  const adminPassword = 'admin123';
-  if(password !== adminPassword){ errEl.textContent = 'Contraseña de administrador incorrecta.'; return; }
+  if(password !== ADMIN_PASSWORD){ errEl.textContent = 'Contraseña de administrador incorrecta.'; return; }
   try{
     await wipeAllAccounts();
     errEl.textContent = '';
@@ -1187,16 +1389,17 @@ function showTab(name){
   document.getElementById('pageTitle').textContent = TAB_TITLES[name] || '';
   if(name==='dashboard') renderDashboard();
   if(name==='training'){ renderWorkouts(); renderPRBoard(); }
-  if(name==='progress'){ renderMeasurements(); renderGoals(); renderAchievements(); }
+  if(name==='progress'){ renderMeasurements(); renderGoals(); renderAchievements(); renderPhotoGallery(); }
   if(name==='ranking') loadRanking();
   if(name==='calculators') renderPlateInventoryForm();
-  if(name==='settings') updateStatusIndicators();
+  if(name==='settings'){ updateStatusIndicators(); renderProfile(); }
 }
 function showSub(name){
   const panel = document.querySelector('.tab-panel.active');
   panel.querySelectorAll('.subtab-btn').forEach(b=>b.classList.toggle('active', b.dataset.sub===name));
   panel.querySelectorAll('.sub-panel').forEach(p=>p.classList.toggle('active', p.id==='sub-'+name));
   if(name==='calc-plates') renderPlateInventoryForm();
+  if(name==='pr-photos') renderPhotoGallery();
 }
 
 function renderAll(){
@@ -1208,6 +1411,8 @@ function renderAll(){
   renderAchievements();
   renderWaterWidget();
   renderPlateInventoryForm();
+  renderPhotoGallery();
+  renderProfile();
 }
 
 /* =========================================================
@@ -1220,6 +1425,61 @@ async function toggleTheme(){
   document.getElementById('themeToggle').checked = on;
   document.getElementById('themeToggle2').checked = on;
   if(account){ account.theme = on ? 'light' : 'dark'; await saveAccount(); }
+}
+
+/* =========================================================
+   PERFIL: AVATAR
+========================================================= */
+function resizeImageFile(file, maxDim, quality){
+  return new Promise((resolve, reject)=>{
+    const reader = new FileReader();
+    reader.onload = (e)=>{
+      const img = new Image();
+      img.onload = ()=>{
+        let w = img.width, h = img.height;
+        if(w>h){ if(w>maxDim){ h = Math.round(h*maxDim/w); w = maxDim; } }
+        else{ if(h>maxDim){ w = Math.round(w*maxDim/h); h = maxDim; } }
+        const canvas = document.createElement('canvas');
+        canvas.width = w; canvas.height = h;
+        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+        resolve(canvas.toDataURL('image/jpeg', quality));
+      };
+      img.onerror = ()=>reject(new Error('No se pudo leer la imagen.'));
+      img.src = e.target.result;
+    };
+    reader.onerror = ()=>reject(new Error('No se pudo leer el archivo.'));
+    reader.readAsDataURL(file);
+  });
+}
+async function uploadAvatar(event){
+  const file = event.target.files[0];
+  if(!file) return;
+  try{
+    const dataUrl = await resizeImageFile(file, 260, 0.78);
+    account.profile = account.profile || {};
+    account.profile.avatar = dataUrl;
+    await saveAccount();
+    renderProfile();
+    toast('Foto de perfil actualizada.');
+  }catch(e){ toast('No se pudo procesar la imagen: ' + e.message, 'error'); }
+  event.target.value = '';
+}
+async function removeAvatar(){
+  account.profile = account.profile || {};
+  account.profile.avatar = null;
+  try{ await saveAccount(); }catch(e){ toast('Error: ' + e.message, 'error'); }
+  renderProfile();
+  toast('Foto de perfil eliminada.');
+}
+function renderProfile(){
+  if(!account) return;
+  const avatar = account.profile && account.profile.avatar;
+  const preview = document.getElementById('avatarPreview');
+  if(preview) preview.innerHTML = avatar ? `<img src="${avatar}" alt="Foto de perfil">` : icon('user', 26);
+  const chip = document.getElementById('userChip');
+  if(chip){
+    chip.innerHTML = (avatar ? `<img class="avatar-sm" src="${avatar}" alt="">` : icon('user', 14)) + ` ${escapeHTML(currentUser)}`;
+  }
 }
 
 /* =========================================================
@@ -1330,19 +1590,30 @@ function calcStandalone1RM(){
 }
 
 /* =========================================================
-   INVENTARIO DE DISCOS Y CALCULADORA
+   INVENTARIO DE DISCOS Y CALCULADORA (visualización realista)
 ========================================================= */
 const PLATE_SIZES = ["25","20","15","10","5","2.5","1.25","0.5"];
+const PLATE_META = {
+  25:{color:'#d1453b', dark:false, diameter:74},
+  20:{color:'#3b7fd1', dark:false, diameter:66},
+  15:{color:'#e0c23e', dark:true,  diameter:60},
+  10:{color:'#3e9e5c', dark:false, diameter:52},
+  5:{color:'#ececeb',  dark:true,  diameter:44},
+  2.5:{color:'#242424', dark:false, diameter:36},
+  1.25:{color:'#b9b9c2', dark:true, diameter:30},
+  0.5:{color:'#8a8a92',  dark:true, diameter:24}
+};
 function renderPlateInventoryForm(){
   const el = document.getElementById('plateInventoryForm');
   if(!el || !account) return;
   const inv = account.settings.plateInventory || defaultPlateInventory();
   el.innerHTML = PLATE_SIZES.map(size=>{
     const cfg = inv[size] || {enabled:false, count:''};
+    const meta = PLATE_META[size];
     return `
       <div class="plate-inv-row">
         <input type="checkbox" id="plateEnabled-${size}" ${cfg.enabled?'checked':''}>
-        <div class="plate-swatch"></div>
+        <div class="plate-swatch" style="background:${meta.color};"></div>
         <label for="plateEnabled-${size}">${size} kg</label>
         <input type="number" id="plateCount-${size}" placeholder="Cantidad por lado (ilimitado)" value="${cfg.count ?? ''}" min="0">
       </div>
@@ -1365,10 +1636,11 @@ function calcPlates(){
   const bar = parseFloat(document.getElementById('plateBar').value) || 20;
   const resEl = document.getElementById('plateResult');
   const vizEl = document.getElementById('plateViz');
+  const legendEl = document.getElementById('plateLegend');
   if(isNaN(target) || target < bar){ toast('Introduce un peso objetivo válido, mayor que la barra.', 'error'); return; }
   const inv = (account && account.settings && account.settings.plateInventory) || defaultPlateInventory();
   const sizes = PLATE_SIZES.filter(s=>inv[s] && inv[s].enabled).map(Number).sort((a,b)=>b-a);
-  if(sizes.length===0){ toast('No has habilitado ningún disco en tu inventario.', 'error'); return; }
+  if(sizes.length===0){ toast('No has habilitado ningún disco en tu inventario.', 'error'); vizEl.innerHTML=''; legendEl.innerHTML=''; return; }
   const remaining = {};
   sizes.forEach(s=>{
     const cfgCount = inv[String(s)] ? inv[String(s)].count : '';
@@ -1392,8 +1664,14 @@ function calcPlates(){
     <p>Peso total cargado: <span class="wilks-score">${achieved.toFixed(2)} kg</span></p>
     ${shortfallNote}
   </div>`;
-  const sizesPx = {25:70,20:62,15:56,10:48,5:38,2.5:30,1.25:24,0.5:18};
-  vizEl.innerHTML = used.map(p=>`<div class="plate" style="width:14px; height:${sizesPx[p]}px;">${p}</div>`).join('');
+  const platesHtml = used.map((p,i)=>{
+    const meta = PLATE_META[p];
+    const textColor = meta.dark ? '#181818' : '#f5f5f5';
+    return `<div class="plate-disc" style="width:${meta.diameter}px; height:${meta.diameter}px; background:${meta.color}; color:${textColor}; animation-delay:${i*0.05}s;" title="${p} kg"><span class="plate-hole"></span>${p}</div>`;
+  }).join('');
+  vizEl.innerHTML = `<div class="bar-end"></div><div class="bar-line"></div><div class="plate-stack">${platesHtml}</div><div class="bar-collar"></div>`;
+  const usedSizes = [...new Set(used)].sort((a,b)=>b-a);
+  legendEl.innerHTML = usedSizes.map(p=>`<div class="plate-legend-item"><span class="plate-legend-dot" style="background:${PLATE_META[p].color};"></span>${p} kg</div>`).join('');
 }
 
 /* =========================================================
@@ -1627,6 +1905,52 @@ function renderMeasurements(){
 }
 
 /* =========================================================
+   FOTOS DE PROGRESO
+========================================================= */
+async function stagePhoto(event){
+  const file = event.target.files[0];
+  if(!file) return;
+  try{
+    const dataUrl = await resizeImageFile(file, 700, 0.68);
+    const date = document.getElementById('photoDate').value || todayStr();
+    const note = document.getElementById('photoNote').value.trim();
+    account.progressPhotos = account.progressPhotos || [];
+    account.progressPhotos.push({ id: Date.now(), date, note, dataUrl });
+    await saveAccount();
+    document.getElementById('photoNote').value = '';
+    renderPhotoGallery();
+    toast('Foto de progreso guardada.');
+  }catch(e){ toast('No se pudo procesar la imagen: ' + e.message, 'error'); }
+  event.target.value = '';
+}
+async function deletePhoto(id){
+  account.progressPhotos = (account.progressPhotos||[]).filter(p=>p.id!==id);
+  try{ await saveAccount(); }catch(e){ toast('Error: ' + e.message, 'error'); }
+  renderPhotoGallery();
+}
+function renderPhotoGallery(){
+  const el = document.getElementById('photoGallery');
+  if(!el) return;
+  const photos = (account && account.progressPhotos) || [];
+  if(photos.length===0){ el.innerHTML = '<p class="muted">Todavía no has añadido fotos de progreso.</p>'; return; }
+  const sorted = [...photos].sort((a,b)=>new Date(b.date)-new Date(a.date));
+  el.innerHTML = sorted.map(p=>`
+    <div class="photo-card">
+      <img src="${p.dataUrl}" onclick="openLightbox(this.src)" alt="Foto de progreso del ${p.date}">
+      <div class="photo-meta">
+        <span class="muted">${p.date}${p.note?' · '+escapeHTML(p.note):''}</span>
+        <button class="small danger" onclick="deletePhoto(${p.id})">${icon('trash',12)}</button>
+      </div>
+    </div>
+  `).join('');
+}
+function openLightbox(src){
+  document.getElementById('lightboxImg').src = src;
+  document.getElementById('lightbox').classList.add('open');
+}
+function closeLightbox(){ document.getElementById('lightbox').classList.remove('open'); }
+
+/* =========================================================
    OBJETIVOS
 ========================================================= */
 async function addGoal(){
@@ -1714,6 +2038,7 @@ function getAchievementDefs(){
     {name:'Meta cumplida', desc:'Completa un objetivo', check:a=>a.goals.some(g=>g.current>=g.target)},
     {name:'Seguimiento constante', desc:'Registra tus medidas 3 veces', check:a=>a.measurements.length>=3},
     {name:'Rompiendo récords', desc:'Registra PRs en 3 ejercicios distintos', check:a=>{ const set = new Set(a.workouts.map(w=>w.exercise.trim().toLowerCase())); return set.size>=3; }},
+    {name:'Diario visual', desc:'Sube 3 fotos de progreso', check:a=>(a.progressPhotos||[]).length>=3},
   ];
 }
 function renderAchievements(){
@@ -1770,6 +2095,25 @@ function renderWaterWidget(){
    DASHBOARD
 ========================================================= */
 let dashboardChartInstance = null;
+function animateStatValues(container){
+  container.querySelectorAll('.stat-value').forEach(el=>{
+    const text = el.textContent;
+    const match = text.match(/^-?\d+(\.\d+)?/);
+    if(!match){ return; }
+    const target = parseFloat(match[0]);
+    const suffix = text.slice(match[0].length);
+    const decimals = (match[0].split('.')[1]||'').length;
+    const duration = 550;
+    const start = performance.now();
+    function frame(now){
+      const t = Math.min(1, (now-start)/duration);
+      const eased = 1 - Math.pow(1-t, 3);
+      el.textContent = (target*eased).toFixed(decimals) + suffix;
+      if(t<1) requestAnimationFrame(frame); else el.textContent = text;
+    }
+    requestAnimationFrame(frame);
+  });
+}
 function renderDashboard(){
   if(!account) return;
   document.getElementById('streakChip').innerHTML = `<svg class="ic" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2s-5 4.5-5 9.5a5 5 0 0 0 10 0c0-1.5-1-2.5-1-2.5s.5 2-1 3c0 0 .5-3-1.5-5 0 0 .5 2-1.5 3C11 8 12 5 12 2Z"></path></svg> ${computeStreak()} días`;
@@ -1785,11 +2129,12 @@ function renderDashboard(){
   const volume = computeTotalVolume();
   const statsEl = document.getElementById('dashboardStats');
   statsEl.innerHTML = `
-    <div class="stat-card"><div class="stat-top"><span class="stat-label">Último Wilks</span>${trendHtml}</div><div class="stat-value">${lastEntry?lastEntry.wilksScore.toFixed(1):'—'}</div></div>
-    <div class="stat-card"><div class="stat-top"><span class="stat-label">Mejor Wilks</span></div><div class="stat-value">${bestWilks?bestWilks.toFixed(1):'—'}</div></div>
+    <div class="stat-card"><div class="stat-top"><span class="stat-label">Último Wilks</span>${trendHtml}</div><div class="stat-value">${lastEntry?lastEntry.wilksScore.toFixed(1):'0'}</div></div>
+    <div class="stat-card"><div class="stat-top"><span class="stat-label">Mejor Wilks</span></div><div class="stat-value">${bestWilks?bestWilks.toFixed(1):'0'}</div></div>
     <div class="stat-card"><div class="stat-top"><span class="stat-label">Entrenamientos</span></div><div class="stat-value">${account.workouts.length}</div></div>
     <div class="stat-card"><div class="stat-top"><span class="stat-label">Volumen total</span></div><div class="stat-value">${volume>=1000?(volume/1000).toFixed(1)+'t':volume.toFixed(0)+'kg'}</div></div>
   `;
+  animateStatValues(statsEl);
   const ctx = document.getElementById('dashboardChart').getContext('2d');
   const last10 = account.history.slice(-10);
   const labels = last10.map((h,i)=>`#${account.history.length-last10.length+i+1}`);
@@ -1816,7 +2161,7 @@ async function updateRanking(){
   if(!currentUser || account.history.length===0) return;
   const bestWilks = account.history.reduce((m,h)=>Math.max(m,h.wilksScore),0);
   const bestDots = account.history.reduce((m,h)=>Math.max(m,h.dotsScore||0),0);
-  await persistRanking(currentUser, { username: currentUser, bestWilks, bestDots, updated: new Date().toISOString() });
+  await persistRanking(currentUser, { username: currentUser, bestWilks, bestDots, avatar:(account.profile&&account.profile.avatar)||null, updated: new Date().toISOString() });
 }
 async function loadRanking(){
   const el = document.getElementById('rankingList');
@@ -1831,6 +2176,7 @@ async function loadRanking(){
       <div class="rank-item ${i===0?'top1':''}">
         <div class="rank-info">
           <div class="rank-badge ${rankClass}">${i+1}</div>
+          ${e.avatar ? `<img class="avatar-sm" style="width:26px;height:26px;" src="${e.avatar}" alt="">` : ''}
           <strong>${escapeHTML(e.username)}${e.username===currentUser?' (tú)':''}</strong>
         </div>
         <div class="rank-scores">
@@ -1862,8 +2208,7 @@ function importData(event){
     try{
       const parsed = JSON.parse(e.target.result);
       if(!parsed.account){ toast('Archivo no válido.', 'error'); return; }
-      account = { ...defaultAccount(account.password), ...parsed.account, password: account.password };
-      account.settings = account.settings || { plateInventory: defaultPlateInventory() };
+      account = ensureAccountShape({ ...defaultAccount(account.password), ...parsed.account, password: account.password });
       await saveAccount();
       renderAll();
       toast('Datos importados correctamente.');
