@@ -166,9 +166,9 @@
       "waterGoalMl": 2000
     },
     "profile": {
-      "age": null,
-      "heightCm": null,
-      "weightKg": null,
+      "age": 19,
+      "heightCm": 160,
+      "weightKg": 80,
       "bio": "",
       "isPublic": true
     },
