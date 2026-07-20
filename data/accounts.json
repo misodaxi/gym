@@ -243,7 +243,7 @@
       "heightCm": 160,
       "weightKg": 80,
       "bio": "",
-      "isPublic": true
+      "isPublic": false
     },
     "theme": "dark",
     "createdAt": "2026-07-19T21:06:00.001Z",
