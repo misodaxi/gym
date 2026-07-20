@@ -113,6 +113,21 @@
         "dotsScore": 534.3295472725761,
         "level": "Élite",
         "total1RM": 774.9000000000001
+      },
+      {
+        "date": "20/7/2026, 18:56:41",
+        "gender": "male",
+        "bodyWeight": 90,
+        "benchPress": 300,
+        "benchReps": 3,
+        "squat": 300,
+        "squatReps": 3,
+        "deadlift": 300,
+        "deadliftReps": 3,
+        "wilksScore": 632.0101356080861,
+        "dotsScore": 640.1348201502643,
+        "level": "Élite",
+        "total1RM": 990
       }
     ],
     "workouts": [
