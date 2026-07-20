@@ -156,6 +156,19 @@
         "mediaId": null,
         "videoLink": null,
         "sessionId": 1784510981122
+      },
+      {
+        "id": 1784584891573,
+        "date": "2026-07-20",
+        "exercise": "Press banca",
+        "weight": 234,
+        "reps": 234,
+        "sets": 1,
+        "rir": 23,
+        "notes": "234",
+        "mediaId": null,
+        "videoLink": null,
+        "sessionId": 1784584875600
       }
     ],
     "measurements": [],
