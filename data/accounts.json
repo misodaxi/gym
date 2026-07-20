@@ -115,7 +115,34 @@
         "total1RM": 774.9000000000001
       }
     ],
-    "workouts": [],
+    "workouts": [
+      {
+        "id": 1784511001005,
+        "date": "2026-07-20",
+        "exercise": "Press banca",
+        "weight": 234,
+        "reps": 234,
+        "sets": 1,
+        "rir": 23,
+        "notes": "234",
+        "mediaId": null,
+        "videoLink": null,
+        "sessionId": 1784510981122
+      },
+      {
+        "id": 1784511002245,
+        "date": "2026-07-20",
+        "exercise": "Press banca",
+        "weight": 234,
+        "reps": 234,
+        "sets": 1,
+        "rir": 23,
+        "notes": "234",
+        "mediaId": null,
+        "videoLink": null,
+        "sessionId": 1784510981122
+      }
+    ],
     "measurements": [],
     "goals": [],
     "nutrition": [],
@@ -245,7 +272,88 @@
         "createdAt": "2026-07-20T01:29:35.089Z"
       }
     ],
-    "workoutSessions": [],
+    "workoutSessions": [
+      {
+        "id": 1784510981122,
+        "templateId": 1784510975089,
+        "templateName": "asdasd",
+        "date": "2026-07-20",
+        "exercises": [
+          {
+            "name": "Press banca",
+            "sets": [
+              {
+                "weight": "234",
+                "reps": "234",
+                "rir": "23",
+                "notes": "234",
+                "setSeconds": 2,
+                "restSeconds": null,
+                "mediaId": null,
+                "done": true
+              },
+              {
+                "weight": "234",
+                "reps": "",
+                "rir": "",
+                "notes": "",
+                "setSeconds": 1,
+                "restSeconds": 2,
+                "mediaId": null,
+                "done": false
+              },
+              {
+                "weight": "",
+                "reps": "",
+                "rir": "",
+                "notes": "",
+                "setSeconds": 1,
+                "restSeconds": 2,
+                "mediaId": null,
+                "done": false
+              }
+            ]
+          },
+          {
+            "name": "asdasd",
+            "sets": [
+              {
+                "weight": "",
+                "reps": "",
+                "rir": "",
+                "notes": "",
+                "setSeconds": 0,
+                "restSeconds": 1,
+                "mediaId": null,
+                "done": false
+              },
+              {
+                "weight": "",
+                "reps": "",
+                "rir": "",
+                "notes": "",
+                "setSeconds": 1,
+                "restSeconds": 0,
+                "mediaId": null,
+                "done": false
+              },
+              {
+                "weight": "",
+                "reps": "",
+                "rir": "",
+                "notes": "",
+                "setSeconds": 0,
+                "restSeconds": 1,
+                "mediaId": null,
+                "done": false
+              }
+            ]
+          }
+        ],
+        "totalSeconds": 54,
+        "endedAt": "2026-07-20T01:30:35.336Z"
+      }
+    ],
     "challenges": {
       "dailyCompletions": {},
       "levels": {}
