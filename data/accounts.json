@@ -144,7 +144,7 @@
       }
     ],
     "water": {
-      "date": "2026-07-19",
+      "date": "2026-07-20",
       "count": 0
     },
     "settings": {
@@ -195,6 +195,60 @@
       "isPublic": true
     },
     "theme": "dark",
-    "createdAt": "2026-07-19T21:06:00.001Z"
+    "createdAt": "2026-07-19T21:06:00.001Z",
+    "routineTemplates": [
+      {
+        "id": 1784510975089,
+        "name": "asdasd",
+        "exercises": [
+          {
+            "name": "Press banca",
+            "sets": [
+              {
+                "targetWeight": "234",
+                "targetReps": "234",
+                "targetRIR": "23",
+                "notes": "234"
+              },
+              {
+                "targetWeight": "234",
+                "targetReps": "",
+                "targetRIR": "",
+                "notes": ""
+              }
+            ]
+          },
+          {
+            "name": "asdasd",
+            "sets": [
+              {
+                "targetWeight": "",
+                "targetReps": "",
+                "targetRIR": "",
+                "notes": ""
+              },
+              {
+                "targetWeight": "",
+                "targetReps": "",
+                "targetRIR": "",
+                "notes": ""
+              },
+              {
+                "targetWeight": "",
+                "targetReps": "",
+                "targetRIR": "",
+                "notes": ""
+              }
+            ]
+          }
+        ],
+        "createdAt": "2026-07-20T01:29:35.089Z"
+      }
+    ],
+    "workoutSessions": [],
+    "challenges": {
+      "dailyCompletions": {},
+      "levels": {}
+    }
   }
 }
