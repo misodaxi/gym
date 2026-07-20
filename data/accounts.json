@@ -359,7 +359,7 @@
         "2026-07-20": true
       },
       "levels": {
-        "pullup": 1
+        "pullup": 2
       }
     }
   }
