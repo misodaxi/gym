@@ -356,7 +356,9 @@
     ],
     "challenges": {
       "dailyCompletions": {},
-      "levels": {}
+      "levels": {
+        "pullup": 1
+      }
     }
   }
 }
