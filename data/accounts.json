@@ -355,7 +355,9 @@
       }
     ],
     "challenges": {
-      "dailyCompletions": {},
+      "dailyCompletions": {
+        "2026-07-20": true
+      },
       "levels": {
         "pullup": 1
       }
