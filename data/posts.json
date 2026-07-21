@@ -82,13 +82,13 @@
       "options": [
         {
           "text": "fornite o rocket league",
-          "votes": []
-        },
-        {
-          "text": "?",
           "votes": [
             "misodaxi"
           ]
+        },
+        {
+          "text": "?",
+          "votes": []
         }
       ]
     }
