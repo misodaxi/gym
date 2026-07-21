@@ -577,7 +577,8 @@
         "squat": 2,
         "deadlift": 3,
         "plank": 3,
-        "run5k": 1
+        "run5k": 1,
+        "dip": 1
       }
     },
     "customChallenges": [
