@@ -99,6 +99,7 @@
           <button class="subtab-btn" data-sub="calc-bmi" onclick="showSub('calc-bmi')">IMC</button>
           <button class="subtab-btn" data-sub="calc-bf" onclick="showSub('calc-bf')">% Grasa</button>
           <button class="subtab-btn" data-sub="calc-tdee" onclick="showSub('calc-tdee')">TDEE / Macros</button>
+          <button class="subtab-btn" data-sub="calc-progression" onclick="showSub('calc-progression')">Progresión</button>
         </div>
         <div class="sub-panel active" id="sub-calc-wilks">
           <div class="panel-card">
@@ -201,6 +202,19 @@
             <div id="tdeeResult" class="result hidden"></div>
           </div>
         </div>
+        <div class="sub-panel" id="sub-calc-progression">
+          <div class="panel-card">
+            <h2>Planificador de progresión</h2>
+            <p class="muted">Proyecta cómo podría evolucionar tu 1RM si aumentas la carga un porcentaje fijo cada semana.</p>
+            <div class="grid grid-2">
+              <div><label>1RM actual (kg)</label><input type="number" id="progCurrentRM" placeholder="kg"></div>
+              <div><label>Incremento semanal (%)</label><input type="number" id="progWeeklyPct" placeholder="Ej: 1.5" step="0.1"></div>
+              <div><label>Número de semanas</label><input type="number" id="progWeeks" value="8" min="1" max="52"></div>
+            </div>
+            <div class="button-group"><button class="flex1" onclick="calcProgression()">Calcular proyección</button></div>
+            <div id="progressionResult"></div>
+          </div>
+        </div>
       </div>
 
       <!-- ---------- TRAINING ---------- -->
@@ -208,6 +222,7 @@
         <div class="subtab-bar">
           <button class="subtab-btn active" data-sub="tr-log" onclick="showSub('tr-log')">Registro</button>
           <button class="subtab-btn" data-sub="tr-pr" onclick="showSub('tr-pr')">Récords (PRs)</button>
+          <button class="subtab-btn" data-sub="tr-routines" onclick="showSub('tr-routines')">Rutinas</button>
           <button class="subtab-btn" data-sub="tr-compare" onclick="showSub('tr-compare')">Comparar</button>
           <button class="subtab-btn" data-sub="tr-timer" onclick="showSub('tr-timer')">Temporizador</button>
         </div>
@@ -220,6 +235,7 @@
               <div><label>Ejercicio</label><input type="text" id="wkExercise" list="exerciseList" placeholder="Ej: Sentadilla"></div>
               <div><label>Peso (kg)</label><input type="number" id="wkWeight"></div>
               <div><label>Reps x series</label><div class="input-group"><input type="number" id="wkReps" placeholder="reps" min="1" max="30"><input type="number" id="wkSets" placeholder="series" min="1" value="1"></div></div>
+              <div><label>RIR (repeticiones en reserva, opcional)</label><input type="number" id="wkRIR" placeholder="Ej: 2" min="0" max="10"></div>
             </div>
             <label>Notas</label><textarea id="wkNotes" placeholder="Sensaciones, RPE, técnica..."></textarea>
             <label>Foto o vídeo (opcional, hasta 3 min / 20 MB)</label>
@@ -247,6 +263,35 @@
             <h2>Récords personales estimados</h2>
             <p class="muted">1RM estimado con la fórmula de Epley a partir de tu registro de entrenamientos.</p>
             <div id="prBoard"><p class="muted">Registra sesiones para ver tus récords.</p></div>
+          </div>
+        </div>
+        <div class="sub-panel" id="sub-tr-routines">
+          <div class="panel-card">
+            <h2>Crear plantilla de rutina</h2>
+            <p class="muted">Añade ejercicios con sus series (peso, reps y RIR objetivo). Cuando termines, ponle un nombre y guárdala para reutilizarla otro día.</p>
+            <div class="grid grid-4">
+              <div style="grid-column:span 2;"><label>Ejercicio</label><input type="text" id="builderExerciseName" list="exerciseList" placeholder="Ej: Press banca"></div>
+              <div><label>Series</label><input type="number" id="builderSetsCount" value="3" min="1"></div>
+              <div><label>Peso obj. (kg)</label><input type="number" id="builderDefaultWeight"></div>
+              <div><label>Reps obj.</label><input type="number" id="builderDefaultReps"></div>
+              <div><label>RIR obj.</label><input type="number" id="builderDefaultRIR"></div>
+            </div>
+            <div class="button-group"><button class="flex1 ghost" onclick="addBuilderExercise()">+ Añadir ejercicio a la plantilla</button></div>
+            <div id="builderExerciseList"><p class="muted">Todavía no has añadido ejercicios a esta plantilla.</p></div>
+            <label>Nombre de la plantilla</label>
+            <input type="text" id="templateName" placeholder="Ej: Día de piernas">
+            <div class="button-group"><button class="flex1" onclick="saveTemplate()">Guardar plantilla</button></div>
+          </div>
+          <div class="panel-card">
+            <div class="row" style="justify-content:space-between;">
+              <h2 style="margin:0;">Mis plantillas</h2>
+              <button class="small ghost" onclick="startFreeSession()">Entrenamiento libre</button>
+            </div>
+            <div id="templateList"><p class="muted">Todavía no tienes plantillas guardadas.</p></div>
+          </div>
+          <div class="panel-card">
+            <h2>Sesión en curso</h2>
+            <div id="activeSessionArea"><p class="muted">No hay ninguna sesión en curso. Usa una plantilla o inicia un entrenamiento libre.</p></div>
           </div>
         </div>
         <div class="sub-panel" id="sub-tr-compare">
@@ -329,6 +374,7 @@
           <button class="subtab-btn active" data-sub="pr-measure" onclick="showSub('pr-measure')">Medidas</button>
           <button class="subtab-btn" data-sub="pr-photos" onclick="showSub('pr-photos')">Fotos</button>
           <button class="subtab-btn" data-sub="pr-goals" onclick="showSub('pr-goals')">Objetivos</button>
+          <button class="subtab-btn" data-sub="pr-challenges" onclick="showSub('pr-challenges')">Retos</button>
           <button class="subtab-btn" data-sub="pr-badges" onclick="showSub('pr-badges')">Logros</button>
         </div>
         <div class="sub-panel active" id="sub-pr-measure">
@@ -380,16 +426,148 @@
           <div class="panel-card"><h2>Mis objetivos</h2><div id="goalList"><p class="muted">Todavía no has creado objetivos.</p></div></div>
         </div>
         <div class="sub-panel" id="sub-pr-badges"><div class="panel-card"><h2>Logros</h2><div id="achievementList"></div></div></div>
+        <div class="sub-panel" id="sub-pr-challenges">
+          <div class="panel-card">
+            <div id="challengeRankCard"></div>
+          </div>
+          <div class="panel-card">
+            <h2>Reto de hoy</h2>
+            <div id="dailyChallengeCard"></div>
+          </div>
+          <div class="panel-card">
+            <h2>Retos de nivel</h2>
+            <p class="muted">Marca el nivel que ya has conseguido en cada reto. Cada nivel pertenece a un rango de dificultad (Bronce → Leyenda) y suma XP a tu rango general.</p>
+            <div class="feed-filter-bar" id="challengeCategoryFilter"></div>
+            <div id="milestoneChallengeList"></div>
+          </div>
+          <div class="panel-card">
+            <h2>Mis retos personalizados</h2>
+            <p class="muted">Crea tus propios retos (a corto o largo plazo), asígnales una dificultad y márcalos como completados cuando los consigas.</p>
+            <div class="grid grid-2">
+              <div><label>Nombre del reto</label><input type="text" id="customChallengeName" placeholder="Ej: Correr una media maratón"></div>
+              <div><label>Descripción (opcional)</label><input type="text" id="customChallengeDesc" placeholder="Detalles, plazo, condiciones..."></div>
+            </div>
+            <label>Dificultad</label>
+            <select id="customChallengeDifficulty">
+              <option value="1">Bronce</option>
+              <option value="2">Plata</option>
+              <option value="3" selected>Oro</option>
+              <option value="4">Platino</option>
+              <option value="5">Diamante</option>
+              <option value="6">Leyenda</option>
+            </select>
+            <div class="button-group"><button class="flex1 ghost" onclick="addCustomChallenge()">Crear reto</button></div>
+            <div id="customChallengeList"><p class="muted">Todavía no has creado retos propios.</p></div>
+          </div>
+        </div>
       </div>
 
       <!-- ---------- COMMUNITY ---------- -->
       <div class="tab-panel" id="tab-community">
-        <div class="panel-card">
-          <h2>Perfiles públicos</h2>
-          <p class="muted">Explora los perfiles de otros usuarios de tu base de datos compartida, apóyalos y comenta.</p>
-          <div id="communityGrid"><p class="muted">Cargando...</p></div>
+        <div class="subtab-bar">
+          <button class="subtab-btn active" data-sub="comm-feed" onclick="showSub('comm-feed')">Feed</button>
+          <button class="subtab-btn" data-sub="comm-profiles" onclick="showSub('comm-profiles')">Perfiles</button>
+          <button class="subtab-btn" data-sub="comm-messages" onclick="showSub('comm-messages')">
+            Mensajes<span class="badge-dot hidden" id="dmUnreadDot"></span>
+          </button>
+          <button class="subtab-btn" data-sub="comm-notifications" onclick="showSub('comm-notifications')">
+            <svg class="ic" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+            Notificaciones<span class="badge-dot hidden" id="notifUnreadDot"></span>
+          </button>
         </div>
-        <div class="panel-card hidden" id="communityDetail"></div>
+
+        <!-- FEED -->
+        <div class="sub-panel active" id="sub-comm-feed">
+          <div class="panel-card composer-card">
+            <div class="row" style="gap:12px; align-items:flex-start;">
+              <div class="avatar-preview composer-avatar" id="composerAvatar"><svg class="ic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"></circle><path d="M4 21a8 8 0 0 1 16 0"></path></svg></div>
+              <div style="flex:1;">
+                <textarea id="postText" rows="2" maxlength="600" placeholder="¿Qué has entrenado hoy? Comparte tu progreso con la comunidad... usa @usuario o #etiqueta" oninput="autoGrow(this)"></textarea>
+                <div id="postImagePreview" class="post-image-preview hidden">
+                  <img id="postImagePreviewImg" src="" alt="">
+                  <button type="button" class="remove-image-btn" onclick="clearPostImage()">✕</button>
+                </div>
+                <div class="composer-actions">
+                  <div class="composer-tools">
+                    <input type="file" id="postImageFile" accept="image/*" style="display:none;" onchange="stagePostImage(event)">
+                    <button type="button" class="icon-btn" title="Añadir foto" onclick="document.getElementById('postImageFile').click()"><svg class="ic" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"></rect><circle cx="8.5" cy="8.5" r="1.6"></circle><path d="M21 15l-5-5L5 21"></path></svg></button>
+                    <button type="button" class="icon-btn" title="Usar cámara" onclick="openCameraModal('post', false)"><svg class="ic" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2Z"></path><circle cx="12" cy="13" r="4"></circle></svg></button>
+                    <span class="muted" id="postCharCount">0 / 600</span>
+                  </div>
+                  <button id="publishPostBtn" onclick="publishPost()">Publicar</button>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="row" style="margin-bottom:10px;">
+            <input type="text" id="feedSearchInput" placeholder="Buscar en el feed: texto, @usuario o #etiqueta" style="margin:0;" oninput="handleFeedSearch(this.value)">
+          </div>
+          <div class="feed-filter-bar">
+            <button class="chip-filter active" data-filter="all" onclick="setFeedFilter('all')">Todo</button>
+            <button class="chip-filter" data-filter="following" onclick="setFeedFilter('following')">Siguiendo</button>
+            <button class="chip-filter" data-filter="saved" onclick="setFeedFilter('saved')">Guardados</button>
+            <button class="chip-filter" data-filter="mine" onclick="setFeedFilter('mine')">Mis publicaciones</button>
+            <button class="ghost small" style="margin-left:auto;" onclick="loadCommunityFeed()"><svg class="ic" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.5 9a8.5 8.5 0 0 1 14.6-4.9L23 10M1 14l4.9 5.9A8.5 8.5 0 0 0 20.5 15"></path></svg> Actualizar</button>
+          </div>
+          <div id="feedHashtagBar" class="feed-filter-bar hidden"></div>
+          <div id="communityFeed"><p class="muted">Cargando publicaciones...</p></div>
+        </div>
+
+        <!-- NOTIFICACIONES -->
+        <div class="sub-panel" id="sub-comm-notifications">
+          <div class="panel-card">
+            <div class="row" style="justify-content:space-between;">
+              <h2 style="margin:0;">Notificaciones</h2>
+              <button class="ghost small" onclick="handleMarkAllNotificationsRead()">Marcar todas como leídas</button>
+            </div>
+            <div id="notificationsList" style="margin-top:10px;"><p class="muted">Cargando...</p></div>
+          </div>
+        </div>
+
+        <!-- PERFILES -->
+        <div class="sub-panel" id="sub-comm-profiles">
+          <div class="panel-card">
+            <h2>Perfiles públicos</h2>
+            <p class="muted">Explora los perfiles de otros usuarios de tu base de datos compartida, apóyalos, comenta y escríbeles.</p>
+            <div class="grid grid-2">
+              <div><label>Buscar por usuario</label><input type="text" id="communitySearch" placeholder="Buscar..." oninput="renderCommunityGrid()"></div>
+              <div><label>Ordenar por</label>
+                <select id="communitySort" onchange="renderCommunityGrid()">
+                  <option value="wilks">Mejor Wilks</option>
+                  <option value="name">Nombre (A-Z)</option>
+                  <option value="recent">Creación más reciente</option>
+                </select>
+              </div>
+            </div>
+            <div id="communityTop"></div>
+            <div id="communityGrid"><p class="muted">Cargando...</p></div>
+          </div>
+          <div class="panel-card hidden" id="communityDetail"></div>
+        </div>
+
+        <!-- MENSAJES (DM) -->
+        <div class="sub-panel" id="sub-comm-messages">
+          <div class="panel-card dm-shell">
+            <div class="dm-sidebar">
+              <div class="dm-sidebar-head">
+                <label style="margin-top:0;">Nuevo mensaje</label>
+                <div class="row" style="gap:6px;">
+                  <input type="text" id="dmNewUser" placeholder="Nombre de usuario" list="communityUsersList" style="margin:0;">
+                  <button class="ghost small" onclick="startNewConversation()">Ir</button>
+                </div>
+                <datalist id="communityUsersList"></datalist>
+              </div>
+              <div class="divider" style="margin:12px 0;"></div>
+              <div id="dmConversationList"><p class="muted">Cargando conversaciones...</p></div>
+            </div>
+            <div class="dm-chat" id="dmChatArea">
+              <div class="dm-empty">
+                <div class="mark" style="width:52px;height:52px;margin:0 auto 10px;"><svg class="ic" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.4 8.4 0 0 1-8.8 8.4 8.9 8.9 0 0 1-3.6-.7L3 21l1.8-5.4A8.4 8.4 0 1 1 21 11.5Z"></path></svg></div>
+                <p class="muted">Selecciona una conversación o escribe un nombre de usuario para empezar a chatear.</p>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
       <!-- ---------- RANKING ---------- -->
@@ -407,7 +585,9 @@
         <div class="subtab-bar">
           <button class="subtab-btn active" data-sub="set-sync" onclick="showSub('set-sync')">Sincronización</button>
           <button class="subtab-btn" data-sub="set-profile" onclick="showSub('set-profile')">Perfil</button>
+          <button class="subtab-btn" data-sub="set-username" onclick="showSub('set-username')">Usuario</button>
           <button class="subtab-btn" data-sub="set-appearance" onclick="showSub('set-appearance')">Apariencia</button>
+          <button class="subtab-btn" data-sub="set-accessibility" onclick="showSub('set-accessibility')">Accesibilidad</button>
           <button class="subtab-btn" data-sub="set-data" onclick="showSub('set-data')">Datos</button>
           <button class="subtab-btn" data-sub="set-danger" onclick="showSub('set-danger')">Cuenta</button>
         </div>
@@ -420,7 +600,7 @@
               <button class="flex1 ghost" onclick="goEditConnection()">Editar conexión</button>
               <button class="flex1 ghost" onclick="syncNow()">Sincronizar ahora</button>
             </div>
-            <p class="muted" style="margin-top:14px;">Configura el mismo repositorio y token en cada dispositivo para compartir cuentas, ranking y progreso entre ellos. Los datos se guardan en varios archivos: <code>accounts.json</code>, <code>media.json</code>, <code>ranking.json</code>, <code>exercises.json</code>, <code>social.json</code>.</p>
+            <p class="muted" style="margin-top:14px;">Configura el mismo repositorio y token en cada dispositivo para compartir cuentas, ranking y progreso entre ellos. Los datos se guardan en varios archivos: <code>accounts.json</code>, <code>media.json</code>, <code>ranking.json</code>, <code>exercises.json</code>, <code>social.json</code>, <code>posts.json</code>, <code>messages.json</code>, <code>notifications.json</code>.</p>
           </div>
         </div>
         <div class="sub-panel" id="sub-set-profile">
@@ -456,6 +636,59 @@
           <div class="panel-card">
             <h2>Apariencia</h2>
             <div class="row"><span>Modo claro</span><label class="switch"><input type="checkbox" id="themeToggle2" onchange="toggleTheme()"><span class="slider-toggle"></span></label></div>
+          </div>
+        </div>
+        <div class="sub-panel" id="sub-set-accessibility">
+          <div class="panel-card">
+            <h2>Accesibilidad</h2>
+            <p class="muted">Ajusta la app para que sea más cómoda de leer y usar.</p>
+            <label for="a11yFontScale">Tamaño de texto</label>
+            <select id="a11yFontScale" onchange="updateAccessibilitySetting('fontScale', this.value)">
+              <option value="normal">Normal</option>
+              <option value="large">Grande</option>
+              <option value="xlarge">Muy grande</option>
+            </select>
+            <div class="row" style="margin-top:14px; justify-content:space-between;">
+              <span>Alto contraste</span>
+              <label class="switch"><input type="checkbox" id="a11yHighContrast" onchange="updateAccessibilitySetting('highContrast', this.checked)"><span class="slider-toggle"></span></label>
+            </div>
+            <div class="row" style="margin-top:10px; justify-content:space-between;">
+              <span>Reducir animaciones y movimiento</span>
+              <label class="switch"><input type="checkbox" id="a11yReduceMotion" onchange="updateAccessibilitySetting('reduceMotion', this.checked)"><span class="slider-toggle"></span></label>
+            </div>
+            <div class="row" style="margin-top:10px; justify-content:space-between;">
+              <span>Botones y campos más grandes (objetivo táctil ampliado)</span>
+              <label class="switch"><input type="checkbox" id="a11yLargeTargets" onchange="updateAccessibilitySetting('largeTargets', this.checked)"><span class="slider-toggle"></span></label>
+            </div>
+            <p class="muted" style="margin-top:14px;">Estos ajustes se guardan en tu cuenta y se aplican automáticamente en cualquier dispositivo donde inicies sesión.</p>
+          </div>
+        </div>
+        <div class="sub-panel" id="sub-set-username">
+          <div class="panel-card">
+            <h2>Cambiar nombre de usuario</h2>
+            <p class="muted">Tu usuario actual es <strong id="currentUsernameLabel">—</strong>. Cambiarlo actualizará tus datos, ranking y perfil público con el nuevo nombre.</p>
+            <label>Nuevo nombre de usuario</label>
+            <input type="text" id="newUsernameInput" placeholder="nuevo-usuario">
+            <label>Confirma tu contraseña actual</label>
+            <input type="password" id="changeUsernamePassword" placeholder="Contraseña">
+            <div class="button-group"><button class="flex1" onclick="changeUsername()">Cambiar nombre de usuario</button></div>
+          </div>
+          <div class="panel-card">
+            <h2>Cambiar contraseña</h2>
+            <label>Contraseña actual</label>
+            <input type="password" id="currentPasswordInput" placeholder="Contraseña actual">
+            <label>Nueva contraseña</label>
+            <input type="password" id="newPasswordInput" placeholder="Nueva contraseña" oninput="updateChangePwChecklist()">
+            <ul class="pw-checklist" id="changePwChecklist">
+              <li data-rule="len">Al menos 8 caracteres</li>
+              <li data-rule="upper">Una letra mayúscula</li>
+              <li data-rule="lower">Una letra minúscula</li>
+              <li data-rule="num">Un número</li>
+              <li data-rule="special">Un carácter especial</li>
+            </ul>
+            <label>Repite la nueva contraseña</label>
+            <input type="password" id="newPasswordConfirmInput" placeholder="Repite la nueva contraseña">
+            <div class="button-group"><button class="flex1" onclick="changePassword()">Cambiar contraseña</button></div>
           </div>
         </div>
         <div class="sub-panel" id="sub-set-data">
@@ -528,6 +761,7 @@
     <div class="camera-controls">
       <span id="cameraTimer" class="muted"></span>
       <button class="ghost" onclick="closeCameraModal()">Cancelar</button>
+      <button class="ghost" id="cameraSwitchBtn" onclick="switchCameraFacing()" title="Cambiar entre cámara frontal y trasera"><svg class="ic" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M23 4v6h-6"></path><path d="M1 20v-6h6"></path><path d="M3.5 9a8.5 8.5 0 0 1 14.6-4.9L23 10M1 14l4.9 5.9A8.5 8.5 0 0 0 20.5 15"></path></svg> Cambiar cámara</button>
       <button id="cameraPhotoBtn" onclick="takeCameraPhoto()">Tomar foto</button>
       <button id="cameraVideoBtn" class="hidden" onclick="toggleCameraVideoRecording()">Grabar vídeo</button>
     </div>
