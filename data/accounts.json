@@ -239,7 +239,7 @@
       "waterGoalMl": 2000,
       "accessibility": {
         "fontScale": "normal",
-        "highContrast": false,
+        "highContrast": true,
         "reduceMotion": false,
         "largeTargets": false
       }
