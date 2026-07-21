@@ -236,7 +236,13 @@
       "kcalGoal": 2200,
       "stepsGoal": 10000,
       "waterServingMl": 250,
-      "waterGoalMl": 2000
+      "waterGoalMl": 2000,
+      "accessibility": {
+        "fontScale": "normal",
+        "highContrast": false,
+        "reduceMotion": false,
+        "largeTargets": false
+      }
     },
     "profile": {
       "age": 19,
@@ -461,6 +467,92 @@
         ],
         "totalSeconds": 30,
         "endedAt": "2026-07-21T02:58:49.350Z"
+      },
+      {
+        "id": 1784604163975,
+        "templateId": 1784510975089,
+        "templateName": "asdasd",
+        "date": "2026-07-21",
+        "lastSessionDate": "2026-07-21",
+        "exercises": [
+          {
+            "name": "Press banca",
+            "sets": [
+              {
+                "weight": "",
+                "reps": "",
+                "rir": "23",
+                "notes": "234",
+                "setSeconds": null,
+                "restSeconds": null,
+                "mediaId": null,
+                "done": false,
+                "prevWeight": "234",
+                "prevReps": "234",
+                "prevIsActual": false
+              },
+              {
+                "weight": "",
+                "reps": "",
+                "rir": "",
+                "notes": "",
+                "setSeconds": null,
+                "restSeconds": null,
+                "mediaId": null,
+                "done": false,
+                "prevWeight": "234",
+                "prevReps": "",
+                "prevIsActual": false
+              }
+            ]
+          },
+          {
+            "name": "asdasd",
+            "sets": [
+              {
+                "weight": "",
+                "reps": "",
+                "rir": "",
+                "notes": "",
+                "setSeconds": null,
+                "restSeconds": null,
+                "mediaId": null,
+                "done": false,
+                "prevWeight": "",
+                "prevReps": "",
+                "prevIsActual": false
+              },
+              {
+                "weight": "",
+                "reps": "",
+                "rir": "",
+                "notes": "",
+                "setSeconds": null,
+                "restSeconds": null,
+                "mediaId": null,
+                "done": false,
+                "prevWeight": "",
+                "prevReps": "",
+                "prevIsActual": false
+              },
+              {
+                "weight": "",
+                "reps": "",
+                "rir": "",
+                "notes": "",
+                "setSeconds": null,
+                "restSeconds": null,
+                "mediaId": null,
+                "done": false,
+                "prevWeight": "",
+                "prevReps": "",
+                "prevIsActual": false
+              }
+            ]
+          }
+        ],
+        "totalSeconds": 4,
+        "endedAt": "2026-07-21T03:22:48.400Z"
       }
     ],
     "challenges": {
