@@ -573,7 +573,8 @@
       },
       "levels": {
         "pullup": 3,
-        "handstand": 2
+        "handstand": 2,
+        "squat": 2
       }
     },
     "customChallenges": [
