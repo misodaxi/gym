@@ -263,7 +263,7 @@
       "bio": "",
       "isPublic": false
     },
-    "theme": "light",
+    "theme": "dark",
     "createdAt": "2026-07-19T21:06:00.001Z",
     "routineTemplates": [
       {
@@ -701,6 +701,10 @@
       {
         "date": "2026-07-20",
         "count": 3
+      },
+      {
+        "date": "2026-07-21",
+        "count": 0
       }
     ],
     "savedPosts": []
