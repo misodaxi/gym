@@ -95,15 +95,16 @@ function challengeLevelLabel(def, level){
 /* =========================================================
    SISTEMA DE XP Y RANGO GLOBAL DE RETOS
 ========================================================= */
-function computeChallengeXP(){
-  if(!account) return 0;
+function computeChallengeXP(accObj){
+  const acc = accObj || account;
+  if(!acc) return 0;
   let xp = 0;
-  const levels = (account.challenges && account.challenges.levels) || {};
+  const levels = (acc.challenges && acc.challenges.levels) || {};
   Object.entries(levels).forEach(([id, lvl])=>{
     for(let l=1; l<=lvl; l++) xp += tierXP(l);
   });
-  (account.customChallenges||[]).forEach(c=>{ if(c.completed) xp += tierXP(c.difficulty||3); });
-  const streak = computeDailyChallengeStreak();
+  (acc.customChallenges||[]).forEach(c=>{ if(c.completed) xp += tierXP(c.difficulty||3); });
+  const streak = computeDailyChallengeStreak(acc);
   xp += Math.min(streak, 60) * 5; // hasta 300 XP de bonus por racha diaria
   return xp;
 }
@@ -173,10 +174,16 @@ async function showTab(name){
   if(name==='training'){ renderWorkouts(); renderPRBoard(); renderExerciseDatalist(); renderTemplateList(); renderActiveSession(); }
   if(name==='health'){ renderNutrition(); renderSteps(); renderSleep(); }
   if(name==='progress'){ renderMeasurements(); renderGoals(); renderAchievements(); renderPhotoGallery(); renderDailyChallenge(); renderChallengeRankCard(); renderChallengeCategoryFilter(); renderMilestoneChallenges(); renderCustomChallenges(); }
-  if(name==='community'){ loadCommunityFeed(); refreshDmUnreadIndicator(); }
+  if(name==='community'){ loadCommunityFeed(); refreshDmUnreadIndicator(); refreshNotifUnreadIndicator(); }
   if(name==='ranking') loadRanking();
   if(name==='calculators') renderPlateInventoryForm();
-  if(name==='settings'){ updateSettingsStatusIndicator(); renderProfile(); renderProfileFields(); renderAccessibilitySettings(); const lbl=document.getElementById('currentUsernameLabel'); if(lbl) lbl.textContent = currentUser; }
+  if(name==='settings'){
+    updateSettingsStatusIndicator(); renderProfile(); renderProfileFields(); renderAccessibilitySettings();
+    const lbl=document.getElementById('currentUsernameLabel'); if(lbl) lbl.textContent = currentUser;
+    const lbl2=document.getElementById('currentUsernameLabel2'); if(lbl2) lbl2.textContent = currentUser;
+    const miniAv = document.getElementById('settingsMiniAvatar');
+    if(miniAv && mediaStore && mediaStore.avatar) miniAv.innerHTML = `<img src="${mediaStore.avatar}" alt="">`;
+  }
 }
 async function showSub(name){
   await refreshFromRemote();
@@ -195,6 +202,7 @@ async function showSub(name){
   if(name==='comm-feed') loadCommunityFeed();
   if(name==='comm-profiles') loadCommunity();
   if(name==='comm-messages') loadDmInbox();
+  if(name==='comm-notifications') loadNotifications();
 }
 function renderAll(){
   renderDashboard(); renderWorkouts(); renderPRBoard(); renderMeasurements(); renderGoals();
@@ -228,6 +236,7 @@ async function enterApp(){
   applyAccessibilitySettings();
   document.getElementById('appScreen').classList.remove('hidden');
   refreshDmUnreadIndicator();
+  refreshNotifUnreadIndicator();
 }
 
 (async function initApp(){
@@ -480,6 +489,9 @@ async function handleCapturedMedia(type, dataUrl){
   } else if(cameraContext==='post'){
     stagedPostImage = dataUrl;
     renderStagedPostImage();
+  } else if(cameraContext==='story'){
+    stagedStoryImage = dataUrl;
+    renderStagedStoryImage();
   }
 }
 
@@ -1565,20 +1577,28 @@ async function openCommunityProfile(username){
     const p = acc.profile || {};
     const iGaveKudos = (social.kudosBy||[]).includes(currentUser);
     const iFollow = (mySocial.following||[]).includes(username);
+    const iMuted = (mySocial.muted||[]).includes(username);
+    const iBlocked = (mySocial.blocked||[]).includes(username);
     const postsCount = (await fetchPostsByAuthor(username)).length;
+    const streak = computeDailyChallengeStreak(acc);
+    const rank = getRankForXP(computeChallengeXP(acc)).current;
+    const badges = getAchievementDefs().filter(d=>d.check(acc));
+    const pinnedPost = social.pinnedPostId ? (await fetchPostsByAuthor(username)).find(p=>p.id===social.pinnedPostId) : null;
     detailEl.innerHTML = `
-      <div class="row" style="gap:14px; align-items:flex-start;">
-        <div class="avatar-preview" style="width:72px;height:72px;">${media.avatar?`<img src="${media.avatar}" alt="">`:icon('user',30)}</div>
+      ${media.cover?`<div class="profile-cover"><img src="${media.cover}" alt=""></div>`:''}
+      <div class="row" style="gap:14px; align-items:flex-start; ${media.cover?'margin-top:-30px;':''}">
+        <div class="avatar-preview profile-detail-avatar" style="width:72px;height:72px;">${media.avatar?`<img src="${media.avatar}" alt="">`:icon('user',30)}</div>
         <div style="flex:1;">
-          <h2 style="margin:0;">${escapeHTML(username)}</h2>
+          <h2 style="margin:0;">${escapeHTML(username)} ${rankBadgeInline(rank)}</h2>
           <p class="muted">${p.age?p.age+' años · ':''}${p.heightCm?p.heightCm+' cm · ':''}${p.weightKg?p.weightKg+' kg':''}</p>
           <p>${escapeHTML(p.bio||'')}</p>
-          <p class="muted">Mejor Wilks: ${bestWilks?bestWilks.toFixed(1):'—'} · ${(acc.workouts||[]).length} entrenamientos</p>
+          <p class="muted">Mejor Wilks: ${bestWilks?bestWilks.toFixed(1):'—'} · ${(acc.workouts||[]).length} entrenamientos${streak>0?` · 🔥 ${streak} días de racha`:''}</p>
           <div class="profile-stat-row">
             <span><strong>${postsCount}</strong> publicaciones</span>
             <span><strong>${followStats.followers}</strong> seguidores</span>
             <span><strong>${followStats.following}</strong> seguidos</span>
           </div>
+          ${badges.length?`<div class="profile-badges">${badges.map(d=>`<span class="badge unlocked" title="${escapeHTML(d.desc)}">${icon('award',12)} ${escapeHTML(d.name)}</span>`).join('')}</div>`:''}
         </div>
       </div>
       <div class="button-group">
@@ -1587,6 +1607,13 @@ async function openCommunityProfile(username){
         ${username!==currentUser?`<button class="flex1 ghost" onclick="openConversationFromProfile('${username.replace(/'/g,"\\'")}')">${icon('message',14)} Mensaje</button>`:''}
         <button class="flex1 ghost" onclick="document.getElementById('communityDetail').classList.add('hidden')">Cerrar</button>
       </div>
+      ${username!==currentUser?`
+        <div class="button-group">
+          <button class="flex1 ghost small" onclick="handleToggleMute('${username.replace(/'/g,"\\'")}')">${iMuted?'Dejar de silenciar':'Silenciar'}</button>
+          <button class="flex1 ghost small danger" onclick="handleToggleBlock('${username.replace(/'/g,"\\'")}')">${iBlocked?'Desbloquear':'Bloquear'}</button>
+        </div>
+      `:''}
+      ${pinnedPost?`<div class="divider"></div><h3>📌 Publicación fijada</h3><div class="post-card">${renderPostCard(pinnedPost)}</div>`:''}
       <div class="divider"></div>
       <h3>Publicaciones de ${escapeHTML(username)}</h3>
       <div id="communityProfilePosts"><p class="muted">Cargando...</p></div>
@@ -1602,10 +1629,14 @@ async function openCommunityProfile(username){
     const authorPosts = await fetchPostsByAuthor(username);
     if(postsEl){
       postsEl.innerHTML = authorPosts.length
-        ? authorPosts.slice(0,6).map(p=>`<div class="list-item" style="align-items:flex-start;"><span>${escapeHTML((p.text||'').slice(0,120))}${p.text&&p.text.length>120?'…':''}${p.image?' 📷':''}</span><span class="muted post-time">${timeAgo(p.createdAt)}</span></div>`).join('')
+        ? authorPosts.slice(0,6).map(p=>`<div class="list-item" style="align-items:flex-start; cursor:pointer;" onclick="handleTogglePinPost('${username.replace(/'/g,"\\'")}','${p.id}')" title="Click para fijar/quitar del perfil"><span>${escapeHTML((p.text||'').slice(0,120))}${p.text&&p.text.length>120?'…':''}${p.image?' 📷':''}${social.pinnedPostId===p.id?' 📌':''}</span><span class="muted post-time">${timeAgo(p.createdAt)}</span></div>`).join('')
         : '<p class="muted">Todavía no ha publicado nada.</p>';
     }
   }catch(e){ detailEl.innerHTML = `<p class="muted">Error: ${escapeHTML(e.message)}</p>`; }
+}
+function rankBadgeInline(rank){
+  if(!rank) return '';
+  return `<span class="rank-badge" style="color:${rank.color}; border-color:${rank.color};">${icon('award',11)} ${rank.name}</span>`;
 }
 async function handleToggleFollow(username){
   try{
@@ -1666,14 +1697,23 @@ function clearPostImage(){ stagedPostImage = null; renderStagedPostImage(); }
 async function publishPost(){
   const textEl = document.getElementById('postText');
   const text = textEl.value.trim();
-  if(!text && !stagedPostImage){ toast('Escribe algo o añade una foto antes de publicar.', 'error'); return; }
+  let pollQuestion = '', pollOptions = [];
+  if(pollBuilderOpen){
+    pollQuestion = document.getElementById('pollQuestion').value.trim();
+    pollOptions = [...document.querySelectorAll('.poll-option-input')].map(i=>i.value.trim()).filter(Boolean);
+    if(!pollQuestion || pollOptions.length<2){ toast('La encuesta necesita una pregunta y al menos 2 opciones.', 'error'); return; }
+  }
+  if(!text && !stagedPostImage && !pollBuilderOpen){ toast('Escribe algo, añade una foto o crea una encuesta antes de publicar.', 'error'); return; }
   const btn = document.getElementById('publishPostBtn');
   btn.disabled = true; btn.textContent = 'Publicando...';
   try{
-    await createPost(currentUser, text, stagedPostImage);
+    if(pollBuilderOpen){ await createPollPost(currentUser, text, pollQuestion, pollOptions); }
+    else{ await createPost(currentUser, text, stagedPostImage); }
+    notifyMentions(text, currentUser, 'en una publicación');
     textEl.value = ''; textEl.style.height='auto';
     const cc = document.getElementById('postCharCount'); if(cc) cc.textContent = '0 / 600';
     clearPostImage();
+    if(pollBuilderOpen){ togglePollBuilder(false); document.getElementById('pollQuestion').value=''; document.getElementById('pollOptionsWrap').innerHTML = '<input type="text" class="poll-option-input" placeholder="Opción 1" style="margin:0 0 6px;"><input type="text" class="poll-option-input" placeholder="Opción 2" style="margin:0 0 6px;">'; }
     toast('Publicación compartida con la comunidad.');
     await loadCommunityFeed();
   }catch(e){ toast('Error al publicar: ' + e.message, 'error'); }
@@ -1721,14 +1761,21 @@ async function loadCommunityFeed(){
     const dl = document.getElementById('communityUsersList');
     if(dl){ dl.innerHTML = Object.keys(mediaMap).map(u=>`<option value="${escapeHTML(u)}">`).join(''); }
     renderFeedHashtagBar();
+    await primeModerationCache();
+    checkForNewPosts();
     renderCommunityFeed();
+    const authorsInvolved = posts.map(p=>p.repostAuthor||p.author);
+    primeRankCacheFor(authorsInvolved).then(renderCommunityFeed);
+    loadStoriesBar();
+    renderSuggestedFollows();
+    renderTopStreaksWidget();
   }catch(e){ el.innerHTML = `<p class="muted">Error al cargar el feed: ${escapeHTML(e.message)}</p>`; }
 }
 
 function renderCommunityFeed(){
   const el = document.getElementById('communityFeed');
   if(!el) return;
-  let list = communityFeedCache;
+  let list = communityFeedCache.filter(p=> !mutedUsersCache.has(p.author) && !blockedUsersCache.has(p.author) && !reportedPostsCache.has(p.id));
   if(feedFilter==='mine') list = list.filter(p=>p.author===currentUser);
   else if(feedFilter==='following'){
     list = list.filter(p=> feedFollowingCache && feedFollowingCache.has(p.author));
@@ -1801,19 +1848,24 @@ function renderPostCard(p){
   const isMine = p.author === currentUser;
   const isSaved = !!(account && (account.savedPosts||[]).includes(p.id));
   const isEditing = feedEditingPostId===p.id;
+  const menuOpen = postMenuOpenId===p.id;
+  const isRepost = !!p.repostOf;
   return `
     <div class="post-card" id="post-${p.id}">
+      ${isRepost?`<div class="repost-tag">${icon('share',12)} ${escapeHTML(p.author)} republicó de ${escapeHTML(p.repostAuthor)}</div>`:''}
       <div class="post-head">
         <div class="row" style="gap:10px;">
           <div class="avatar-preview" style="width:38px;height:38px; cursor:pointer;" onclick="jumpToProfile('${p.author.replace(/'/g,"\\'")}')">${avatar}</div>
           <div>
-            <strong class="post-author" onclick="jumpToProfile('${p.author.replace(/'/g,"\\'")}')">${escapeHTML(p.author)}</strong>
+            <strong class="post-author" onclick="jumpToProfile('${p.author.replace(/'/g,"\\'")}')">${escapeHTML(p.author)}</strong> ${rankBadgeHtml(p.author)}
             <div class="muted post-time">${timeAgo(p.createdAt)}${p.editedAt?' · editado':''}</div>
           </div>
         </div>
-        <div class="row" style="gap:2px;">
+        <div class="row" style="gap:2px; position:relative;">
           <button class="icon-btn post-menu-btn" title="${isSaved?'Quitar de guardados':'Guardar publicación'}" onclick="handleToggleSavePost('${p.id}')">${isSaved?icon('check',15):icon('bookmark',15)}</button>
           ${isMine?`<button class="icon-btn post-menu-btn" title="Editar" onclick="startEditPost('${p.id}')">${icon('edit',15)}</button><button class="icon-btn post-menu-btn" title="Borrar publicación" onclick="handleDeletePost('${p.id}')">${icon('trash',15)}</button>`:''}
+          <button class="icon-btn post-menu-btn" title="Más opciones" onclick="togglePostMenu('${p.id}')">${icon('dots',15)}</button>
+          ${menuOpen?`<div class="post-dropdown-menu">${postMenuHtml(p)}</div>`:''}
         </div>
       </div>
       ${isEditing ? `
@@ -1823,26 +1875,51 @@ function renderPostCard(p){
         </div>
       ` : (p.text?`<p class="post-text">${linkifyPostText(p.text)}</p>`:'')}
       ${p.image?`<div class="post-image"><img src="${p.image}" alt="" onclick="openLightbox('${p.image}')"></div>`:''}
-      ${reactions.length?`<div class="post-reaction-summary">${reactions.map(([e,c])=>`<span>${e} ${c}</span>`).join(' ')}</div>`:''}
+      ${isRepost?`
+        <div class="repost-embed">
+          <strong class="post-author" onclick="jumpToProfile('${p.repostAuthor.replace(/'/g,"\\'")}')">${escapeHTML(p.repostAuthor)}</strong>
+          ${p.repostText?`<p class="post-text">${linkifyPostText(p.repostText)}</p>`:''}
+          ${p.repostImage?`<div class="post-image"><img src="${p.repostImage}" alt=""></div>`:''}
+        </div>
+      `:''}
+      ${renderPollBlock(p)}
+      ${p.templateShare?`
+        <div class="template-share-block">
+          <strong>${icon('bookmark',13)} Plantilla: ${escapeHTML(p.templateShare.name)}</strong>
+          <p class="muted">${p.templateShare.exercises.length} ejercicio(s)</p>
+          ${!isMine?`<button class="ghost small" onclick="duplicateSharedTemplate('${p.id}')">Duplicar a mis plantillas</button>`:''}
+        </div>
+      `:''}
+      ${reactions.length?`<div class="post-reaction-summary" onclick="showReactionViewers('${p.id}')" style="cursor:pointer;">${reactions.map(([e,c])=>`<span>${e} ${c}</span>`).join(' ')}</div>`:''}
       <div class="post-actions">
         <div class="post-reaction-wrap">
           <button class="post-action-btn ${myReaction?'liked':''}" onclick="toggleReactionPicker('${p.id}')">${myReaction?myReaction:icon('heart',16)} <span>${totalReactions}</span></button>
           ${reactionPickerOpen?`<div class="reaction-picker">${REACTION_EMOJIS.map(e=>`<button class="reaction-picker-btn ${myReaction===e?'active':''}" onclick="handleSetReaction('${p.id}','${e}')">${e}</button>`).join('')}</div>`:''}
         </div>
         <button class="post-action-btn" onclick="togglePostComments('${p.id}')">${icon('comment',16)} <span>${commentCount}</span></button>
-        <button class="post-action-btn" onclick="handleSharePost('${p.id}')">${icon('share',16)} <span>${shareCount}</span></button>
+        <button class="post-action-btn" onclick="handleRepost('${p.id}')" title="Republicar">${icon('share',16)} <span>${shareCount}</span></button>
+        <button class="post-action-btn" onclick="handleSharePost('${p.id}')" title="Compartir externamente / por mensaje">${icon('send',15)}</button>
       </div>
       <div class="post-comments ${commentsOpen?'':'hidden'}" id="postComments-${p.id}">
         <div class="post-comments-list">
-          ${(p.comments||[]).map(c=>`<div class="post-comment"><strong onclick="jumpToProfile('${c.from.replace(/'/g,"\\'")}')">${escapeHTML(c.from)}</strong> <span>${linkifyPostText(c.text)}</span><div class="muted post-time">${escapeHTML(c.date)}</div></div>`).join('') || '<p class="muted" style="margin:6px 0;">Sé el primero en comentar.</p>'}
+          ${(p.comments||[]).map(c=>`<div class="post-comment"><strong onclick="jumpToProfile('${c.from.replace(/'/g,"\\'")}')">${escapeHTML(c.from)}</strong> <span>${linkifyPostText(c.text)}</span><div class="muted post-time">${escapeHTML(c.date)} · <span class="reply-link" onclick="replyToComment('${p.id}','${c.from.replace(/'/g,"\\'")}')">Responder</span></div></div>`).join('') || '<p class="muted" style="margin:6px 0;">Sé el primero en comentar.</p>'}
         </div>
-        <div class="row" style="margin-top:8px; gap:6px;">
-          <input type="text" placeholder="Escribe un comentario... usa @usuario" id="postCommentInput-${p.id}" style="margin:0;" onkeydown="if(event.key==='Enter'){handlePostComment('${p.id}');}">
+        <div class="row" style="margin-top:8px; gap:6px; position:relative;">
+          <input type="text" placeholder="Escribe un comentario... usa @usuario" id="postCommentInput-${p.id}" style="margin:0;" oninput="handleMentionTypeahead(this,'mentionList-${p.id}')" onkeydown="if(event.key==='Enter'){handlePostComment('${p.id}');}">
+          <div id="mentionList-${p.id}" class="mention-suggestions hidden"></div>
           <button class="ghost small" onclick="handlePostComment('${p.id}')">Enviar</button>
         </div>
       </div>
     </div>
   `;
+}
+async function duplicateSharedTemplate(postId){
+  const post = communityFeedCache.find(p=>p.id===postId);
+  if(!post || !post.templateShare) return;
+  account.routineTemplates = account.routineTemplates || [];
+  account.routineTemplates.push({ id: Date.now(), name: post.templateShare.name + ' (copia)', exercises: JSON.parse(JSON.stringify(post.templateShare.exercises)) });
+  try{ await saveAccount(); toast('Plantilla añadida a tus rutinas.'); }
+  catch(e){ toast('Error: ' + e.message, 'error'); }
 }
 
 function notifyMentions(text, fromUser, context){
@@ -1967,6 +2044,8 @@ async function refreshNotifUnreadIndicator(){
     const unread = list.filter(n=>!n.read).length;
     const dot = document.getElementById('notifUnreadDot');
     if(dot){ dot.classList.toggle('hidden', unread===0); dot.textContent = unread>9?'9+':(unread||''); }
+    const topDot = document.getElementById('topbarNotifDot');
+    if(topDot) topDot.classList.toggle('hidden', unread===0);
   }catch(e){}
 }
 const NOTIF_ICON = { follow:'user', reaction:'heart', comment:'comment', profile_comment:'comment', mention:'message' };
@@ -2005,12 +2084,18 @@ let dmActivePeer = null;
 let dmInboxCache = [];
 let dmPollHandle = null;
 
+async function quickJumpCommunity(subId){
+  await showTab('community');
+  showSub(subId);
+}
 async function refreshDmUnreadIndicator(){
   try{
     const inbox = await fetchInboxSummaries(currentUser);
     const totalUnread = inbox.reduce((s,c)=>s+c.unread,0);
     const dot = document.getElementById('dmUnreadDot');
     if(dot){ dot.classList.toggle('hidden', totalUnread===0); dot.textContent = totalUnread>9?'9+':(totalUnread||''); }
+    const topDot = document.getElementById('topbarDmDot');
+    if(topDot) topDot.classList.toggle('hidden', totalUnread===0);
   }catch(e){}
 }
 
@@ -2101,6 +2186,371 @@ async function handleSendDm(){
     renderDmChat(dmActivePeer, msgs);
     loadDmInbox();
   }catch(e){ toast('Error al enviar: ' + e.message, 'error'); }
+}
+
+/* =========================================================
+   RANGO DE RETOS: insignia junto al nombre en el feed / perfil
+========================================================= */
+let communityRankCache = {};
+async function primeRankCacheFor(usernames){
+  const uniq = [...new Set(usernames)].filter(u=>!(u in communityRankCache));
+  for(const u of uniq){
+    try{
+      const acc = await fetchAccount(u);
+      communityRankCache[u] = acc ? getRankForXP(computeChallengeXP(acc)).current : null;
+    }catch(e){ communityRankCache[u] = null; }
+  }
+}
+function rankBadgeHtml(username){
+  const r = communityRankCache[username];
+  if(!r) return '';
+  return `<span class="rank-badge" style="color:${r.color}; border-color:${r.color};" title="Rango: ${r.name}">${icon('award',10)} ${r.name}</span>`;
+}
+
+/* =========================================================
+   HISTORIAS (contenido efímero de 24h)
+========================================================= */
+let storiesCache = {};
+let storyViewerQueue = [];
+let storyViewerIndex = 0;
+let storyViewerTimer = null;
+let stagedStoryImage = null;
+
+async function loadStoriesBar(){
+  const el = document.getElementById('storiesBar');
+  if(!el) return;
+  try{
+    storiesCache = await fetchAllStories();
+    const myAvatar = (mediaStore && mediaStore.avatar) ? `<img src="${mediaStore.avatar}" alt="">` : icon('user',20);
+    const others = Object.keys(storiesCache).filter(u=>u!==currentUser);
+    const myStories = storiesCache[currentUser] || [];
+    let html = `
+      <div class="story-item" onclick="${myStories.length ? `openStoryViewer('${currentUser}')` : `openCreateStoryModal()`}">
+        <div class="story-ring ${myStories.length?'has-story':'no-story'}"><div class="story-avatar">${myAvatar}</div>${myStories.length?'':'<span class="story-add-badge">+</span>'}</div>
+        <span class="story-label">Tu historia</span>
+      </div>`;
+    html += others.map(u=>{
+      const media = communityMediaCache[u] || {};
+      const avatar = media.avatar ? `<img src="${media.avatar}" alt="">` : icon('user',20);
+      const allSeen = (storiesCache[u]||[]).every(s=>(s.viewedBy||[]).includes(currentUser));
+      return `<div class="story-item" onclick="openStoryViewer('${u.replace(/'/g,"\\'")}')">
+        <div class="story-ring ${allSeen?'seen':'unseen'}"><div class="story-avatar">${avatar}</div></div>
+        <span class="story-label">${escapeHTML(u)}</span>
+      </div>`;
+    }).join('');
+    el.innerHTML = html;
+  }catch(e){ el.innerHTML = `<p class="muted">No se pudieron cargar las historias.</p>`; }
+}
+function openCreateStoryModal(){
+  document.getElementById('storyComposerText').value = '';
+  stagedStoryImage = null;
+  renderStagedStoryImage();
+  document.getElementById('createStoryModal').classList.add('open');
+}
+function closeCreateStoryModal(){ document.getElementById('createStoryModal').classList.remove('open'); }
+async function stageStoryImage(event){
+  const file = event.target.files[0];
+  if(!file) return;
+  try{ stagedStoryImage = await resizeImageFile(file, 900, 0.7); renderStagedStoryImage(); }
+  catch(e){ toast('No se pudo procesar la imagen: ' + e.message, 'error'); }
+  event.target.value = '';
+}
+function renderStagedStoryImage(){
+  const wrap = document.getElementById('storyComposerPreview');
+  const img = document.getElementById('storyComposerPreviewImg');
+  if(stagedStoryImage){ img.src = stagedStoryImage; wrap.classList.remove('hidden'); }
+  else{ img.src=''; wrap.classList.add('hidden'); }
+}
+async function publishStory(){
+  const text = document.getElementById('storyComposerText').value.trim();
+  if(!text && !stagedStoryImage){ toast('Añade una foto o un texto para tu historia.', 'error'); return; }
+  try{
+    await createStory(currentUser, stagedStoryImage, text);
+    closeCreateStoryModal();
+    toast('Historia publicada. Estará visible 24 horas.');
+    loadStoriesBar();
+  }catch(e){ toast('Error: ' + e.message, 'error'); }
+}
+function openStoryViewer(username){
+  storyViewerQueue = storiesCache[username] || [];
+  if(storyViewerQueue.length===0){ if(username===currentUser) openCreateStoryModal(); return; }
+  storyViewerIndex = 0;
+  document.getElementById('storyViewer').classList.add('open');
+  document.getElementById('storyViewerUser').textContent = username;
+  const media = communityMediaCache[username] || (username===currentUser?mediaStore:{});
+  document.getElementById('storyViewerAvatar').innerHTML = (media&&media.avatar) ? `<img src="${media.avatar}" alt="">` : icon('user',16);
+  document.getElementById('storyViewerFooter').innerHTML = username===currentUser
+    ? `<button class="ghost small danger" onclick="handleDeleteCurrentStory('${username.replace(/'/g,"\\'")}')">Borrar esta historia</button>`
+    : '';
+  renderStoryProgress();
+  showCurrentStory(username);
+}
+function renderStoryProgress(){
+  const row = document.getElementById('storyProgressRow');
+  row.innerHTML = storyViewerQueue.map((s,i)=>`<div class="story-progress-track"><div class="story-progress-fill ${i<storyViewerIndex?'full':''}" id="storyProgress-${i}"></div></div>`).join('');
+}
+function showCurrentStory(username){
+  clearTimeout(storyViewerTimer);
+  const s = storyViewerQueue[storyViewerIndex];
+  if(!s){ closeStoryViewer(); return; }
+  markStoryViewed(username, s.id, currentUser).catch(()=>{});
+  document.getElementById('storyViewerTime').textContent = timeAgo(s.createdAt);
+  const contentEl = document.getElementById('storyViewerContent');
+  contentEl.innerHTML = s.image
+    ? `<img src="${s.image}" alt="">${s.text?`<div class="story-caption">${escapeHTML(s.text)}</div>`:''}`
+    : `<div class="story-text-slide">${escapeHTML(s.text)}</div>`;
+  const fill = document.getElementById(`storyProgress-${storyViewerIndex}`);
+  if(fill){ fill.style.transition='none'; fill.style.width='0%'; requestAnimationFrame(()=>{ fill.style.transition='width 5s linear'; fill.style.width='100%'; }); }
+  storyViewerTimer = setTimeout(()=>storyNext(), 5000);
+}
+function storyNext(){
+  storyViewerIndex++;
+  if(storyViewerIndex >= storyViewerQueue.length){ closeStoryViewer(); return; }
+  showCurrentStory(document.getElementById('storyViewerUser').textContent);
+}
+function storyPrev(){
+  storyViewerIndex = Math.max(0, storyViewerIndex-1);
+  showCurrentStory(document.getElementById('storyViewerUser').textContent);
+}
+function closeStoryViewer(){
+  clearTimeout(storyViewerTimer);
+  document.getElementById('storyViewer').classList.remove('open');
+  loadStoriesBar();
+}
+async function handleDeleteCurrentStory(username){
+  const s = storyViewerQueue[storyViewerIndex];
+  if(!s || !confirm('¿Borrar esta historia?')) return;
+  try{ await deleteStory(username, s.id); toast('Historia borrada.'); closeStoryViewer(); }
+  catch(e){ toast('Error: ' + e.message, 'error'); }
+}
+
+/* =========================================================
+   ENCUESTAS en publicaciones
+========================================================= */
+let pollBuilderOpen = false;
+function togglePollBuilder(forceOpen){
+  pollBuilderOpen = forceOpen!==undefined ? !!forceOpen : !pollBuilderOpen;
+  document.getElementById('postPollBuilder').classList.toggle('hidden', !pollBuilderOpen);
+}
+function addPollOption(){
+  const wrap = document.getElementById('pollOptionsWrap');
+  if(wrap.children.length>=4){ toast('Máximo 4 opciones.', 'error'); return; }
+  const input = document.createElement('input');
+  input.type = 'text'; input.className = 'poll-option-input'; input.style.margin = '0 0 6px';
+  input.placeholder = `Opción ${wrap.children.length+1}`;
+  wrap.appendChild(input);
+}
+async function handleVotePoll(postId, optionIndex){
+  try{
+    await votePoll(postId, currentUser, optionIndex);
+    const post = communityFeedCache.find(p=>p.id===postId);
+    if(post && post.poll){ post.poll.options.forEach(o=>{ o.votes = (o.votes||[]).filter(v=>v!==currentUser); }); post.poll.options[optionIndex].votes.push(currentUser); }
+    renderCommunityFeed();
+  }catch(e){ toast('Error: ' + e.message, 'error'); }
+}
+function renderPollBlock(post){
+  if(!post.poll) return '';
+  const totalVotes = post.poll.options.reduce((s,o)=>s+(o.votes||[]).length,0);
+  const myVoteIdx = post.poll.options.findIndex(o=>(o.votes||[]).includes(currentUser));
+  return `<div class="poll-block">
+    <strong>${escapeHTML(post.poll.question)}</strong>
+    ${post.poll.options.map((o,i)=>{
+      const pct = totalVotes ? Math.round(((o.votes||[]).length/totalVotes)*100) : 0;
+      return `<button class="poll-option-btn ${myVoteIdx===i?'voted':''}" onclick="handleVotePoll('${post.id}', ${i})">
+        <span class="poll-option-fill" style="width:${pct}%;"></span>
+        <span class="poll-option-label">${escapeHTML(o.text)}</span><span class="poll-option-pct">${pct}%</span>
+      </button>`;
+    }).join('')}
+    <p class="muted" style="margin-top:4px;">${totalVotes} voto${totalVotes===1?'':'s'}</p>
+  </div>`;
+}
+
+/* =========================================================
+   REPOST
+========================================================= */
+async function handleRepost(postId){
+  const post = communityFeedCache.find(p=>p.id===postId);
+  if(!post) return;
+  const caption = prompt('Añade un comentario a tu republicación (opcional):', '');
+  if(caption===null) return;
+  try{
+    await createRepost(currentUser, post, caption);
+    if(post.author!==currentUser) pushNotification(post.author, { type:'repost', text:`${currentUser} republicó tu publicación.`, from:currentUser, postId }).catch(()=>{});
+    toast('Publicación republicada en tu perfil.');
+    loadCommunityFeed();
+  }catch(e){ toast('Error: ' + e.message, 'error'); }
+}
+
+/* =========================================================
+   SILENCIAR / BLOQUEAR / REPORTAR / FIJAR
+========================================================= */
+let mutedUsersCache = new Set();
+let blockedUsersCache = new Set();
+async function primeModerationCache(){
+  try{ const social = await fetchSocial(currentUser); mutedUsersCache = new Set(social.muted||[]); blockedUsersCache = new Set(social.blocked||[]); }
+  catch(e){}
+}
+async function handleToggleMute(username){
+  try{ await toggleMuteUser(username, currentUser); await primeModerationCache(); renderCommunityFeed(); toast(mutedUsersCache.has(username)?`Has silenciado a ${username}.`:`Ya no silencias a ${username}.`); }
+  catch(e){ toast('Error: ' + e.message, 'error'); }
+}
+async function handleToggleBlock(username){
+  if(!confirm(`¿${blockedUsersCache.has(username)?'Desbloquear':'Bloquear'} a ${username}?`)) return;
+  try{ await toggleBlockUser(username, currentUser); await primeModerationCache(); renderCommunityFeed(); toast('Actualizado.'); }
+  catch(e){ toast('Error: ' + e.message, 'error'); }
+}
+function handleReportPost(postId){
+  const reason = prompt('¿Por qué quieres reportar esta publicación? (se ocultará de tu feed)');
+  if(reason===null) return;
+  reportedPostsCache.add(postId);
+  renderCommunityFeed();
+  toast('Publicación reportada y ocultada de tu feed. Gracias por avisar.');
+}
+let reportedPostsCache = new Set();
+async function handleTogglePinPost(username, postId){
+  try{
+    await togglePinPost(username, postId);
+    toast('Actualizado.');
+    if(document.getElementById('communityDetail') && !document.getElementById('communityDetail').classList.contains('hidden')) openCommunityProfile(username);
+    renderCommunityFeed();
+  }catch(e){ toast('Error: ' + e.message, 'error'); }
+}
+function postMenuHtml(p){
+  const isMine = p.author===currentUser;
+  const isMuted = mutedUsersCache.has(p.author);
+  const isBlocked = blockedUsersCache.has(p.author);
+  const items = [];
+  if(isMine){
+    items.push(`<button onclick="handleTogglePinPost('${p.author.replace(/'/g,"\\'")}','${p.id}'); closePostMenu();">${icon('bookmark',13)} Fijar/quitar del perfil</button>`);
+  } else {
+    items.push(`<button onclick="handleToggleMute('${p.author.replace(/'/g,"\\'")}'); closePostMenu();">${isMuted?'Dejar de silenciar':'Silenciar'} a ${escapeHTML(p.author)}</button>`);
+    items.push(`<button onclick="handleToggleBlock('${p.author.replace(/'/g,"\\'")}'); closePostMenu();">${isBlocked?'Desbloquear':'Bloquear'} a ${escapeHTML(p.author)}</button>`);
+    items.push(`<button onclick="handleReportPost('${p.id}'); closePostMenu();">Reportar publicación</button>`);
+  }
+  return items.join('');
+}
+let postMenuOpenId = null;
+function togglePostMenu(postId){ postMenuOpenId = postMenuOpenId===postId ? null : postId; renderCommunityFeed(); }
+function closePostMenu(){ postMenuOpenId = null; renderCommunityFeed(); }
+
+/* =========================================================
+   VER QUIÉN HA REACCIONADO
+========================================================= */
+function showReactionViewers(postId){
+  const post = communityFeedCache.find(p=>p.id===postId);
+  if(!post || !post.reactions || Object.keys(post.reactions).length===0){ toast('Todavía no hay reacciones.'); return; }
+  const lines = Object.entries(post.reactions).map(([u,e])=>`${e} ${u}`).join('\n');
+  alert('Han reaccionado:\n' + lines);
+}
+
+/* =========================================================
+   RESPONDER A UN COMENTARIO
+========================================================= */
+function replyToComment(postId, username){
+  feedOpenComments.add(postId);
+  renderCommunityFeed();
+  setTimeout(()=>{
+    const input = document.getElementById(`postCommentInput-${postId}`);
+    if(input){ input.value = `@${username} `; input.focus(); }
+  }, 30);
+}
+
+/* =========================================================
+   AUTOCOMPLETAR MENCIONES (@usuario) mientras se escribe
+========================================================= */
+function handleMentionTypeahead(inputEl, listId){
+  const val = inputEl.value;
+  const cursor = inputEl.selectionStart;
+  const upToCursor = val.slice(0, cursor);
+  const match = upToCursor.match(/@(\w*)$/);
+  const listEl = document.getElementById(listId);
+  if(!match){ if(listEl) listEl.classList.add('hidden'); return; }
+  const query = match[1].toLowerCase();
+  const candidates = Object.keys(communityMediaCache).filter(u=>u.toLowerCase().startsWith(query) && u!==currentUser).slice(0,5);
+  if(!listEl) return;
+  if(candidates.length===0){ listEl.classList.add('hidden'); return; }
+  listEl.classList.remove('hidden');
+  listEl.innerHTML = candidates.map(u=>`<div class="mention-suggestion" onmousedown="applyMentionSuggestion('${inputEl.id}','${listId}','${u.replace(/'/g,"\\'")}')">@${escapeHTML(u)}</div>`).join('');
+}
+function applyMentionSuggestion(inputId, listId, username){
+  const inputEl = document.getElementById(inputId);
+  const val = inputEl.value;
+  const cursor = inputEl.selectionStart;
+  const upToCursor = val.slice(0, cursor);
+  const replaced = upToCursor.replace(/@(\w*)$/, `@${username} `);
+  inputEl.value = replaced + val.slice(cursor);
+  document.getElementById(listId).classList.add('hidden');
+  inputEl.focus();
+}
+
+/* =========================================================
+   SUGERENCIAS PARA SEGUIR Y TOP RACHAS
+========================================================= */
+async function renderSuggestedFollows(){
+  const el = document.getElementById('suggestedFollowsWidget');
+  if(!el) return;
+  try{
+    const mySocial = await fetchSocial(currentUser);
+    const following = new Set(mySocial.following||[]);
+    const candidates = Object.keys(communityMediaCache).filter(u=>u!==currentUser && !following.has(u));
+    if(candidates.length===0){ el.innerHTML = '<h3 style="margin-top:0;">Descubrir personas</h3><p class="muted">Ya sigues a toda la comunidad.</p>'; return; }
+    const shuffled = candidates.sort(()=>Math.random()-0.5).slice(0,4);
+    el.innerHTML = `<h3 style="margin-top:0;">Descubrir personas</h3>` + shuffled.map(u=>{
+      const media = communityMediaCache[u] || {};
+      const avatar = media.avatar ? `<img src="${media.avatar}" alt="">` : icon('user',15);
+      return `<div class="suggestion-row">
+        <div class="row" style="gap:8px; cursor:pointer;" onclick="jumpToProfile('${u.replace(/'/g,"\\'")}')">
+          <div class="avatar-preview" style="width:30px;height:30px;">${avatar}</div><span>${escapeHTML(u)}</span>
+        </div>
+        <button class="ghost small" onclick="handleQuickFollow('${u.replace(/'/g,"\\'")}')">+ Seguir</button>
+      </div>`;
+    }).join('');
+  }catch(e){ el.innerHTML = ''; }
+}
+async function handleQuickFollow(username){
+  try{
+    await toggleFollow(username, currentUser);
+    pushNotification(username, { type:'follow', text:`${currentUser} ha empezado a seguirte.`, from:currentUser }).catch(()=>{});
+    feedFollowingCache = null;
+    toast(`Ahora sigues a ${username}.`);
+    renderSuggestedFollows();
+  }catch(e){ toast('Error: ' + e.message, 'error'); }
+}
+async function renderTopStreaksWidget(){
+  const el = document.getElementById('topStreaksWidget');
+  if(!el) return;
+  try{
+    const usernames = Object.keys(communityMediaCache).slice(0,15);
+    const streaks = [];
+    for(const u of usernames){
+      const acc = await fetchAccount(u);
+      if(acc) streaks.push({ username:u, streak: computeDailyChallengeStreak(acc) });
+    }
+    streaks.sort((a,b)=>b.streak-a.streak);
+    const top = streaks.filter(s=>s.streak>0).slice(0,5);
+    el.innerHTML = `<h3 style="margin-top:0;">🔥 Top rachas</h3>` + (top.length
+      ? top.map((s,i)=>`<div class="suggestion-row"><span>${i+1}. ${escapeHTML(s.username)}</span><strong>${s.streak} días</strong></div>`).join('')
+      : '<p class="muted">Nadie tiene una racha activa todavía.</p>');
+  }catch(e){ el.innerHTML = ''; }
+}
+
+/* =========================================================
+   INDICADOR DE PUBLICACIONES NUEVAS
+========================================================= */
+let lastSeenFeedTimestamp = null;
+function checkForNewPosts(){
+  const banner = document.getElementById('newPostsBanner');
+  if(!banner || communityFeedCache.length===0) return;
+  const newest = communityFeedCache[0].createdAt;
+  if(lastSeenFeedTimestamp && newest > lastSeenFeedTimestamp){ banner.classList.remove('hidden'); }
+  else{ banner.classList.add('hidden'); }
+  lastSeenFeedTimestamp = lastSeenFeedTimestamp || newest;
+}
+function scrollFeedToTopAndRefresh(){
+  document.getElementById('newPostsBanner').classList.add('hidden');
+  lastSeenFeedTimestamp = communityFeedCache[0] ? communityFeedCache[0].createdAt : lastSeenFeedTimestamp;
+  loadCommunityFeed();
+  document.getElementById('communityFeed').scrollIntoView({ behavior:'smooth' });
 }
 
 /* =========================================================
@@ -2433,13 +2883,14 @@ function getDailyChallenge(){
   const dayOfYear = Math.floor((new Date() - start) / (1000*60*60*24));
   return DAILY_CHALLENGE_POOL[dayOfYear % DAILY_CHALLENGE_POOL.length];
 }
-function computeDailyChallengeStreak(){
-  if(!account || !account.challenges || !account.challenges.dailyCompletions) return 0;
+function computeDailyChallengeStreak(accObj){
+  const acc = accObj || account;
+  if(!acc || !acc.challenges || !acc.challenges.dailyCompletions) return 0;
   let streak = 0;
   const cursor = new Date();
   while(true){
     const key = cursor.toISOString().slice(0,10);
-    if(account.challenges.dailyCompletions[key]){ streak++; cursor.setDate(cursor.getDate()-1); }
+    if(acc.challenges.dailyCompletions[key]){ streak++; cursor.setDate(cursor.getDate()-1); }
     else break;
   }
   return streak;

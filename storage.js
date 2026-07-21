@@ -109,7 +109,7 @@ function passwordRuleResults(pw){
 ========================================================= */
 let githubConfig = null;
 let lastSyncTime = null;
-const COLLECTION_NAMES = ['accounts','media','ranking','exercises','social','posts','messages','notifications'];
+const COLLECTION_NAMES = ['accounts','media','ranking','exercises','social','posts','messages','notifications','stories'];
 
 function isGithubMode(){ return !!(githubConfig && githubConfig.owner && githubConfig.repo && githubConfig.token); }
 
@@ -279,7 +279,7 @@ function defaultAccount(passwordHash){
     createdAt: new Date().toISOString()
   };
 }
-function defaultMediaStore(){ return { avatar: null, progressPhotos: [], workoutMedia: {} }; }
+function defaultMediaStore(){ return { avatar: null, cover: null, progressPhotos: [], workoutMedia: {} }; }
 function ensureAccountShape(acc){
   acc.history = acc.history || [];
   acc.workouts = acc.workouts || [];
@@ -393,6 +393,7 @@ async function removeAccountData(username){
     await collectionUpdate('posts', col=>{ Object.keys(col).forEach(id=>{ if(col[id].author===username) delete col[id]; }); }, `Borrar publicaciones de: ${username}`, {});
     await collectionUpdate('messages', col=>{ Object.keys(col).forEach(cid=>{ if(cid.split('__').includes(username)) delete col[cid]; }); }, `Borrar mensajes de: ${username}`, {});
     await collectionUpdate('notifications', col=>{ delete col[username]; }, `Borrar notificaciones de: ${username}`, {});
+    await collectionUpdate('stories', col=>{ delete col[username]; }, `Borrar historias de: ${username}`, {});
   } else {
     await storageDeleteKey(`wilks:account:${username}`, false);
     await storageDeleteKey(`wilks:media:${username}`, false);
@@ -400,12 +401,13 @@ async function removeAccountData(username){
     await storageDeleteKey(`wilks:social:${username}`, true);
     await deleteAllPostsBy(username);
     await deleteUserMessages(username);
-    await storageDeleteKey(`wilks:notifications:${username}`, true);
+    const notifCol = await getNotificationsCollection(); delete notifCol[username]; await storageSet('wilks:notifications', JSON.stringify(notifCol), true);
+    const storiesCol = await getStoriesCollection(); delete storiesCol[username]; await saveStoriesCollectionLocal(storiesCol);
   }
 }
 async function wipeAllAccounts(){
   if(isGithubMode()){
-    for(const name of ['accounts','media','ranking','social','posts','messages','notifications']){
+    for(const name of ['accounts','media','ranking','social','posts','messages','notifications','stories']){
       await collectionUpdate(name, col=>{ Object.keys(col).forEach(k=>delete col[k]); }, `Borrar todo: ${name}.json`, {});
     }
   } else {
@@ -413,12 +415,14 @@ async function wipeAllAccounts(){
       const keys = await storageListKeys(prefix, false);
       for(const k of keys){ await storageDeleteKey(k, false); }
     }
-    for(const prefix of ['wilks:ranking:','wilks:social:','wilks:notifications:']){
+    for(const prefix of ['wilks:ranking:','wilks:social:']){
       const keys = await storageListKeys(prefix, true);
       for(const k of keys){ await storageDeleteKey(k, true); }
     }
     await storageDeleteKey('wilks:posts', true);
     await storageDeleteKey('wilks:messages', true);
+    await storageDeleteKey('wilks:notifications', true);
+    await storageDeleteKey('wilks:stories', true);
   }
 }
 async function fetchAllAccountsMap(){
@@ -509,7 +513,7 @@ async function fetchAllSocialMap(){
   return map;
 }
 /* ---- Social: apoyos y comentarios de perfiles públicos ---- */
-function defaultSocial(){ return { kudos: 0, kudosBy: [], comments: [], following: [] }; }
+function defaultSocial(){ return { kudos: 0, kudosBy: [], comments: [], following: [], muted: [], blocked: [], pinnedPostId: null }; }
 async function fetchSocial(username){
   if(isGithubMode()){ const col = await collectionFetchFresh('social', {}); return col[username] ? { ...defaultSocial(), ...col[username] } : defaultSocial(); }
   const raw = await storageGet(`wilks:social:${username}`, true);
@@ -611,6 +615,109 @@ async function deletePostComment(postId, commentId, byUser){
 async function registerPostShare(postId, byUser){
   await mutatePost(postId, post=>{ post.shares = post.shares || []; post.shares.push({ by:byUser, date:new Date().toISOString() }); }, `Compartir ${postId}`);
 }
+/* =========================================================
+   SILENCIAR / BLOQUEAR / FIJAR PUBLICACIÓN
+========================================================= */
+async function toggleMuteUser(targetUser, byUser){
+  const mutator = col=>{ col[byUser] = col[byUser] || defaultSocial(); col[byUser].muted = col[byUser].muted || []; const i = col[byUser].muted.indexOf(targetUser); if(i>=0) col[byUser].muted.splice(i,1); else col[byUser].muted.push(targetUser); };
+  if(isGithubMode()){ await collectionUpdate('social', mutator, `${byUser} silencia a ${targetUser}`, {}); }
+  else{ const social = await fetchSocial(byUser); social.muted = social.muted || []; const i = social.muted.indexOf(targetUser); if(i>=0) social.muted.splice(i,1); else social.muted.push(targetUser); await storageSet(`wilks:social:${byUser}`, JSON.stringify(social), true); }
+}
+async function toggleBlockUser(targetUser, byUser){
+  const mutator = col=>{ col[byUser] = col[byUser] || defaultSocial(); col[byUser].blocked = col[byUser].blocked || []; const i = col[byUser].blocked.indexOf(targetUser); if(i>=0) col[byUser].blocked.splice(i,1); else col[byUser].blocked.push(targetUser); };
+  if(isGithubMode()){ await collectionUpdate('social', mutator, `${byUser} bloquea a ${targetUser}`, {}); }
+  else{ const social = await fetchSocial(byUser); social.blocked = social.blocked || []; const i = social.blocked.indexOf(targetUser); if(i>=0) social.blocked.splice(i,1); else social.blocked.push(targetUser); await storageSet(`wilks:social:${byUser}`, JSON.stringify(social), true); }
+}
+async function togglePinPost(username, postId){
+  const mutator = col=>{ col[username] = col[username] || defaultSocial(); col[username].pinnedPostId = (col[username].pinnedPostId===postId) ? null : postId; };
+  if(isGithubMode()){ await collectionUpdate('social', mutator, `Fijar publicación de ${username}`, {}); }
+  else{ const social = await fetchSocial(username); social.pinnedPostId = (social.pinnedPostId===postId) ? null : postId; await storageSet(`wilks:social:${username}`, JSON.stringify(social), true); }
+}
+
+/* =========================================================
+   REPOSTS y ENCUESTAS en publicaciones
+========================================================= */
+async function createRepost(username, originalPost, caption){
+  const post = defaultPost(username, caption||'', null);
+  post.repostOf = originalPost.id;
+  post.repostAuthor = originalPost.author;
+  post.repostText = originalPost.text || '';
+  post.repostImage = originalPost.image || null;
+  if(isGithubMode()){ await collectionUpdate('posts', col=>{ col[post.id] = post; }, `Republicación de ${username}`, {}); }
+  else{ const col = await getPostsCollection(); col[post.id] = post; await savePostsCollectionLocal(col); }
+  return post;
+}
+async function createPollPost(username, text, question, options){
+  const post = defaultPost(username, text, null);
+  post.poll = { question, options: options.map(o=>({ text:o, votes:[] })) };
+  if(isGithubMode()){ await collectionUpdate('posts', col=>{ col[post.id] = post; }, `Encuesta de ${username}`, {}); }
+  else{ const col = await getPostsCollection(); col[post.id] = post; await savePostsCollectionLocal(col); }
+  return post;
+}
+async function votePoll(postId, username, optionIndex){
+  await mutatePost(postId, post=>{
+    if(!post.poll) return;
+    post.poll.options.forEach(o=>{ o.votes = (o.votes||[]).filter(v=>v!==username); });
+    post.poll.options[optionIndex].votes = post.poll.options[optionIndex].votes || [];
+    post.poll.options[optionIndex].votes.push(username);
+  }, `Voto en encuesta ${postId}`);
+}
+async function createTemplateSharePost(username, caption, template){
+  const post = defaultPost(username, caption||'', null);
+  post.templateShare = { name: template.name, exercises: template.exercises };
+  if(isGithubMode()){ await collectionUpdate('posts', col=>{ col[post.id] = post; }, `Plantilla compartida por ${username}`, {}); }
+  else{ const col = await getPostsCollection(); col[post.id] = post; await savePostsCollectionLocal(col); }
+  return post;
+}
+
+/* =========================================================
+   HISTORIAS (contenido efímero de 24 horas)
+========================================================= */
+const STORY_LIFETIME_MS = 24*60*60*1000;
+function newStoryId(){ return 's' + Date.now().toString(36) + Math.random().toString(36).slice(2,6); }
+async function getStoriesCollection(){
+  if(isGithubMode()){ return await collectionFetchFresh('stories', {}); }
+  const raw = await storageGet('wilks:stories', true);
+  return raw ? JSON.parse(raw) : {};
+}
+async function saveStoriesCollectionLocal(col){ await storageSet('wilks:stories', JSON.stringify(col), true); }
+function pruneExpiredStories(col){
+  const now = Date.now();
+  Object.keys(col).forEach(username=>{
+    col[username] = (col[username]||[]).filter(s=> new Date(s.expiresAt).getTime() > now);
+    if(col[username].length===0) delete col[username];
+  });
+  return col;
+}
+async function createStory(username, image, text){
+  const story = { id:newStoryId(), image:image||null, text:(text||'').trim(), createdAt:new Date().toISOString(), expiresAt:new Date(Date.now()+STORY_LIFETIME_MS).toISOString(), viewedBy:[] };
+  if(isGithubMode()){
+    await collectionUpdate('stories', col=>{ pruneExpiredStories(col); col[username] = col[username] || []; col[username].push(story); }, `Historia de ${username}`, {});
+  } else {
+    const col = await getStoriesCollection();
+    pruneExpiredStories(col);
+    col[username] = col[username] || [];
+    col[username].push(story);
+    await saveStoriesCollectionLocal(col);
+  }
+  return story;
+}
+async function fetchAllStories(){
+  let col = await getStoriesCollection();
+  col = pruneExpiredStories(col);
+  return col;
+}
+async function markStoryViewed(username, storyId, viewer){
+  const mutator = col=>{ const list = col[username]||[]; const s = list.find(x=>x.id===storyId); if(s){ s.viewedBy = s.viewedBy||[]; if(!s.viewedBy.includes(viewer)) s.viewedBy.push(viewer); } };
+  if(isGithubMode()){ await collectionUpdate('stories', mutator, `Ver historia`, {}); }
+  else{ const col = await getStoriesCollection(); mutator(col); await saveStoriesCollectionLocal(col); }
+}
+async function deleteStory(username, storyId){
+  const mutator = col=>{ col[username] = (col[username]||[]).filter(s=>s.id!==storyId); };
+  if(isGithubMode()){ await collectionUpdate('stories', mutator, `Borrar historia`, {}); }
+  else{ const col = await getStoriesCollection(); mutator(col); await saveStoriesCollectionLocal(col); }
+}
+
 async function editPostText(postId, byUser, newText){
   await mutatePost(postId, post=>{
     if(post.author===byUser){ post.text = (newText||'').trim(); post.editedAt = new Date().toISOString(); }
