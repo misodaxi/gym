@@ -10,5 +10,17 @@
       "text": "hola",
       "date": "21/7/2026, 4:57:25"
     }
+  ],
+  "1__misodaxi": [
+    {
+      "id": "mru369yth3j",
+      "from": "misodaxi",
+      "to": "1",
+      "text": "hola",
+      "date": "2026-07-21T03:20:50.165Z",
+      "readBy": [
+        "misodaxi"
+      ]
+    }
   ]
 }
