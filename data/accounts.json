@@ -584,6 +584,15 @@
         "completed": false,
         "completedAt": null,
         "createdAt": "2026-07-21T13:33:31.370Z"
+      },
+      {
+        "id": 1784640889903,
+        "name": "correr una maraton",
+        "desc": "",
+        "difficulty": 3,
+        "completed": false,
+        "completedAt": null,
+        "createdAt": "2026-07-21T13:34:49.903Z"
       }
     ],
     "waterLog": [
