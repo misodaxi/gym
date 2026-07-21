@@ -67,5 +67,28 @@
     "likes": [],
     "comments": [],
     "shares": []
+  },
+  "pmrv24y4bemkw4": {
+    "id": "pmrv24y4bemkw4",
+    "author": "misodaxi",
+    "text": "",
+    "image": null,
+    "createdAt": "2026-07-21T19:39:34.715Z",
+    "likes": [],
+    "comments": [],
+    "shares": [],
+    "poll": {
+      "question": "que jugamos",
+      "options": [
+        {
+          "text": "fornite o rocket league",
+          "votes": []
+        },
+        {
+          "text": "?",
+          "votes": []
+        }
+      ]
+    }
   }
 }
