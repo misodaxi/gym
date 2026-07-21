@@ -572,7 +572,8 @@
         "2026-07-20": true
       },
       "levels": {
-        "pullup": 3
+        "pullup": 3,
+        "handstand": 2
       }
     },
     "customChallenges": [
@@ -581,8 +582,8 @@
         "name": "correr media maraton",
         "desc": "en menos de 2 horas",
         "difficulty": 4,
-        "completed": false,
-        "completedAt": null,
+        "completed": true,
+        "completedAt": "2026-07-21T13:35:23.344Z",
         "createdAt": "2026-07-21T13:33:31.370Z"
       },
       {
@@ -593,6 +594,15 @@
         "completed": false,
         "completedAt": null,
         "createdAt": "2026-07-21T13:34:49.903Z"
+      },
+      {
+        "id": 1784640902745,
+        "name": "correr una maraton",
+        "desc": "",
+        "difficulty": 6,
+        "completed": true,
+        "completedAt": "2026-07-21T13:35:14.496Z",
+        "createdAt": "2026-07-21T13:35:02.745Z"
       }
     ],
     "waterLog": [
