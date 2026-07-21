@@ -575,7 +575,8 @@
         "pullup": 3,
         "handstand": 2,
         "squat": 2,
-        "deadlift": 3
+        "deadlift": 3,
+        "plank": 3
       }
     },
     "customChallenges": [
