@@ -335,6 +335,8 @@ function renderProfile(){
   if(preview) preview.innerHTML = avatar ? `<img src="${avatar}" alt="Foto de perfil">` : icon('user', 26);
   const chip = document.getElementById('userChip');
   if(chip){ chip.innerHTML = (avatar ? `<img class="avatar-sm" src="${avatar}" alt="">` : icon('user', 14)) + ` ${escapeHTML(currentUser)}`; }
+  const coverPreview = document.getElementById('coverPreview');
+  if(coverPreview) coverPreview.innerHTML = (mediaStore && mediaStore.cover) ? `<img src="${mediaStore.cover}" alt="Portada">` : '<p class="muted">Sin portada todavía.</p>';
 }
 async function uploadAvatar(event){
   const file = event.target.files[0];
@@ -353,6 +355,24 @@ async function removeAvatar(){
   try{ await persistMediaStoreFor(currentUser, mediaStore); }catch(e){ toast('Error: ' + e.message, 'error'); }
   renderProfile();
   toast('Foto de perfil eliminada.');
+}
+async function uploadCoverPhoto(event){
+  const file = event.target.files[0];
+  if(!file) return;
+  try{
+    const dataUrl = await resizeImageFile(file, 1200, 0.75);
+    mediaStore.cover = dataUrl;
+    await persistMediaStoreFor(currentUser, mediaStore);
+    renderProfile();
+    toast('Portada actualizada.');
+  }catch(e){ toast('No se pudo procesar la imagen: ' + e.message, 'error'); }
+  event.target.value = '';
+}
+async function removeCoverPhoto(){
+  mediaStore.cover = null;
+  try{ await persistMediaStoreFor(currentUser, mediaStore); }catch(e){ toast('Error: ' + e.message, 'error'); }
+  renderProfile();
+  toast('Portada eliminada.');
 }
 function renderProfileFields(){
   if(!account) return;
@@ -472,6 +492,10 @@ async function handleCapturedMedia(type, dataUrl){
   if(cameraContext==='avatar'){
     mediaStore.avatar = dataUrl;
     try{ await persistMediaStoreFor(currentUser, mediaStore); renderProfile(); toast('Foto de perfil actualizada.'); }
+    catch(e){ toast('Error: ' + e.message, 'error'); }
+  } else if(cameraContext==='cover'){
+    mediaStore.cover = dataUrl;
+    try{ await persistMediaStoreFor(currentUser, mediaStore); renderProfile(); toast('Portada actualizada.'); }
     catch(e){ toast('Error: ' + e.message, 'error'); }
   } else if(cameraContext==='progressPhoto'){
     const date = document.getElementById('photoDate').value || todayStr();

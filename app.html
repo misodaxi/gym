@@ -658,6 +658,17 @@
             </div>
           </div>
           <div class="panel-card">
+            <h2>Foto de portada</h2>
+            <p class="muted">Se muestra en la parte superior de tu perfil público.</p>
+            <div class="profile-cover-preview" id="coverPreview"></div>
+            <div class="upload-control">
+              <input type="file" id="coverFile" accept="image/*" onchange="uploadCoverPhoto(event)">
+              <button type="button" onclick="document.getElementById('coverFile').click()">Subir portada</button>
+              <button type="button" onclick="openCameraModal('cover', false)">Usar cámara</button>
+              <button type="button" class="ghost danger" onclick="removeCoverPhoto()">Quitar portada</button>
+            </div>
+          </div>
+          <div class="panel-card">
             <h2>Datos públicos</h2>
             <div class="grid grid-3">
               <div><label>Edad</label><input type="number" id="profileAge"></div>
