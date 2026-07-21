@@ -771,38 +771,50 @@
 
   <nav class="mobile-nav">
     <button class="mobile-nav-item active" data-tab="dashboard" onclick="showTab('dashboard')">
-      <svg class="ic" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"></rect><rect x="14" y="3" width="7" height="7" rx="1"></rect><rect x="3" y="14" width="7" height="7" rx="1"></rect><rect x="14" y="14" width="7" height="7" rx="1"></rect></svg>
+      <svg class="ic" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"></rect><rect x="14" y="3" width="7" height="7" rx="1"></rect><rect x="3" y="14" width="7" height="7" rx="1"></rect><rect x="14" y="14" width="7" height="7" rx="1"></rect></svg>
       Panel
     </button>
-    <button class="mobile-nav-item" data-tab="calculators" onclick="showTab('calculators')">
-      <svg class="ic" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="2"></rect><line x1="8" y1="6" x2="16" y2="6"></line></svg>
-      Calc.
-    </button>
     <button class="mobile-nav-item" data-tab="training" onclick="showTab('training')">
-      <svg class="ic" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="4" width="14" height="17" rx="2"></rect><rect x="9" y="2" width="6" height="4" rx="1"></rect></svg>
+      <svg class="ic" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="4" width="14" height="17" rx="2"></rect><rect x="9" y="2" width="6" height="4" rx="1"></rect></svg>
       Entreno
     </button>
-    <button class="mobile-nav-item" data-tab="health" onclick="showTab('health')">
-      <svg class="ic" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-4.35-9.5-8.5C.7 8.6 3 4.5 7 4.5c2 0 3.6 1.4 5 3.3 1.4-1.9 3-3.3 5-3.3 4 0 6.3 4.1 4.5 8-2.5 4.15-9.5 8.5-9.5 8.5Z"></path></svg>
-      Salud
+    <button class="mobile-nav-item mobile-nav-item-center" data-tab="community" onclick="showTab('community')">
+      <span class="mobile-nav-center-badge"><svg class="ic" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.2"></circle><path d="M2.5 20a6.5 6.5 0 0 1 13 0"></path><path d="M17 8h4M19 6v4"></path></svg></span>
+      Comunidad
     </button>
     <button class="mobile-nav-item" data-tab="progress" onclick="showTab('progress')">
-      <svg class="ic" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 17 9 11 13 15 21 6"></polyline></svg>
+      <svg class="ic" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 17 9 11 13 15 21 6"></polyline></svg>
       Progreso
     </button>
-    <button class="mobile-nav-item" data-tab="community" onclick="showTab('community')">
-      <svg class="ic" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.2"></circle><path d="M2.5 20a6.5 6.5 0 0 1 13 0"></path></svg>
-      Gente
-    </button>
-    <button class="mobile-nav-item" data-tab="ranking" onclick="showTab('ranking')">
-      <svg class="ic" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4h10v5a5 5 0 0 1-10 0V4Z"></path></svg>
-      Ranking
-    </button>
-    <button class="mobile-nav-item" data-tab="settings" onclick="showTab('settings')">
-      <svg class="ic" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle></svg>
-      Ajustes
+    <button class="mobile-nav-item" data-tab="more" onclick="openMoreSheet()">
+      <svg class="ic" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="12" r="1.6"></circle><circle cx="12" cy="12" r="1.6"></circle><circle cx="19" cy="12" r="1.6"></circle></svg>
+      Más
     </button>
   </nav>
+
+  <!-- Hoja "Más" (móvil): resto de secciones -->
+  <div class="bottom-sheet-backdrop" id="moreSheetBackdrop" onclick="closeMoreSheet()"></div>
+  <div class="bottom-sheet" id="moreSheet">
+    <div class="bottom-sheet-handle"></div>
+    <h3 style="margin:4px 0 12px;">Más secciones</h3>
+    <button class="sheet-item" data-tab="calculators" onclick="showTab('calculators'); closeMoreSheet();">
+      <svg class="ic" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="2"></rect><line x1="8" y1="6" x2="16" y2="6"></line></svg>
+      Calculadoras
+    </button>
+    <button class="sheet-item" data-tab="health" onclick="showTab('health'); closeMoreSheet();">
+      <svg class="ic" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-4.35-9.5-8.5C.7 8.6 3 4.5 7 4.5c2 0 3.6 1.4 5 3.3 1.4-1.9 3-3.3 5-3.3 4 0 6.3 4.1 4.5 8-2.5 4.15-9.5 8.5-9.5 8.5Z"></path></svg>
+      Salud
+    </button>
+    <button class="sheet-item" data-tab="ranking" onclick="showTab('ranking'); closeMoreSheet();">
+      <svg class="ic" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4h10v5a5 5 0 0 1-10 0V4Z"></path></svg>
+      Ranking
+    </button>
+    <button class="sheet-item" data-tab="settings" onclick="showTab('settings'); closeMoreSheet();">
+      <svg class="ic" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle></svg>
+      Ajustes
+    </button>
+    <button class="sheet-item" onclick="closeMoreSheet()">Cancelar</button>
+  </div>
 </div>
 
 <!-- Cámara -->

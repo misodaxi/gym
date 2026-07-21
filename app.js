@@ -74,6 +74,46 @@ const CHALLENGE_DEFS = [
     {level:1,label:'Completa 5 km corriendo, sin importar el tiempo'},{level:2,label:'5 km en menos de 30 minutos'},{level:3,label:'5 km en menos de 25 minutos'},
     {level:4,label:'5 km en menos de 22 minutos'},{level:5,label:'5 km en menos de 20 minutos'},{level:6,label:'5 km en menos de 18 minutos (élite)'}
   ]},
+  { id:'burpees', name:'Burpees', category:'Cardio', levels:[
+    {level:1,label:'10 burpees seguidos'},{level:2,label:'25 burpees seguidos'},{level:3,label:'50 burpees seguidos'},
+    {level:4,label:'75 burpees seguidos'},{level:5,label:'100 burpees seguidos'},{level:6,label:'150 burpees seguidos (élite)'}
+  ]},
+  { id:'deadhang', name:'Dead hang (colgarse de la barra)', category:'Calistenia', levels:[
+    {level:1,label:'Aguanta 10 segundos'},{level:2,label:'Aguanta 30 segundos'},{level:3,label:'Aguanta 60 segundos'},
+    {level:4,label:'Aguanta 90 segundos'},{level:5,label:'Aguanta 120 segundos'},{level:6,label:'Aguanta 180 segundos (élite)'}
+  ]},
+  { id:'pistolsquat', name:'Pistol squat (sentadilla a una pierna)', category:'Equilibrio', levels:[
+    {level:1,label:'1 repetición asistida (con apoyo)'},{level:2,label:'1 repetición completa sin apoyo'},{level:3,label:'3 repeticiones por pierna'},
+    {level:4,label:'6 repeticiones por pierna'},{level:5,label:'10 repeticiones por pierna'},{level:6,label:'15 repeticiones por pierna (élite)'}
+  ]},
+  { id:'lsit', name:'L-sit', category:'Core', levels:[
+    {level:1,label:'Aguanta 5 segundos'},{level:2,label:'Aguanta 10 segundos'},{level:3,label:'Aguanta 20 segundos'},
+    {level:4,label:'Aguanta 30 segundos'},{level:5,label:'Aguanta 45 segundos'},{level:6,label:'Aguanta 60 segundos (élite)'}
+  ]},
+  { id:'verticaljump', name:'Salto vertical', category:'Potencia', levels:[
+    {level:1,label:'Alcanza 30 cm de salto'},{level:2,label:'Alcanza 40 cm de salto'},{level:3,label:'Alcanza 50 cm de salto'},
+    {level:4,label:'Alcanza 60 cm de salto'},{level:5,label:'Alcanza 70 cm de salto'},{level:6,label:'Alcanza 80 cm de salto (élite)'}
+  ]},
+  { id:'hipmobility', name:'Sentadilla profunda (ATG)', category:'Movilidad', levels:[
+    {level:1,label:'Mantén la posición 10 segundos con talones apoyados'},{level:2,label:'Mantén la posición 30 segundos'},{level:3,label:'Mantén la posición 1 minuto'},
+    {level:4,label:'Mantén la posición 2 minutos'},{level:5,label:'Mantén la posición 3 minutos'},{level:6,label:'Mantén la posición 5 minutos (élite)'}
+  ]},
+  { id:'cycling20k', name:'Pedalear 20 km', category:'Resistencia', levels:[
+    {level:1,label:'Completa 20 km en bici, sin importar el tiempo'},{level:2,label:'20 km en menos de 60 minutos'},{level:3,label:'20 km en menos de 50 minutos'},
+    {level:4,label:'20 km en menos de 45 minutos'},{level:5,label:'20 km en menos de 40 minutos'},{level:6,label:'20 km en menos de 35 minutos (élite)'}
+  ]},
+  { id:'swim500', name:'Nadar 500 metros', category:'Natación', levels:[
+    {level:1,label:'Completa 500 m nadando, sin importar el tiempo'},{level:2,label:'500 m en menos de 15 minutos'},{level:3,label:'500 m en menos de 12 minutos'},
+    {level:4,label:'500 m en menos de 10 minutos'},{level:5,label:'500 m en menos de 9 minutos'},{level:6,label:'500 m en menos de 8 minutos (élite)'}
+  ]},
+  { id:'militarypress', name:'Press militar (overhead press)', category:'Fuerza', levels:[
+    {level:1,label:'Levanta 0.4x tu peso corporal'},{level:2,label:'Levanta 0.55x tu peso corporal'},{level:3,label:'Levanta 0.7x tu peso corporal'},
+    {level:4,label:'Levanta 0.85x tu peso corporal'},{level:5,label:'Levanta 1x tu peso corporal'},{level:6,label:'Levanta 1.2x tu peso corporal (élite)'}
+  ]},
+  { id:'weightedpullup', name:'Dominadas lastradas', category:'Fuerza', levels:[
+    {level:1,label:'Añade un 10% de tu peso corporal'},{level:2,label:'Añade un 25% de tu peso corporal'},{level:3,label:'Añade un 40% de tu peso corporal'},
+    {level:4,label:'Añade un 55% de tu peso corporal'},{level:5,label:'Añade un 70% de tu peso corporal'},{level:6,label:'Añade un 85% de tu peso corporal (élite)'}
+  ]},
 ];
 function challengeLevelLabel(def, level){
   const item = def.levels.find(l=>l.level===level);
@@ -83,7 +123,9 @@ function challengeLevelLabel(def, level){
   const map = {
     squat:{1:1,2:1.5,3:2,4:2.5,5:3,6:3.5},
     bench:{1:0.5,2:0.75,3:1,4:1.25,5:1.5,6:1.75},
-    deadlift:{1:1.25,2:1.75,3:2.25,4:2.75,5:3.25,6:3.75}
+    deadlift:{1:1.25,2:1.75,3:2.25,4:2.75,5:3.25,6:3.75},
+    militarypress:{1:0.4,2:0.55,3:0.7,4:0.85,5:1,6:1.2},
+    weightedpullup:{1:0.1,2:0.25,3:0.4,4:0.55,5:0.7,6:0.85}
   };
   if(map[def.id] && map[def.id][level]){
     const target = (w*map[def.id][level]).toFixed(0);
@@ -167,7 +209,11 @@ async function refreshFromRemote(){
 async function showTab(name){
   await refreshFromRemote();
   document.querySelectorAll('.side-link[data-tab]').forEach(b=>b.classList.toggle('active', b.dataset.tab===name));
-  document.querySelectorAll('.mobile-nav-item[data-tab]').forEach(b=>b.classList.toggle('active', b.dataset.tab===name));
+  const moreTabs = ['calculators','health','ranking','settings'];
+  document.querySelectorAll('.mobile-nav-item[data-tab]').forEach(b=>{
+    b.classList.toggle('active', b.dataset.tab===name || (b.dataset.tab==='more' && moreTabs.includes(name)));
+  });
+  document.querySelectorAll('.sheet-item[data-tab]').forEach(b=>b.classList.toggle('active', b.dataset.tab===name));
   document.querySelectorAll('.tab-panel').forEach(p=>p.classList.toggle('active', p.id === 'tab-'+name));
   document.getElementById('pageTitle').textContent = TAB_TITLES[name] || '';
   if(name==='dashboard') renderDashboard();
@@ -2108,6 +2154,14 @@ let dmActivePeer = null;
 let dmInboxCache = [];
 let dmPollHandle = null;
 
+function openMoreSheet(){
+  document.getElementById('moreSheetBackdrop').classList.add('open');
+  document.getElementById('moreSheet').classList.add('open');
+}
+function closeMoreSheet(){
+  document.getElementById('moreSheetBackdrop').classList.remove('open');
+  document.getElementById('moreSheet').classList.remove('open');
+}
 async function quickJumpCommunity(subId){
   await showTab('community');
   showSub(subId);
