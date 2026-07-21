@@ -240,7 +240,7 @@
       "accessibility": {
         "fontScale": "normal",
         "highContrast": true,
-        "reduceMotion": true,
+        "reduceMotion": false,
         "largeTargets": false
       }
     },
