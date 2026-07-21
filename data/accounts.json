@@ -259,7 +259,7 @@
     "profile": {
       "age": 19,
       "heightCm": 160,
-      "weightKg": 85,
+      "weightKg": 80,
       "bio": "",
       "isPublic": false
     },
@@ -575,7 +575,17 @@
         "pullup": 3
       }
     },
-    "customChallenges": [],
+    "customChallenges": [
+      {
+        "id": 1784640811370,
+        "name": "correr media maraton",
+        "desc": "en menos de 2 horas",
+        "difficulty": 4,
+        "completed": false,
+        "completedAt": null,
+        "createdAt": "2026-07-21T13:33:31.370Z"
+      }
+    ],
     "waterLog": [
       {
         "date": "2026-07-20",
