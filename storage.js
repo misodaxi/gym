@@ -199,13 +199,16 @@ const ICONS = {
   edit:'<path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4Z"></path>',
   'rank-bronze':'<path d="M12 2 4 5v6c0 5 3.4 8.5 8 11 4.6-2.5 8-6 8-11V5l-8-3Z"></path>',
   'rank-silver':'<path d="M12 2 14.7 8.6 22 9.3l-5.5 4.7L18.2 21 12 17.3 5.8 21l1.7-7-5.5-4.7 7.3-.7Z"></path>',
-  'rank-gold':'<path d="M8 21h8"></path><path d="M10 21v-4h4v4"></path><path d="M6 4h12v4a6 6 0 0 1-12 0V4Z"></path><path d="M6 5H3v2a4 4 0 0 0 3 3.9"></path><path d="M18 5h3v2a4 4 0 0 1-3 3.9"></path>',
-  'rank-platinum':'<path d="M12 3 3 9l9 5 9-5-9-6Z"></path><path d="M3 9v6l9 5 9-5V9"></path>',
-  'rank-diamond':'<path d="M6 3h12l4 6-10 12L2 9Z"></path><path d="M2 9h20"></path><path d="M9 3 6 9l6 12 6-12-3-6"></path>',
-  'rank-legend':'<path d="M4 6h16l-2 5H6Z"></path><path d="M2 6h4l1 4-3 1Z"></path><path d="M22 6h-4l-1 4 3 1Z"></path><path d="M7 11h10l-1.2 8H8.2Z"></path>',
+  'rank-gold':'<circle cx="12" cy="9" r="6"></circle><path d="M8.5 14 5 22 12 18 19 22 15.5 14Z"></path>',
+  'rank-platinum':'<path d="M12 4 22 15 16 15 16 20 8 20 8 15 2 15Z"></path>',
+  'rank-diamond':'<path d="M6 3h12l4 6-10 12L2 9Z"></path>',
+  'rank-legend':'<path d="M3 8 7 11 12 5 17 11 21 8 19 19 5 19Z"></path>',
 };
 function icon(name, size=15){
   return `<svg class="ic" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${ICONS[name]||''}</svg>`;
+}
+function iconFilled(name, size=15){
+  return `<svg class="ic" width="${size}" height="${size}" viewBox="0 0 24 24" fill="currentColor" stroke="none">${ICONS[name]||''}</svg>`;
 }
 function toast(msg, type='info', ms=3600){
   const wrap = document.getElementById('toastWrap');

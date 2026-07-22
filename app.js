@@ -173,7 +173,7 @@ function renderChallengeRankCard(){
   const pct = next ? Math.min(100, ((xp-current.min)/(next.min-current.min))*100) : 100;
   el.innerHTML = `
     <div class="rank-hero">
-      <div class="rank-hero-badge" style="border-color:${current.color}; color:${current.color};">${icon('award',22)}</div>
+      <div class="rank-hero-badge" style="border-color:${current.color}; color:${current.color};">${iconFilled(rankIconName(current.name),24)}</div>
       <div style="flex:1; min-width:180px;">
         <h2 style="margin:0;">Rango: <span style="color:${current.color};">${current.name}</span></h2>
         <p class="muted" style="margin:2px 0 8px;">${xp} XP acumulados${next?` · ${next.min-xp} XP para ${next.name}`:' · Rango máximo alcanzado'}</p>
@@ -770,15 +770,21 @@ function calcPlates(){
   const platesHtml = used.map((p,i)=>{
     const meta = PLATE_META[p];
     const w = Math.round(meta.diameter * 2.05);
-    const h = Math.round(w * 0.66);
+    const h = Math.round(w * 0.62);
     const showLabel = meta.diameter >= 31;
-    const brandSize = Math.max(6, Math.round(w*0.052));
-    const numSize = Math.max(10, Math.round(w*0.17));
-    return `<div class="plate-disc" style="width:${w}px; height:${h}px; --ring:${meta.ring}; --face:${meta.color}; margin-left:${i===0?0:-Math.round(w*0.62)}px; z-index:${used.length-i}; animation-delay:${i*0.04}s;" title="${p} kg">
-      <span class="plate-disc-face">
-        <span class="plate-disc-hub"></span>
-        ${showLabel?`<span class="plate-disc-brand" style="font-size:${brandSize}px;">IRONSIDE</span><span class="plate-disc-label" style="font-size:${numSize}px;">${p}</span>`:''}
-      </span>
+    const brandSize = Math.max(5, Math.round(w*0.044));
+    const numSize = Math.max(10, Math.round(w*0.16));
+    return `<div class="plate-disc" style="width:${w}px; height:${h}px; margin-left:${i===0?0:-Math.round(w*0.6)}px; z-index:${used.length-i}; animation-delay:${i*0.04}s;" title="${p} kg">
+      <span class="plate-ring-shadow"></span>
+      <span class="plate-ring-outer" style="background:${meta.color};"></span>
+      <span class="plate-ring-color" style="background:${meta.ring};"></span>
+      <span class="plate-ring-inner" style="background:${meta.color};"></span>
+      <span class="plate-disc-hub"></span>
+      ${showLabel?`
+        <span class="plate-disc-text">
+          <span class="plate-disc-brand" style="color:${meta.ring}; font-size:${brandSize}px;">IRONSIDE</span>
+          <span class="plate-disc-label" style="color:${meta.ring}; font-size:${numSize}px;">${p}</span>
+        </span>`:''}
     </div>`;
   }).join('');
   vizEl.innerHTML = `<div class="plate-stack plate-stack-3d">${platesHtml}</div><div class="bar-line-3d"></div>`;
@@ -1720,7 +1726,7 @@ async function openCommunityProfile(username){
 }
 function rankBadgeInline(rank){
   if(!rank) return '';
-  return `<span class="xp-rank-badge xp-rank-badge-lg" style="color:${rank.color}; border-color:${rank.color}; background:${rank.color}22;">${icon(rankIconName(rank.name),13)} ${rank.name}</span>`;
+  return `<span class="xp-rank-badge xp-rank-badge-lg" style="color:${rank.color}; border-color:${rank.color}; background:${rank.color}22;">${iconFilled(rankIconName(rank.name),13)} ${rank.name}</span>`;
 }
 async function handleToggleFollow(username){
   try{
@@ -2468,7 +2474,7 @@ function rankIconName(rankName){
 function rankBadgeHtml(username){
   const r = communityRankCache[username];
   if(!r) return '';
-  return `<span class="xp-rank-badge" style="color:${r.color}; border-color:${r.color}; background:${r.color}22;" title="Rango: ${r.name}">${icon(rankIconName(r.name),12)}</span>`;
+  return `<span class="xp-rank-badge" style="color:${r.color}; border-color:${r.color}; background:${r.color}22;" title="Rango: ${r.name}">${iconFilled(rankIconName(r.name),12)}</span>`;
 }
 
 /* =========================================================
@@ -3139,25 +3145,49 @@ function renderTodayPlanCard(){
   if(!card || !account) return;
   const plans = account.trainingPlans || [];
   const t = todayStr();
+  let todayHtml = '';
+  let matchedPlan = null, matchedOcc = null;
   for(const plan of plans){
     const schedule = computePlanSchedule(plan);
     const occ = schedule.find(o=>o.date===t);
-    if(occ){
-      card.innerHTML = `
-        <h2 style="margin:0;">Hoy toca: ${escapeHTML(occ.splitDayName)}</h2>
-        <p class="muted">Plan "${escapeHTML(plan.name)}" · repetición ${occ.occurrenceNumber} de ${plan.cycles}</p>
-        <div class="grid grid-3">
-          ${occ.exercises.map(ex=>`<div class="card" style="margin-top:0;"><strong>${escapeHTML(ex.name)}</strong><div class="wilks-score">${ex.weight} kg</div></div>`).join('')}
-        </div>
-        <div class="button-group">
-          <button onclick="startSessionFromPlan(${plan.id}, '${t}')">Iniciar sesión con estos pesos</button>
-          <button class="ghost" onclick="openPlanCalendar(${plan.id})">Ver calendario completo</button>
-        </div>
-      `;
-      return;
-    }
+    if(occ){ matchedPlan = plan; matchedOcc = occ; break; }
   }
-  card.innerHTML = `<h2 style="margin:0;">Sin sesión planificada hoy</h2><p class="muted">Crea un plan de ciclos más abajo para planificar automáticamente el peso de cada día.</p>`;
+  if(matchedOcc){
+    todayHtml = `
+      <h2 style="margin:0;">Hoy toca: ${escapeHTML(matchedOcc.splitDayName)}</h2>
+      <p class="muted">Plan "${escapeHTML(matchedPlan.name)}" · repetición ${matchedOcc.occurrenceNumber} de ${matchedPlan.cycles}</p>
+      <div class="grid grid-3">
+        ${matchedOcc.exercises.map(ex=>`<div class="card" style="margin-top:0;"><strong>${escapeHTML(ex.name)}</strong><div class="wilks-score">${ex.weight} kg</div></div>`).join('')}
+      </div>
+      <div class="button-group">
+        <button onclick="startSessionFromPlan(${matchedPlan.id}, '${t}')">Iniciar sesión con estos pesos</button>
+        <button class="ghost" onclick="openPlanCalendar(${matchedPlan.id})">Ver calendario completo</button>
+      </div>
+    `;
+  } else {
+    todayHtml = `<h2 style="margin:0;">Sin sesión planificada hoy</h2><p class="muted">Crea un plan de ciclos más abajo para planificar automáticamente el peso de cada día.</p>`;
+  }
+  // Próximos entrenamientos planificados (de todos los planes, excluyendo hoy)
+  let upcoming = [];
+  plans.forEach(plan=>{
+    computePlanSchedule(plan).filter(o=>o.date>t).forEach(o=>upcoming.push({ plan, occ:o }));
+  });
+  upcoming.sort((a,b)=> a.occ.date.localeCompare(b.occ.date));
+  upcoming = upcoming.slice(0,5);
+  const upcomingHtml = upcoming.length ? `
+    <div class="divider"></div>
+    <h3>Próximos entrenamientos planificados</h3>
+    <div>
+      ${upcoming.map(({plan,occ})=>{
+        const label = new Date(occ.date+'T00:00:00').toLocaleDateString('es-ES', { weekday:'short', day:'numeric', month:'short' });
+        return `<div class="list-item" style="cursor:pointer;" onclick="openPlanCalendar(${plan.id})">
+          <div><strong>${escapeHTML(occ.splitDayName)}</strong><div class="muted">${label} · ${escapeHTML(plan.name)}</div></div>
+          <span class="muted">${occ.exercises.map(e=>`${escapeHTML(e.name)} ${e.weight}kg`).join(' · ')}</span>
+        </div>`;
+      }).join('')}
+    </div>
+  ` : '';
+  card.innerHTML = todayHtml + upcomingHtml;
 }
 function startSessionFromPlan(planId, dateStr){
   const plan = (account.trainingPlans||[]).find(p=>p.id===planId);
@@ -3487,7 +3517,7 @@ function renderMilestoneChallenges(){
         ${c.levels.map(l=>{
           const achieved = currentLevel >= l.level;
           const tm = tierMeta(l.level);
-          return `<button class="small challenge-tier-btn ${achieved?'achieved':'ghost'}" style="${achieved?`border-color:${tm.color}; color:${tm.color};`:''}" onclick="setChallengeLevel('${c.id}', ${l.level})" title="${escapeHTML(challengeLevelLabel(c,l.level))} · Rango ${tm.name} (+${tierXP(l.level)} XP)">${achieved?icon('check',11)+' ':''}${tm.name}</button>`;
+          return `<button class="small challenge-tier-btn ${achieved?'achieved':'ghost'}" style="${achieved?`border-color:${tm.color}; color:${tm.color};`:''}" onclick="setChallengeLevel('${c.id}', ${l.level})" title="${escapeHTML(challengeLevelLabel(c,l.level))} · Rango ${tm.name} (+${tierXP(l.level)} XP)">${iconFilled(rankIconName(tm.name),11)} ${tm.name}</button>`;
         }).join('')}
       </div>
       <p class="muted" style="margin-top:8px;">${nextLevel ? 'Siguiente: ' + escapeHTML(challengeLevelLabel(c, nextLevel.level)) + ` (+${tierXP(nextLevel.level)} XP)` : 'Todos los niveles superados. ¡Eres leyenda en este reto!'}</p>
