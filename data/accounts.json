@@ -749,6 +749,16 @@
         ],
         "totalSeconds": 7,
         "endedAt": "2026-07-22T04:28:21.158Z"
+      },
+      {
+        "id": 1784696634857,
+        "templateId": null,
+        "templateName": "Entrenamiento libre",
+        "date": "2026-07-22",
+        "lastSessionDate": null,
+        "exercises": [],
+        "totalSeconds": 4,
+        "endedAt": "2026-07-22T05:03:59.424Z"
       }
     ],
     "challenges": {
