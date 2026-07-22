@@ -759,6 +759,118 @@
         "exercises": [],
         "totalSeconds": 4,
         "endedAt": "2026-07-22T05:03:59.424Z"
+      },
+      {
+        "id": 1784696642709,
+        "templateId": 1784510975089,
+        "templateName": "asdasd",
+        "date": "2026-07-22",
+        "lastSessionDate": "2026-07-22",
+        "exercises": [
+          {
+            "name": "Press banca",
+            "sets": [
+              {
+                "weight": "",
+                "reps": "",
+                "rir": "23",
+                "notes": "234",
+                "setSeconds": 2,
+                "restSeconds": null,
+                "mediaId": null,
+                "done": false,
+                "prevWeight": "234",
+                "prevReps": "234",
+                "prevIsActual": false
+              },
+              {
+                "weight": "",
+                "reps": "",
+                "rir": "",
+                "notes": "",
+                "setSeconds": null,
+                "restSeconds": null,
+                "mediaId": null,
+                "done": false,
+                "prevWeight": "234",
+                "prevReps": "",
+                "prevIsActual": false
+              },
+              {
+                "weight": "",
+                "reps": "",
+                "rir": "",
+                "notes": "",
+                "setSeconds": null,
+                "restSeconds": null,
+                "mediaId": null,
+                "done": false,
+                "prevWeight": "",
+                "prevReps": "",
+                "prevIsActual": false
+              },
+              {
+                "weight": "",
+                "reps": "",
+                "rir": "",
+                "notes": "",
+                "setSeconds": null,
+                "restSeconds": null,
+                "mediaId": null,
+                "done": false,
+                "prevWeight": "",
+                "prevReps": "",
+                "prevIsActual": false
+              }
+            ]
+          },
+          {
+            "name": "asdasd",
+            "sets": [
+              {
+                "weight": "",
+                "reps": "",
+                "rir": "",
+                "notes": "",
+                "setSeconds": null,
+                "restSeconds": null,
+                "mediaId": null,
+                "done": false,
+                "prevWeight": "",
+                "prevReps": "",
+                "prevIsActual": false
+              },
+              {
+                "weight": "",
+                "reps": "",
+                "rir": "",
+                "notes": "",
+                "setSeconds": null,
+                "restSeconds": null,
+                "mediaId": null,
+                "done": false,
+                "prevWeight": "",
+                "prevReps": "",
+                "prevIsActual": false
+              },
+              {
+                "weight": "",
+                "reps": "",
+                "rir": "",
+                "notes": "",
+                "setSeconds": null,
+                "restSeconds": null,
+                "mediaId": null,
+                "done": false,
+                "prevWeight": "",
+                "prevReps": "",
+                "prevIsActual": false
+              }
+            ]
+          }
+        ],
+        "totalSeconds": 35,
+        "endedAt": "2026-07-22T05:04:38.684Z"
       }
     ],
     "challenges": {
