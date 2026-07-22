@@ -172,7 +172,7 @@ async function connectGithub(){
   const prevConfig = githubConfig;
   githubConfig = testConfig;
   try{
-    for(const name of ['accounts','media','ranking','exercises','social']){
+    for(const name of ['accounts','media','ranking','exercises','social','posts','messages','notifications','stories']){
       const { content, sha } = await ghFetchCollection(name, {});
       if(sha===null){ await ghWriteCollection(name, content, null, `Inicializar ${name}.json`); }
     }
