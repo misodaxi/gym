@@ -197,6 +197,12 @@ const ICONS = {
   image:'<rect x="3" y="3" width="18" height="18" rx="2"></rect><circle cx="8.5" cy="8.5" r="1.6"></circle><path d="M21 15l-5-5L5 21"></path>',
   bookmark:'<path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>',
   edit:'<path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4Z"></path>',
+  'rank-bronze':'<path d="M12 2 4 5v6c0 5 3.4 8.5 8 11 4.6-2.5 8-6 8-11V5l-8-3Z"></path>',
+  'rank-silver':'<path d="M12 2 14.7 8.6 22 9.3l-5.5 4.7L18.2 21 12 17.3 5.8 21l1.7-7-5.5-4.7 7.3-.7Z"></path>',
+  'rank-gold':'<path d="M8 21h8"></path><path d="M10 21v-4h4v4"></path><path d="M6 4h12v4a6 6 0 0 1-12 0V4Z"></path><path d="M6 5H3v2a4 4 0 0 0 3 3.9"></path><path d="M18 5h3v2a4 4 0 0 1-3 3.9"></path>',
+  'rank-platinum':'<path d="M12 3 3 9l9 5 9-5-9-6Z"></path><path d="M3 9v6l9 5 9-5V9"></path>',
+  'rank-diamond':'<path d="M6 3h12l4 6-10 12L2 9Z"></path><path d="M2 9h20"></path><path d="M9 3 6 9l6 12 6-12-3-6"></path>',
+  'rank-legend':'<path d="M4 6h16l-2 5H6Z"></path><path d="M2 6h4l1 4-3 1Z"></path><path d="M22 6h-4l-1 4 3 1Z"></path><path d="M7 11h10l-1.2 8H8.2Z"></path>',
 };
 function icon(name, size=15){
   return `<svg class="ic" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${ICONS[name]||''}</svg>`;
@@ -270,7 +276,7 @@ function defaultAccount(passwordHash){
     password: passwordHash,
     history: [], workouts: [], measurements: [], goals: [],
     nutrition: [], steps: [], sleep: [], waterLog: [],
-    routineTemplates: [], workoutSessions: [], savedPosts: [],
+    routineTemplates: [], workoutSessions: [], savedPosts: [], trainingPlans: [],
     challenges: { dailyCompletions: {}, levels: {} }, customChallenges: [],
     settings: { plateInventory: defaultPlateInventory(), kcalGoal:2200, stepsGoal:10000, waterServingMl:250, waterGoalMl:2000,
       accessibility: { fontScale:'normal', highContrast:false, reduceMotion:false, largeTargets:false } },
@@ -291,6 +297,7 @@ function ensureAccountShape(acc){
   acc.routineTemplates = acc.routineTemplates || [];
   acc.workoutSessions = acc.workoutSessions || [];
   acc.savedPosts = acc.savedPosts || [];
+  acc.trainingPlans = acc.trainingPlans || [];
   acc.customChallenges = acc.customChallenges || [];
   acc.challenges = acc.challenges || {};
   acc.challenges.dailyCompletions = acc.challenges.dailyCompletions || {};
@@ -361,6 +368,7 @@ function mergeAccountObjects(remote, local){
   merged.workoutSessions = mergeArrayField(remote.workoutSessions, local.workoutSessions, 'id');
   merged.customChallenges = mergeArrayField(remote.customChallenges, local.customChallenges, 'id');
   merged.savedPosts = mergeArrayField(remote.savedPosts, local.savedPosts, null);
+  merged.trainingPlans = mergeArrayField(remote.trainingPlans, local.trainingPlans, 'id');
   merged.steps = mergeArrayField(remote.steps, local.steps, 'date');
   merged.sleep = mergeArrayField(remote.sleep, local.sleep, 'date');
   merged.waterLog = mergeArrayField(remote.waterLog, local.waterLog, 'date');
@@ -450,8 +458,18 @@ async function fetchMediaStoreFor(username){
   const raw = await storageGet(`wilks:media:${username}`, false);
   return raw ? { ...defaultMediaStore(), ...JSON.parse(raw) } : defaultMediaStore();
 }
+function mergeMediaStore(remote, local){
+  if(!remote) return local;
+  if(!local) return remote;
+  return {
+    avatar: local.avatar!==undefined ? local.avatar : remote.avatar,
+    cover: local.cover!==undefined ? local.cover : remote.cover,
+    progressPhotos: mergeArrayField(remote.progressPhotos, local.progressPhotos, 'id'),
+    workoutMedia: { ...(remote.workoutMedia||{}), ...(local.workoutMedia||{}) }
+  };
+}
 async function persistMediaStoreFor(username, store){
-  if(isGithubMode()){ await collectionUpdate('media', col=>{ col[username] = store; }, `Actualizar media de ${username}`, {}); }
+  if(isGithubMode()){ await collectionUpdate('media', col=>{ col[username] = mergeMediaStore(col[username], store); }, `Actualizar media de ${username}`, {}); }
   else{ await storageSet(`wilks:media:${username}`, JSON.stringify(store), false); }
 }
 async function listAllAccountSummaries(){
@@ -763,9 +781,9 @@ async function getMessagesCollection(){
 async function saveMessagesCollectionLocal(col){
   await storageSet('wilks:messages', JSON.stringify(col), true);
 }
-async function sendDirectMessage(from, to, text){
+async function sendDirectMessage(from, to, text, extra){
   const cid = conversationId(from, to);
-  const msg = { id:Date.now().toString(36)+Math.random().toString(36).slice(2,5), from, to, text:(text||'').trim(), date:new Date().toISOString(), readBy:[from] };
+  const msg = { id:Date.now().toString(36)+Math.random().toString(36).slice(2,5), from, to, text:(text||'').trim(), date:new Date().toISOString(), readBy:[from], type:'text', ...(extra||{}) };
   if(isGithubMode()){
     await collectionUpdate('messages', col=>{ col[cid] = col[cid] || []; col[cid].push(msg); }, `Mensaje ${from} → ${to}`, {});
   } else {

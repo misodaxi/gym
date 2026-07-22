@@ -231,6 +231,7 @@
           <button class="subtab-btn active" data-sub="tr-log" onclick="showSub('tr-log')">Registro</button>
           <button class="subtab-btn" data-sub="tr-pr" onclick="showSub('tr-pr')">Récords (PRs)</button>
           <button class="subtab-btn" data-sub="tr-routines" onclick="showSub('tr-routines')">Rutinas</button>
+          <button class="subtab-btn" data-sub="tr-plan" onclick="showSub('tr-plan')">Planificación</button>
           <button class="subtab-btn" data-sub="tr-compare" onclick="showSub('tr-compare')">Comparar</button>
           <button class="subtab-btn" data-sub="tr-timer" onclick="showSub('tr-timer')">Temporizador</button>
         </div>
@@ -302,7 +303,45 @@
             <div id="activeSessionArea"><p class="muted">No hay ninguna sesión en curso. Usa una plantilla o inicia un entrenamiento libre.</p></div>
           </div>
         </div>
-        <div class="sub-panel" id="sub-tr-compare">
+
+        <!-- PLANIFICACIÓN POR CICLOS -->
+        <div class="sub-panel" id="sub-tr-plan">
+          <div class="panel-card" id="todayPlanCard"></div>
+          <div class="panel-card">
+            <h2>Nuevo plan de entrenamiento</h2>
+            <p class="muted">Define tu split (ej: Pecho / Espalda / Pierna), cuántas veces quieres repetirlo y cómo quieres que suba el peso en cada ejercicio. Se generará un calendario real con las fechas.</p>
+            <div class="grid grid-2">
+              <div><label>Nombre del plan</label><input type="text" id="planName" placeholder="Ej: Fuerza 8 ciclos"></div>
+              <div><label>Fecha de inicio</label><input type="date" id="planStartDate"></div>
+            </div>
+            <label>Número de veces que se repite el ciclo completo</label>
+            <input type="number" id="planCycles" min="1" value="8" style="max-width:140px;">
+            <div class="divider"></div>
+            <h3>Días del ciclo</h3>
+            <div id="planDaysBuilder"></div>
+            <div class="button-group">
+              <button class="ghost small" onclick="addPlanSplitDay()">+ Añadir día del ciclo</button>
+            </div>
+            <div class="button-group"><button onclick="generateTrainingPlan()">Generar plan y calendario</button></div>
+          </div>
+          <div class="panel-card">
+            <h2>Mis planes</h2>
+            <div id="planList"><p class="muted">Todavía no has creado ningún plan.</p></div>
+          </div>
+          <div class="panel-card hidden" id="planCalendarCard">
+            <div class="row" style="justify-content:space-between;">
+              <button class="ghost small" onclick="shiftPlanCalendarMonth(-1)">‹ Mes anterior</button>
+              <h2 id="planCalendarTitle" style="margin:0;"></h2>
+              <button class="ghost small" onclick="shiftPlanCalendarMonth(1)">Mes siguiente ›</button>
+            </div>
+            <div class="plan-calendar-weekdays">
+              <span>L</span><span>M</span><span>X</span><span>J</span><span>V</span><span>S</span><span>D</span>
+            </div>
+            <div class="plan-calendar-grid" id="planCalendarGrid"></div>
+            <div class="plan-calendar-legend" id="planCalendarLegend"></div>
+          </div>
+          <div class="panel-card hidden" id="planDayDetailCard"></div>
+        </div>
           <div class="panel-card">
             <h2>Comparar ejercicio con la comunidad</h2>
             <p class="muted">Escribe o elige un ejercicio de la lista compartida y compara tu mejor 1RM estimado con el de otros usuarios de tu misma base de datos.</p>
@@ -816,7 +855,6 @@
     </button>
     <button class="sheet-item" onclick="closeMoreSheet()">Cancelar</button>
   </div>
-</div>
 
 <!-- Cámara -->
 <div class="camera-modal" id="cameraModal">

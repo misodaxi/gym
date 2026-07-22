@@ -249,6 +249,7 @@ async function showSub(name){
   if(name==='comm-profiles') loadCommunity();
   if(name==='comm-messages') loadDmInbox();
   if(name==='comm-notifications') loadNotifications();
+  if(name==='tr-plan'){ renderPlanList(); renderTodayPlanCard(); if(!document.getElementById('planDaysBuilder').children.length) addPlanSplitDay(); }
 }
 function renderAll(){
   renderDashboard(); renderWorkouts(); renderPRBoard(); renderMeasurements(); renderGoals();
@@ -272,6 +273,7 @@ async function enterApp(){
   document.getElementById('themeToggle').checked = (account.theme === 'light');
   document.getElementById('themeToggle2').checked = (account.theme === 'light');
   document.getElementById('wkDate').value = todayStr();
+  document.getElementById('planStartDate').value = todayStr();
   document.getElementById('mDate').value = todayStr();
   document.getElementById('photoDate').value = todayStr();
   document.getElementById('nutDate').value = todayStr();
@@ -694,14 +696,14 @@ function calcStandalone1RM(){
 ========================================================= */
 const PLATE_SIZES = ["25","20","15","10","5","2.5","1.25","0.5"];
 const PLATE_META = {
-  25:{color:'#a53c35', edge:'#7a2c27', diameter:78, thickness:26, label:'#f2e6e4'},
-  20:{color:'#2f5f8f', edge:'#23496c', diameter:70, thickness:23, label:'#e7eef5'},
-  15:{color:'#b6932a', edge:'#8a6f1f', diameter:63, thickness:20, label:'#2a2210'},
-  10:{color:'#3e7a54', edge:'#2c5a3d', diameter:55, thickness:18, label:'#e6f2ea'},
-  5:{color:'#d8d4c8',  edge:'#a8a498', diameter:46, thickness:14, label:'#2a2a2a'},
-  2.5:{color:'#232326', edge:'#111113', diameter:38, thickness:11, label:'#c9c9ce'},
-  1.25:{color:'#8b8b93', edge:'#65656c', diameter:31, thickness:9,  label:'#1c1c1f'},
-  0.5:{color:'#5f5f66',  edge:'#414146', diameter:25, thickness:7,  label:'#e6e6e8'}
+  25:{color:'#161616', edge:'#000000', ring:'#c62d2d', diameter:78, thickness:26, label:'#c62d2d'},
+  20:{color:'#161616', edge:'#000000', ring:'#2f6fd1', diameter:70, thickness:23, label:'#4d8ce8'},
+  15:{color:'#18170f', edge:'#000000', ring:'#e0c23a', diameter:63, thickness:20, label:'#e0c23a'},
+  10:{color:'#101610', edge:'#000000', ring:'#3fa35f', diameter:55, thickness:18, label:'#4fb872'},
+  5:{color:'#1c1c1c',  edge:'#000000', ring:'#eceae4', diameter:46, thickness:14, label:'#eceae4'},
+  2.5:{color:'#161616', edge:'#000000', ring:'#8a8a92', diameter:38, thickness:11, label:'#a5a5ad'},
+  1.25:{color:'#161616', edge:'#000000', ring:'#b58a2e', diameter:31, thickness:9,  label:'#c9a24a'},
+  0.5:{color:'#161616',  edge:'#000000', ring:'#5f5f66', diameter:25, thickness:7,  label:'#84848c'}
 };
 function renderPlateInventoryForm(){
   const el = document.getElementById('plateInventoryForm');
@@ -713,7 +715,7 @@ function renderPlateInventoryForm(){
     return `
       <div class="plate-inv-row">
         <input type="checkbox" id="plateEnabled-${size}" ${cfg.enabled?'checked':''}>
-        <div class="plate-swatch" style="background:${meta.color}; border-color:${meta.edge};"></div>
+        <div class="plate-swatch" style="background:${meta.color}; box-shadow: inset 0 0 0 2px ${meta.ring};"></div>
         <label for="plateEnabled-${size}">${size} kg</label>
         <input type="number" id="plateCount-${size}" placeholder="Cantidad por lado (ilimitado)" value="${cfg.count ?? ''}" min="0">
       </div>
@@ -767,12 +769,24 @@ function calcPlates(){
   </div>`;
   const platesHtml = used.map((p,i)=>{
     const meta = PLATE_META[p];
-    const showLabel = meta.diameter >= 38;
-    return `<div class="plate-disc" style="width:${meta.thickness}px; height:${meta.diameter}px; background:${meta.color}; border-color:${meta.edge}; margin-left:${i===0?0:-7}px; z-index:${used.length-i}; animation-delay:${i*0.04}s;" title="${p} kg">${showLabel?`<span class="plate-disc-label" style="color:${meta.label};">${p}</span>`:''}</div>`;
+    const w = Math.round(meta.diameter * 2.05);
+    const h = Math.round(w * 0.66);
+    const showLabel = meta.diameter >= 31;
+    const brandSize = Math.max(6, Math.round(w*0.052));
+    const numSize = Math.max(10, Math.round(w*0.17));
+    return `<div class="plate-disc" style="width:${w}px; height:${h}px; --ring:${meta.ring}; --face:${meta.color}; margin-left:${i===0?0:-Math.round(w*0.62)}px; z-index:${used.length-i}; animation-delay:${i*0.04}s;" title="${p} kg">
+      <span class="plate-disc-face">
+        <span class="plate-disc-hub"></span>
+        ${showLabel?`<span class="plate-disc-brand" style="font-size:${brandSize}px;">IRONSIDE</span><span class="plate-disc-label" style="font-size:${numSize}px;">${p}</span>`:''}
+      </span>
+    </div>`;
   }).join('');
-  vizEl.innerHTML = `<div class="bar-end"></div><div class="bar-line"></div><div class="plate-stack">${platesHtml}</div><div class="bar-collar"></div>`;
+  vizEl.innerHTML = `<div class="plate-stack plate-stack-3d">${platesHtml}</div><div class="bar-line-3d"></div>`;
   const usedSizes = [...new Set(used)].sort((a,b)=>b-a);
-  legendEl.innerHTML = usedSizes.map(p=>`<div class="plate-legend-item"><span class="plate-legend-dot" style="background:${PLATE_META[p].color}; border-color:${PLATE_META[p].edge};"></span>${p} kg × ${counts[p]}</div>`).join('');
+  legendEl.innerHTML = usedSizes.map(p=>{
+    const meta = PLATE_META[p];
+    return `<div class="plate-legend-item"><span class="plate-legend-face" style="background:${meta.color}; box-shadow: inset 0 0 0 3px ${meta.ring};"><span class="plate-legend-hole"></span></span>${p} kg × ${counts[p]}</div>`;
+  }).join('');
 }
 
 /* =========================================================
@@ -1706,7 +1720,7 @@ async function openCommunityProfile(username){
 }
 function rankBadgeInline(rank){
   if(!rank) return '';
-  return `<span class="rank-badge" style="color:${rank.color}; border-color:${rank.color};">${icon('award',11)} ${rank.name}</span>`;
+  return `<span class="xp-rank-badge xp-rank-badge-lg" style="color:${rank.color}; border-color:${rank.color}; background:${rank.color}22;">${icon(rankIconName(rank.name),13)} ${rank.name}</span>`;
 }
 async function handleToggleFollow(username){
   try{
@@ -2278,6 +2292,22 @@ async function openConversation(username){
     refreshDmUnreadIndicator();
   }catch(e){ chatArea.innerHTML = `<p class="muted" style="padding:16px;">Error: ${escapeHTML(e.message)}</p>`; }
 }
+const DM_EMOJIS = ['😀','😂','😍','😎','🥳','😢','😡','😱','🤔','👍','👎','👏','🙌','💪','🔥','💯','🏆','🥇','⚡','🎉','❤️','🧡','💛','💚','💙','💜','🤝','🙏','😴','🤕','🥵','🥶'];
+const DM_STICKERS = ['💪','🔥','🏆','🥇','🎉','👏','💯','⚡','😤','🥵','🙌','🚀','🧠','😎','💀','👑'];
+
+function renderDmBubbleContent(m){
+  const type = m.type || 'text';
+  if(type==='image'){
+    return `<div class="dm-image-wrap"><img src="${m.image}" alt="" class="dm-image" onclick="openLightbox('${m.image}')"></div>${m.text?`<div class="dm-caption">${escapeHTML(m.text)}</div>`:''}`;
+  }
+  if(type==='audio'){
+    return `<div class="dm-audio-wrap">🎤 <audio controls src="${m.audio}"></audio></div>`;
+  }
+  if(type==='sticker'){
+    return `<span class="dm-sticker">${m.sticker}</span>`;
+  }
+  return `<div>${linkifyPostText(m.text)}</div>`;
+}
 function renderDmChat(username, msgs){
   const media = communityMediaCache[username] || {};
   const chatArea = document.getElementById('dmChatArea');
@@ -2288,13 +2318,25 @@ function renderDmChat(username, msgs){
     </div>
     <div class="dm-messages" id="dmMessages">
       ${msgs.length===0?'<p class="muted" style="padding:14px;">Aún no hay mensajes. ¡Envía el primero!</p>':msgs.map(m=>`
-        <div class="dm-bubble ${m.from===currentUser?'me':'them'}">
-          <div>${escapeHTML(m.text)}</div>
+        <div class="dm-bubble ${m.from===currentUser?'me':'them'} ${m.type==='sticker'?'is-sticker':''}">
+          ${renderDmBubbleContent(m)}
           <div class="dm-bubble-time">${new Date(m.date).toLocaleString('es-ES', { hour:'2-digit', minute:'2-digit', day:'2-digit', month:'2-digit' })}</div>
         </div>
       `).join('')}
     </div>
+    <div id="dmEmojiPicker" class="dm-picker-panel hidden">${DM_EMOJIS.map(e=>`<button class="dm-picker-emoji" onclick="insertDmEmoji('${e}')">${e}</button>`).join('')}</div>
+    <div id="dmStickerPicker" class="dm-picker-panel hidden">${DM_STICKERS.map(e=>`<button class="dm-picker-emoji" onclick="sendDmSticker('${e}')">${e}</button>`).join('')}</div>
+    <div id="dmRecordBar" class="dm-record-bar hidden">
+      <span class="dm-record-dot"></span> Grabando audio... <strong id="dmRecordTime">0:00</strong>
+      <button class="ghost small" onclick="cancelDmRecording()">Cancelar</button>
+      <button class="small" onclick="stopDmRecording()">Enviar</button>
+    </div>
     <div class="dm-input-row">
+      <input type="file" id="dmImageFile" accept="image/*" style="display:none;" onchange="stageDmImage(event)">
+      <button type="button" class="icon-btn" title="Emoji" onclick="toggleDmEmojiPicker()">😀</button>
+      <button type="button" class="icon-btn" title="Stickers" onclick="toggleDmStickerPicker()">🎉</button>
+      <button type="button" class="icon-btn" title="Enviar foto" onclick="document.getElementById('dmImageFile').click()">${icon('image',16)}</button>
+      <button type="button" class="icon-btn" title="Mensaje de voz" onclick="startDmRecording()">🎤</button>
       <input type="text" id="dmMessageInput" placeholder="Escribe un mensaje..." onkeydown="if(event.key==='Enter'){handleSendDm();}">
       <button onclick="handleSendDm()">${icon('send',15)}</button>
     </div>
@@ -2302,6 +2344,96 @@ function renderDmChat(username, msgs){
   const box = document.getElementById('dmMessages');
   if(box) box.scrollTop = box.scrollHeight;
 }
+function toggleDmEmojiPicker(){
+  document.getElementById('dmStickerPicker').classList.add('hidden');
+  document.getElementById('dmEmojiPicker').classList.toggle('hidden');
+}
+function toggleDmStickerPicker(){
+  document.getElementById('dmEmojiPicker').classList.add('hidden');
+  document.getElementById('dmStickerPicker').classList.toggle('hidden');
+}
+function insertDmEmoji(e){
+  const input = document.getElementById('dmMessageInput');
+  input.value += e;
+  input.focus();
+}
+async function sendDmSticker(e){
+  if(!dmActivePeer) return;
+  document.getElementById('dmStickerPicker').classList.add('hidden');
+  try{
+    await sendDirectMessage(currentUser, dmActivePeer, '', { type:'sticker', sticker:e });
+    const msgs = await fetchConversation(currentUser, dmActivePeer);
+    renderDmChat(dmActivePeer, msgs);
+    loadDmInbox();
+  }catch(err){ toast('Error al enviar: ' + err.message, 'error'); }
+}
+async function stageDmImage(event){
+  const file = event.target.files[0];
+  if(!file || !dmActivePeer) return;
+  event.target.value = '';
+  try{
+    const dataUrl = await resizeImageFile(file, 1000, 0.72);
+    await sendDirectMessage(currentUser, dmActivePeer, '', { type:'image', image:dataUrl });
+    const msgs = await fetchConversation(currentUser, dmActivePeer);
+    renderDmChat(dmActivePeer, msgs);
+    loadDmInbox();
+  }catch(e){ toast('No se pudo enviar la imagen: ' + e.message, 'error'); }
+}
+
+/* ---- Mensajes de voz en DM ---- */
+let dmMediaRecorder = null;
+let dmRecordedChunks = [];
+let dmRecordStream = null;
+let dmRecordTimerHandle = null;
+let dmRecordSeconds = 0;
+async function startDmRecording(){
+  if(!dmActivePeer){ toast('Selecciona una conversación primero.', 'error'); return; }
+  try{
+    dmRecordStream = await navigator.mediaDevices.getUserMedia({ audio:true });
+  }catch(e){ toast('No se pudo acceder al micrófono: ' + e.message, 'error'); return; }
+  dmRecordedChunks = [];
+  dmMediaRecorder = new MediaRecorder(dmRecordStream);
+  dmMediaRecorder.ondataavailable = ev=>{ if(ev.data.size>0) dmRecordedChunks.push(ev.data); };
+  dmMediaRecorder.start();
+  dmRecordSeconds = 0;
+  document.getElementById('dmRecordBar').classList.remove('hidden');
+  document.getElementById('dmRecordTime').textContent = '0:00';
+  dmRecordTimerHandle = setInterval(()=>{
+    dmRecordSeconds++;
+    const m = Math.floor(dmRecordSeconds/60), s = dmRecordSeconds%60;
+    document.getElementById('dmRecordTime').textContent = `${m}:${s.toString().padStart(2,'0')}`;
+    if(dmRecordSeconds>=60) stopDmRecording();
+  }, 1000);
+}
+function cancelDmRecording(){
+  if(dmMediaRecorder && dmMediaRecorder.state!=='inactive') dmMediaRecorder.stop();
+  if(dmRecordStream) dmRecordStream.getTracks().forEach(t=>t.stop());
+  clearInterval(dmRecordTimerHandle);
+  document.getElementById('dmRecordBar').classList.add('hidden');
+  dmMediaRecorder = null; dmRecordedChunks = [];
+}
+function stopDmRecording(){
+  if(!dmMediaRecorder){ document.getElementById('dmRecordBar').classList.add('hidden'); return; }
+  clearInterval(dmRecordTimerHandle);
+  document.getElementById('dmRecordBar').classList.add('hidden');
+  dmMediaRecorder.onstop = async ()=>{
+    if(dmRecordStream) dmRecordStream.getTracks().forEach(t=>t.stop());
+    const blob = new Blob(dmRecordedChunks, { type:'audio/webm' });
+    if(blob.size > MAX_VIDEO_BYTES){ toast('El audio pesa demasiado.', 'error'); return; }
+    const reader = new FileReader();
+    reader.onload = async ()=>{
+      try{
+        await sendDirectMessage(currentUser, dmActivePeer, '', { type:'audio', audio:reader.result, durationSec:dmRecordSeconds });
+        const msgs = await fetchConversation(currentUser, dmActivePeer);
+        renderDmChat(dmActivePeer, msgs);
+        loadDmInbox();
+      }catch(e){ toast('No se pudo enviar el audio: ' + e.message, 'error'); }
+    };
+    reader.readAsDataURL(blob);
+  };
+  if(dmMediaRecorder.state!=='inactive') dmMediaRecorder.stop();
+}
+
 async function handleSendDm(){
   if(!dmActivePeer) return;
   const input = document.getElementById('dmMessageInput');
@@ -2329,10 +2461,14 @@ async function primeRankCacheFor(usernames){
     }catch(e){ communityRankCache[u] = null; }
   }
 }
+function rankIconName(rankName){
+  const map = { Bronce:'rank-bronze', Plata:'rank-silver', Oro:'rank-gold', Platino:'rank-platinum', Diamante:'rank-diamond', Leyenda:'rank-legend' };
+  return map[rankName] || 'award';
+}
 function rankBadgeHtml(username){
   const r = communityRankCache[username];
   if(!r) return '';
-  return `<span class="rank-badge" style="color:${r.color}; border-color:${r.color};" title="Rango: ${r.name}">${icon('award',10)} ${r.name}</span>`;
+  return `<span class="xp-rank-badge" style="color:${r.color}; border-color:${r.color}; background:${r.color}22;" title="Rango: ${r.name}">${icon(rankIconName(r.name),12)}</span>`;
 }
 
 /* =========================================================
@@ -2764,6 +2900,289 @@ function renderTemplateList(){
       </div>
     </div>
   `).join('');
+}
+
+/* =========================================================
+   PLANIFICACIÓN POR CICLOS: split repetido N veces con progresión
+   automática o manual por ejercicio, aplicado a un calendario real.
+========================================================= */
+const WEEKDAY_NAMES = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+const WEEKDAY_SHORT = ['D','L','M','X','J','V','S'];
+
+function planDayBuilderHtml(idx){
+  return `
+    <div class="plan-day-row" data-day-idx="${idx}">
+      <div class="grid grid-2">
+        <div><label>Nombre del día</label><input type="text" class="plan-day-name" placeholder="Ej: Pecho"></div>
+        <div><label>Día de la semana</label>
+          <select class="plan-day-weekday">
+            ${[1,2,3,4,5,6,0].map(w=>`<option value="${w}">${WEEKDAY_NAMES[w]}</option>`).join('')}
+          </select>
+        </div>
+      </div>
+      <div class="plan-day-exercises"></div>
+      <div class="button-group">
+        <button type="button" class="ghost small" onclick="addPlanExercise(this)">+ Ejercicio</button>
+        <button type="button" class="ghost small danger" onclick="this.closest('.plan-day-row').remove()">Quitar este día</button>
+      </div>
+    </div>
+  `;
+}
+function planExerciseRowHtml(){
+  return `
+    <div class="plan-exercise-row">
+      <input type="text" class="plan-ex-name" placeholder="Ejercicio (ej: Press banca)">
+      <input type="number" class="plan-ex-weight" placeholder="Peso inicial (kg)" step="0.5">
+      <select class="plan-ex-mode" onchange="this.nextElementSibling.style.display = this.value==='progressive' ? '' : 'none';">
+        <option value="manual">Peso fijo</option>
+        <option value="progressive">Progresivo</option>
+      </select>
+      <input type="number" class="plan-ex-increment" placeholder="+kg cada vez" step="0.5" style="display:none;">
+      <button type="button" class="ghost small danger" onclick="this.closest('.plan-exercise-row').remove()">✕</button>
+    </div>
+  `;
+}
+function addPlanSplitDay(){
+  const wrap = document.getElementById('planDaysBuilder');
+  const idx = wrap.children.length;
+  wrap.insertAdjacentHTML('beforeend', planDayBuilderHtml(idx));
+  addPlanExercise(wrap.lastElementChild.querySelector('button'));
+}
+function addPlanExercise(btn){
+  const container = btn.closest('.plan-day-row').querySelector('.plan-day-exercises');
+  container.insertAdjacentHTML('beforeend', planExerciseRowHtml());
+}
+
+async function generateTrainingPlan(){
+  const name = document.getElementById('planName').value.trim();
+  const startDate = document.getElementById('planStartDate').value;
+  const cycles = parseInt(document.getElementById('planCycles').value, 10) || 1;
+  if(!name || !startDate){ toast('Ponle un nombre y una fecha de inicio al plan.', 'error'); return; }
+  const dayRows = [...document.querySelectorAll('.plan-day-row')];
+  if(dayRows.length===0){ toast('Añade al menos un día al ciclo.', 'error'); return; }
+  const splitDays = [];
+  for(const row of dayRows){
+    const dayName = row.querySelector('.plan-day-name').value.trim();
+    const weekday = parseInt(row.querySelector('.plan-day-weekday').value, 10);
+    if(!dayName){ toast('Ponle nombre a todos los días del ciclo.', 'error'); return; }
+    const exercises = [...row.querySelectorAll('.plan-exercise-row')].map(exRow=>({
+      id: Date.now()+Math.random().toString(36).slice(2,6),
+      name: exRow.querySelector('.plan-ex-name').value.trim(),
+      startWeight: parseFloat(exRow.querySelector('.plan-ex-weight').value) || 0,
+      mode: exRow.querySelector('.plan-ex-mode').value,
+      increment: parseFloat(exRow.querySelector('.plan-ex-increment').value) || 0
+    })).filter(e=>e.name);
+    if(exercises.length===0){ toast(`Añade al menos un ejercicio al día "${dayName}".`, 'error'); return; }
+    splitDays.push({ id: Date.now()+Math.random().toString(36).slice(2,6), name:dayName, weekday, exercises });
+  }
+  const plan = { id: Date.now(), name, createdAt:new Date().toISOString(), startDate, cycles, splitDays, overrides:{} };
+  account.trainingPlans = account.trainingPlans || [];
+  account.trainingPlans.push(plan);
+  try{
+    await saveAccount();
+    toast('Plan generado. Ya puedes ver tu calendario.');
+    document.getElementById('planName').value=''; document.getElementById('planDaysBuilder').innerHTML='';
+    renderPlanList();
+    renderTodayPlanCard();
+    openPlanCalendar(plan.id);
+  }catch(e){ toast('Error: ' + e.message, 'error'); }
+}
+
+function computePlanSchedule(plan){
+  const occurrences = [];
+  const targetCounts = {};
+  plan.splitDays.forEach(d=>{ targetCounts[d.id] = 0; });
+  const totalNeeded = plan.splitDays.length * plan.cycles;
+  let cursor = new Date(plan.startDate + 'T00:00:00');
+  let safety = 0;
+  while(occurrences.length < totalNeeded && safety < 3000){
+    safety++;
+    const wd = cursor.getDay();
+    const matchDay = plan.splitDays.find(d=>d.weekday===wd);
+    if(matchDay && targetCounts[matchDay.id] < plan.cycles){
+      targetCounts[matchDay.id]++;
+      const occurrenceNumber = targetCounts[matchDay.id];
+      const dateStr = cursor.toISOString().slice(0,10);
+      const dayOverrides = (plan.overrides && plan.overrides[dateStr]) || {};
+      const exercises = matchDay.exercises.map(ex=>{
+        let weight = ex.mode==='progressive' ? ex.startWeight + ex.increment*(occurrenceNumber-1) : ex.startWeight;
+        if(dayOverrides[ex.id]!=null) weight = dayOverrides[ex.id];
+        return { id:ex.id, name:ex.name, weight: Math.round(weight*100)/100, occurrenceNumber };
+      });
+      occurrences.push({ date:dateStr, splitDayId:matchDay.id, splitDayName:matchDay.name, occurrenceNumber, exercises });
+    }
+    cursor.setDate(cursor.getDate()+1);
+  }
+  return occurrences;
+}
+
+function renderPlanList(){
+  const el = document.getElementById('planList');
+  if(!el || !account) return;
+  const plans = account.trainingPlans || [];
+  if(plans.length===0){ el.innerHTML = '<p class="muted">Todavía no has creado ningún plan.</p>'; return; }
+  el.innerHTML = plans.map(p=>`
+    <div class="list-item">
+      <div>
+        <strong>${escapeHTML(p.name)}</strong>
+        <div class="muted">${p.splitDays.length} días de ciclo × ${p.cycles} repeticiones · desde ${escapeHTML(p.startDate)}</div>
+      </div>
+      <div class="row">
+        <button class="small ghost" onclick="openPlanCalendar(${p.id})">Ver calendario</button>
+        <button class="small danger" onclick="deleteTrainingPlan(${p.id})">${icon('trash',12)}</button>
+      </div>
+    </div>
+  `).join('');
+}
+async function deleteTrainingPlan(planId){
+  if(!confirm('¿Borrar este plan y su calendario? Esta acción no se puede deshacer.')) return;
+  account.trainingPlans = (account.trainingPlans||[]).filter(p=>p.id!==planId);
+  try{ await saveAccount(); }catch(e){ toast('Error: ' + e.message, 'error'); }
+  renderPlanList();
+  renderTodayPlanCard();
+  if(activePlanId===planId){ activePlanId = null; document.getElementById('planCalendarCard').classList.add('hidden'); document.getElementById('planDayDetailCard').classList.add('hidden'); }
+  toast('Plan borrado.');
+}
+
+let activePlanId = null;
+let planCalendarYear = null;
+let planCalendarMonth = null;
+function openPlanCalendar(planId){
+  activePlanId = planId;
+  const plan = (account.trainingPlans||[]).find(p=>p.id===planId);
+  if(!plan) return;
+  const start = new Date(plan.startDate + 'T00:00:00');
+  planCalendarYear = start.getFullYear();
+  planCalendarMonth = start.getMonth();
+  document.getElementById('planCalendarCard').classList.remove('hidden');
+  document.getElementById('planCalendarCard').scrollIntoView({ behavior:'smooth', block:'start' });
+  renderPlanCalendarGrid();
+}
+function shiftPlanCalendarMonth(delta){
+  planCalendarMonth += delta;
+  if(planCalendarMonth<0){ planCalendarMonth=11; planCalendarYear--; }
+  if(planCalendarMonth>11){ planCalendarMonth=0; planCalendarYear++; }
+  renderPlanCalendarGrid();
+}
+const MONTH_NAMES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+function renderPlanCalendarGrid(){
+  const plan = (account.trainingPlans||[]).find(p=>p.id===activePlanId);
+  if(!plan) return;
+  const schedule = computePlanSchedule(plan);
+  const byDate = {};
+  schedule.forEach(o=>{ byDate[o.date] = o; });
+  document.getElementById('planCalendarTitle').textContent = `${MONTH_NAMES[planCalendarMonth]} ${planCalendarYear}`;
+  const firstOfMonth = new Date(planCalendarYear, planCalendarMonth, 1);
+  const startOffset = (firstOfMonth.getDay()+6)%7; // lunes=0
+  const daysInMonth = new Date(planCalendarYear, planCalendarMonth+1, 0).getDate();
+  const dayColors = {}; const palette = ['#f2b90f','#a77dff','#3ddc84','#ff4d67','#4d8ce8','#e0c23a','#4fb872'];
+  plan.splitDays.forEach((d,i)=>{ dayColors[d.id] = palette[i%palette.length]; });
+  let cells = '';
+  for(let i=0;i<startOffset;i++) cells += `<div class="plan-cal-cell empty"></div>`;
+  const todayStrVal = todayStr();
+  for(let day=1; day<=daysInMonth; day++){
+    const dateStr = `${planCalendarYear}-${String(planCalendarMonth+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+    const occ = byDate[dateStr];
+    const isToday = dateStr===todayStrVal;
+    cells += `<div class="plan-cal-cell ${occ?'has-occ':''} ${isToday?'is-today':''}" ${occ?`onclick="openPlanDayDetail(${plan.id}, '${dateStr}')"`:''}>
+      <span class="plan-cal-daynum">${day}</span>
+      ${occ?`<span class="plan-cal-dot" style="background:${dayColors[occ.splitDayId]};" title="${escapeHTML(occ.splitDayName)}"></span>`:''}
+    </div>`;
+  }
+  document.getElementById('planCalendarGrid').innerHTML = cells;
+  document.getElementById('planCalendarLegend').innerHTML = plan.splitDays.map(d=>`<span class="plan-cal-legend-item"><span class="plan-cal-dot" style="background:${dayColors[d.id]};"></span>${escapeHTML(d.name)}</span>`).join('');
+}
+function openPlanDayDetail(planId, dateStr){
+  const plan = (account.trainingPlans||[]).find(p=>p.id===planId);
+  if(!plan) return;
+  const schedule = computePlanSchedule(plan);
+  const occ = schedule.find(o=>o.date===dateStr);
+  const card = document.getElementById('planDayDetailCard');
+  card.classList.remove('hidden');
+  if(!occ){ card.innerHTML = '<p class="muted">No hay sesión planificada este día.</p>'; return; }
+  const dateLabel = new Date(dateStr+'T00:00:00').toLocaleDateString('es-ES', { weekday:'long', day:'numeric', month:'long' });
+  card.innerHTML = `
+    <div class="row" style="justify-content:space-between;">
+      <h2 style="margin:0;">${escapeHTML(occ.splitDayName)} · ${dateLabel}</h2>
+      <button class="ghost small" onclick="document.getElementById('planDayDetailCard').classList.add('hidden')">Cerrar</button>
+    </div>
+    <p class="muted">Repetición nº ${occ.occurrenceNumber} de ${plan.cycles}. Ajusta el peso manualmente si lo necesitas: se guardará como excepción solo para este día.</p>
+    <div id="planDayExerciseRows">
+      ${occ.exercises.map(ex=>`
+        <div class="grid grid-2" data-ex-id="${ex.id}">
+          <div><label>${escapeHTML(ex.name)}</label></div>
+          <div><label>Peso (kg)</label><input type="number" step="0.5" class="plan-day-weight-input" value="${ex.weight}"></div>
+        </div>
+      `).join('')}
+    </div>
+    <div class="button-group">
+      <button onclick="savePlanDayOverrides(${plan.id}, '${dateStr}')">Guardar cambios de este día</button>
+      ${dateStr===todayStr()?`<button class="ghost" onclick="startSessionFromPlan(${plan.id}, '${dateStr}')">Iniciar sesión con estos pesos</button>`:''}
+    </div>
+  `;
+}
+async function savePlanDayOverrides(planId, dateStr){
+  const plan = (account.trainingPlans||[]).find(p=>p.id===planId);
+  if(!plan) return;
+  plan.overrides = plan.overrides || {};
+  plan.overrides[dateStr] = plan.overrides[dateStr] || {};
+  document.querySelectorAll('#planDayExerciseRows > div').forEach(row=>{
+    const exId = row.dataset.exId;
+    const val = parseFloat(row.querySelector('.plan-day-weight-input').value);
+    if(!isNaN(val)) plan.overrides[dateStr][exId] = val;
+  });
+  try{ await saveAccount(); toast('Cambios guardados para este día.'); renderPlanCalendarGrid(); renderTodayPlanCard(); }
+  catch(e){ toast('Error: ' + e.message, 'error'); }
+}
+function renderTodayPlanCard(){
+  const card = document.getElementById('todayPlanCard');
+  if(!card || !account) return;
+  const plans = account.trainingPlans || [];
+  const t = todayStr();
+  for(const plan of plans){
+    const schedule = computePlanSchedule(plan);
+    const occ = schedule.find(o=>o.date===t);
+    if(occ){
+      card.innerHTML = `
+        <h2 style="margin:0;">Hoy toca: ${escapeHTML(occ.splitDayName)}</h2>
+        <p class="muted">Plan "${escapeHTML(plan.name)}" · repetición ${occ.occurrenceNumber} de ${plan.cycles}</p>
+        <div class="grid grid-3">
+          ${occ.exercises.map(ex=>`<div class="card" style="margin-top:0;"><strong>${escapeHTML(ex.name)}</strong><div class="wilks-score">${ex.weight} kg</div></div>`).join('')}
+        </div>
+        <div class="button-group">
+          <button onclick="startSessionFromPlan(${plan.id}, '${t}')">Iniciar sesión con estos pesos</button>
+          <button class="ghost" onclick="openPlanCalendar(${plan.id})">Ver calendario completo</button>
+        </div>
+      `;
+      return;
+    }
+  }
+  card.innerHTML = `<h2 style="margin:0;">Sin sesión planificada hoy</h2><p class="muted">Crea un plan de ciclos más abajo para planificar automáticamente el peso de cada día.</p>`;
+}
+function startSessionFromPlan(planId, dateStr){
+  const plan = (account.trainingPlans||[]).find(p=>p.id===planId);
+  if(!plan) return;
+  const schedule = computePlanSchedule(plan);
+  const occ = schedule.find(o=>o.date===dateStr);
+  if(!occ) return;
+  if(activeSession && !confirm('Ya hay una sesión en curso. ¿Descartarla y empezar una nueva?')) return;
+  pauseSessionTimer();
+  activeSession = {
+    id: Date.now(),
+    templateId: null,
+    templateName: `${plan.name} · ${occ.splitDayName}`,
+    date: todayStr(),
+    lastSessionDate: null,
+    exercises: occ.exercises.map(ex=>({
+      name: ex.name,
+      sets: [{ weight: ex.weight, reps:'', rir:'', notes:'', setSeconds:null, restSeconds:null, mediaId:null, done:false, prevWeight:ex.weight, prevReps:'', prevIsActual:false }]
+    }))
+  };
+  sessionElapsedSeconds = 0; restElapsedSeconds = 0; restTimerRunning = false; activeSetRef = null;
+  showTab('training').then(()=>showSub('tr-routines'));
+  startSessionTimer();
+  renderActiveSession();
+  toast('Sesión iniciada desde tu plan: ' + occ.splitDayName);
 }
 
 /* =========================================================
