@@ -958,6 +958,66 @@
     "savedPosts": [
       "pmrupavc5h2d2t"
     ],
-    "trainingPlans": []
+    "trainingPlans": [
+      {
+        "id": 1784747754413,
+        "name": "queque",
+        "createdAt": "2026-07-22T19:15:54.413Z",
+        "startDate": "2026-07-22",
+        "cycles": 8,
+        "splitDays": [
+          {
+            "id": "17847477544133ljk",
+            "name": "pecho",
+            "weekday": 1,
+            "exercises": [
+              {
+                "id": "1784747754413u08n",
+                "name": "press banca",
+                "startWeight": 60,
+                "mode": "progressive",
+                "increment": 2.5
+              },
+              {
+                "id": "17847477544132k6t",
+                "name": "press banca",
+                "startWeight": 70,
+                "mode": "progressive",
+                "increment": 2.5
+              }
+            ]
+          },
+          {
+            "id": "1784747754413cz7d",
+            "name": "espalda",
+            "weekday": 3,
+            "exercises": [
+              {
+                "id": "1784747754413ze2b",
+                "name": "jalon al pecho",
+                "startWeight": 76,
+                "mode": "progressive",
+                "increment": 6.4
+              }
+            ]
+          },
+          {
+            "id": "1784747754413nwe5",
+            "name": "pierna",
+            "weekday": 5,
+            "exercises": [
+              {
+                "id": "178474775441371nm",
+                "name": "squat",
+                "startWeight": 80,
+                "mode": "progressive",
+                "increment": 5
+              }
+            ]
+          }
+        ],
+        "overrides": {}
+      }
+    ]
   }
 }
