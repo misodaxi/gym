@@ -71,14 +71,6 @@
       <div class="topbar-actions">
         <span class="chip" id="syncChip">Modo local</span>
         <span class="chip" id="streakChip">0 días</span>
-        <button class="topbar-icon-btn" onclick="quickJumpCommunity('comm-notifications')" title="Notificaciones">
-          <svg class="ic" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
-          <span class="badge-dot hidden" id="topbarNotifDot"></span>
-        </button>
-        <button class="topbar-icon-btn" onclick="quickJumpCommunity('comm-messages')" title="Mensajes">
-          <svg class="ic" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.4 8.4 0 0 1-8.8 8.4 8.9 8.9 0 0 1-3.6-.7L3 21l1.8-5.4A8.4 8.4 0 1 1 21 11.5Z"></path></svg>
-          <span class="badge-dot hidden" id="topbarDmDot"></span>
-        </button>
         <span class="chip" id="userChip">—</span>
         <label class="switch" title="Modo claro">
           <input type="checkbox" id="themeToggle" onchange="toggleTheme()">
@@ -107,7 +99,6 @@
           <button class="subtab-btn" data-sub="calc-bmi" onclick="showSub('calc-bmi')">IMC</button>
           <button class="subtab-btn" data-sub="calc-bf" onclick="showSub('calc-bf')">% Grasa</button>
           <button class="subtab-btn" data-sub="calc-tdee" onclick="showSub('calc-tdee')">TDEE / Macros</button>
-          <button class="subtab-btn" data-sub="calc-progression" onclick="showSub('calc-progression')">Progresión</button>
         </div>
         <div class="sub-panel active" id="sub-calc-wilks">
           <div class="panel-card">
@@ -210,19 +201,6 @@
             <div id="tdeeResult" class="result hidden"></div>
           </div>
         </div>
-        <div class="sub-panel" id="sub-calc-progression">
-          <div class="panel-card">
-            <h2>Planificador de progresión</h2>
-            <p class="muted">Proyecta cómo podría evolucionar tu 1RM si aumentas la carga un porcentaje fijo cada semana.</p>
-            <div class="grid grid-2">
-              <div><label>1RM actual (kg)</label><input type="number" id="progCurrentRM" placeholder="kg"></div>
-              <div><label>Incremento semanal (%)</label><input type="number" id="progWeeklyPct" placeholder="Ej: 1.5" step="0.1"></div>
-              <div><label>Número de semanas</label><input type="number" id="progWeeks" value="8" min="1" max="52"></div>
-            </div>
-            <div class="button-group"><button class="flex1" onclick="calcProgression()">Calcular proyección</button></div>
-            <div id="progressionResult"></div>
-          </div>
-        </div>
       </div>
 
       <!-- ---------- TRAINING ---------- -->
@@ -231,7 +209,6 @@
           <button class="subtab-btn active" data-sub="tr-log" onclick="showSub('tr-log')">Registro</button>
           <button class="subtab-btn" data-sub="tr-pr" onclick="showSub('tr-pr')">Récords (PRs)</button>
           <button class="subtab-btn" data-sub="tr-routines" onclick="showSub('tr-routines')">Rutinas</button>
-          <button class="subtab-btn" data-sub="tr-plan" onclick="showSub('tr-plan')">Planificación</button>
           <button class="subtab-btn" data-sub="tr-compare" onclick="showSub('tr-compare')">Comparar</button>
           <button class="subtab-btn" data-sub="tr-timer" onclick="showSub('tr-timer')">Temporizador</button>
         </div>
@@ -302,45 +279,6 @@
             <h2>Sesión en curso</h2>
             <div id="activeSessionArea"><p class="muted">No hay ninguna sesión en curso. Usa una plantilla o inicia un entrenamiento libre.</p></div>
           </div>
-        </div>
-
-        <!-- PLANIFICACIÓN POR CICLOS -->
-        <div class="sub-panel" id="sub-tr-plan">
-          <div class="panel-card" id="todayPlanCard"></div>
-          <div class="panel-card">
-            <h2>Nuevo plan de entrenamiento</h2>
-            <p class="muted">Define tu split (ej: Pecho / Espalda / Pierna), cuántas veces quieres repetirlo y cómo quieres que suba el peso en cada ejercicio. Se generará un calendario real con las fechas.</p>
-            <div class="grid grid-2">
-              <div><label>Nombre del plan</label><input type="text" id="planName" placeholder="Ej: Fuerza 8 ciclos"></div>
-              <div><label>Fecha de inicio</label><input type="date" id="planStartDate"></div>
-            </div>
-            <label>Número de veces que se repite el ciclo completo</label>
-            <input type="number" id="planCycles" min="1" value="8" style="max-width:140px;">
-            <div class="divider"></div>
-            <h3>Días del ciclo</h3>
-            <div id="planDaysBuilder"></div>
-            <div class="button-group">
-              <button class="ghost small" onclick="addPlanSplitDay()">+ Añadir día del ciclo</button>
-            </div>
-            <div class="button-group"><button onclick="generateTrainingPlan()">Generar plan y calendario</button></div>
-          </div>
-          <div class="panel-card">
-            <h2>Mis planes</h2>
-            <div id="planList"><p class="muted">Todavía no has creado ningún plan.</p></div>
-          </div>
-          <div class="panel-card hidden" id="planCalendarCard">
-            <div class="row" style="justify-content:space-between;">
-              <button class="ghost small" onclick="shiftPlanCalendarMonth(-1)">‹ Mes anterior</button>
-              <h2 id="planCalendarTitle" style="margin:0;"></h2>
-              <button class="ghost small" onclick="shiftPlanCalendarMonth(1)">Mes siguiente ›</button>
-            </div>
-            <div class="plan-calendar-weekdays">
-              <span>L</span><span>M</span><span>X</span><span>J</span><span>V</span><span>S</span><span>D</span>
-            </div>
-            <div class="plan-calendar-grid" id="planCalendarGrid"></div>
-            <div class="plan-calendar-legend" id="planCalendarLegend"></div>
-          </div>
-          <div class="panel-card hidden" id="planDayDetailCard"></div>
         </div>
         <div class="sub-panel" id="sub-tr-compare">
           <div class="panel-card">
@@ -476,34 +414,21 @@
         <div class="sub-panel" id="sub-pr-badges"><div class="panel-card"><h2>Logros</h2><div id="achievementList"></div></div></div>
         <div class="sub-panel" id="sub-pr-challenges">
           <div class="panel-card">
-            <div id="challengeRankCard"></div>
-          </div>
-          <div class="panel-card">
             <h2>Reto de hoy</h2>
             <div id="dailyChallengeCard"></div>
           </div>
           <div class="panel-card">
             <h2>Retos de nivel</h2>
-            <p class="muted">Marca el nivel que ya has conseguido en cada reto. Cada nivel pertenece a un rango de dificultad (Bronce → Leyenda) y suma XP a tu rango general.</p>
-            <div class="feed-filter-bar" id="challengeCategoryFilter"></div>
+            <p class="muted">Marca el nivel que ya has conseguido en cada reto. Puedes actualizarlo cuando superes el siguiente.</p>
             <div id="milestoneChallengeList"></div>
           </div>
           <div class="panel-card">
             <h2>Mis retos personalizados</h2>
-            <p class="muted">Crea tus propios retos (a corto o largo plazo), asígnales una dificultad y márcalos como completados cuando los consigas.</p>
+            <p class="muted">Crea tus propios retos (a corto o largo plazo) y márcalos como completados cuando los consigas.</p>
             <div class="grid grid-2">
               <div><label>Nombre del reto</label><input type="text" id="customChallengeName" placeholder="Ej: Correr una media maratón"></div>
               <div><label>Descripción (opcional)</label><input type="text" id="customChallengeDesc" placeholder="Detalles, plazo, condiciones..."></div>
             </div>
-            <label>Dificultad</label>
-            <select id="customChallengeDifficulty">
-              <option value="1">Bronce</option>
-              <option value="2">Plata</option>
-              <option value="3" selected>Oro</option>
-              <option value="4">Platino</option>
-              <option value="5">Diamante</option>
-              <option value="6">Leyenda</option>
-            </select>
             <div class="button-group"><button class="flex1 ghost" onclick="addCustomChallenge()">Crear reto</button></div>
             <div id="customChallengeList"><p class="muted">Todavía no has creado retos propios.</p></div>
           </div>
@@ -512,137 +437,12 @@
 
       <!-- ---------- COMMUNITY ---------- -->
       <div class="tab-panel" id="tab-community">
-        <div class="subtab-bar community-nav">
-          <button class="subtab-btn active" data-sub="comm-feed" onclick="showSub('comm-feed')">
-            <svg class="ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"></path><path d="M9 22V12h6v10"></path></svg>
-            <span>Feed</span>
-          </button>
-          <button class="subtab-btn" data-sub="comm-profiles" onclick="showSub('comm-profiles')">
-            <svg class="ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.6" y2="16.6"></line></svg>
-            <span>Perfiles</span>
-          </button>
-          <button class="subtab-btn" data-sub="comm-messages" onclick="showSub('comm-messages')">
-            <svg class="ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.4 8.4 0 0 1-8.8 8.4 8.9 8.9 0 0 1-3.6-.7L3 21l1.8-5.4A8.4 8.4 0 1 1 21 11.5Z"></path></svg>
-            <span>Mensajes</span><span class="badge-dot hidden" id="dmUnreadDot"></span>
-          </button>
-          <button class="subtab-btn" data-sub="comm-notifications" onclick="showSub('comm-notifications')">
-            <svg class="ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
-            <span>Avisos</span><span class="badge-dot hidden" id="notifUnreadDot"></span>
-          </button>
+        <div class="panel-card">
+          <h2>Perfiles públicos</h2>
+          <p class="muted">Explora los perfiles de otros usuarios de tu base de datos compartida, apóyalos y comenta.</p>
+          <div id="communityGrid"><p class="muted">Cargando...</p></div>
         </div>
-
-        <!-- FEED -->
-        <div class="sub-panel active" id="sub-comm-feed">
-          <div class="stories-bar" id="storiesBar"><p class="muted" style="padding:8px 4px;">Cargando historias...</p></div>
-          <div id="newPostsBanner" class="new-posts-banner hidden" onclick="scrollFeedToTopAndRefresh()">Nuevas publicaciones · Toca para ver</div>
-          <div class="panel-card composer-card">
-            <div class="row" style="gap:12px; align-items:flex-start;">
-              <div class="avatar-preview composer-avatar" id="composerAvatar"><svg class="ic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"></circle><path d="M4 21a8 8 0 0 1 16 0"></path></svg></div>
-              <div style="flex:1;">
-                <textarea id="postText" rows="2" maxlength="600" placeholder="¿Qué has entrenado hoy? Comparte tu progreso con la comunidad... usa @usuario o #etiqueta" oninput="autoGrow(this); handleMentionTypeahead(this,'postTextMentionList')"></textarea>
-                <div id="postTextMentionList" class="mention-suggestions hidden"></div>
-                <div id="postImagePreview" class="post-image-preview hidden">
-                  <img id="postImagePreviewImg" src="" alt="">
-                  <button type="button" class="remove-image-btn" onclick="clearPostImage()">✕</button>
-                </div>
-                <div id="postPollBuilder" class="poll-builder hidden">
-                  <input type="text" id="pollQuestion" placeholder="Pregunta de la encuesta" style="margin:0 0 6px;">
-                  <div id="pollOptionsWrap">
-                    <input type="text" class="poll-option-input" placeholder="Opción 1" style="margin:0 0 6px;">
-                    <input type="text" class="poll-option-input" placeholder="Opción 2" style="margin:0 0 6px;">
-                  </div>
-                  <div class="button-group">
-                    <button class="ghost small" onclick="addPollOption()">+ Opción</button>
-                    <button class="ghost small danger" onclick="togglePollBuilder(false)">Quitar encuesta</button>
-                  </div>
-                </div>
-                <div class="composer-actions">
-                  <div class="composer-tools">
-                    <input type="file" id="postImageFile" accept="image/*" style="display:none;" onchange="stagePostImage(event)">
-                    <button type="button" class="icon-btn" title="Añadir foto" onclick="document.getElementById('postImageFile').click()"><svg class="ic" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"></rect><circle cx="8.5" cy="8.5" r="1.6"></circle><path d="M21 15l-5-5L5 21"></path></svg></button>
-                    <button type="button" class="icon-btn" title="Usar cámara" onclick="openCameraModal('post', false)"><svg class="ic" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2Z"></path><circle cx="12" cy="13" r="4"></circle></svg></button>
-                    <button type="button" class="icon-btn" title="Añadir encuesta" onclick="togglePollBuilder()"><svg class="ic" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"></rect><line x1="7" y1="8" x2="17" y2="8"></line><line x1="7" y1="12" x2="13" y2="12"></line><line x1="7" y1="16" x2="15" y2="16"></line></svg></button>
-                    <span class="muted" id="postCharCount">0 / 600</span>
-                  </div>
-                  <button id="publishPostBtn" onclick="publishPost()">Publicar</button>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="row" style="margin-bottom:10px;">
-            <input type="text" id="feedSearchInput" placeholder="Buscar en el feed: texto, @usuario o #etiqueta" style="margin:0;" oninput="handleFeedSearch(this.value)">
-          </div>
-          <div class="feed-filter-bar">
-            <button class="chip-filter active" data-filter="all" onclick="setFeedFilter('all')">Todo</button>
-            <button class="chip-filter" data-filter="following" onclick="setFeedFilter('following')">Siguiendo</button>
-            <button class="chip-filter" data-filter="saved" onclick="setFeedFilter('saved')">Guardados</button>
-            <button class="chip-filter" data-filter="mine" onclick="setFeedFilter('mine')">Mis publicaciones</button>
-            <button class="ghost small" id="feedSortBtn" onclick="toggleFeedSort()">🕐 Recientes</button>
-            <button class="ghost small" style="margin-left:auto;" onclick="loadCommunityFeed()"><svg class="ic" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.5 9a8.5 8.5 0 0 1 14.6-4.9L23 10M1 14l4.9 5.9A8.5 8.5 0 0 0 20.5 15"></path></svg> Actualizar</button>
-          </div>
-          <div id="feedHashtagBar" class="feed-filter-bar hidden"></div>
-          <div class="community-widgets-row" id="communityWidgetsRow">
-            <div class="panel-card widget-card" id="suggestedFollowsWidget"><p class="muted">Cargando sugerencias...</p></div>
-            <div class="panel-card widget-card" id="topStreaksWidget"><p class="muted">Cargando rachas...</p></div>
-          </div>
-          <div id="communityFeed"><p class="muted">Cargando publicaciones...</p></div>
-        </div>
-
-        <!-- NOTIFICACIONES -->
-        <div class="sub-panel" id="sub-comm-notifications">
-          <div class="panel-card">
-            <div class="row" style="justify-content:space-between;">
-              <h2 style="margin:0;">Notificaciones</h2>
-              <button class="ghost small" onclick="handleMarkAllNotificationsRead()">Marcar todas como leídas</button>
-            </div>
-            <div id="notificationsList" style="margin-top:10px;"><p class="muted">Cargando...</p></div>
-          </div>
-        </div>
-
-        <!-- PERFILES -->
-        <div class="sub-panel" id="sub-comm-profiles">
-          <div class="panel-card">
-            <h2>Perfiles públicos</h2>
-            <p class="muted">Explora los perfiles de otros usuarios de tu base de datos compartida, apóyalos, comenta y escríbeles.</p>
-            <div class="grid grid-2">
-              <div><label>Buscar por usuario</label><input type="text" id="communitySearch" placeholder="Buscar..." oninput="renderCommunityGrid()"></div>
-              <div><label>Ordenar por</label>
-                <select id="communitySort" onchange="renderCommunityGrid()">
-                  <option value="wilks">Mejor Wilks</option>
-                  <option value="name">Nombre (A-Z)</option>
-                  <option value="recent">Creación más reciente</option>
-                </select>
-              </div>
-            </div>
-            <div id="communityTop"></div>
-            <div id="communityGrid"><p class="muted">Cargando...</p></div>
-          </div>
-          <div class="panel-card hidden" id="communityDetail"></div>
-        </div>
-
-        <!-- MENSAJES (DM) -->
-        <div class="sub-panel" id="sub-comm-messages">
-          <div class="panel-card dm-shell">
-            <div class="dm-sidebar">
-              <div class="dm-sidebar-head">
-                <label style="margin-top:0;">Nuevo mensaje</label>
-                <div class="row" style="gap:6px;">
-                  <input type="text" id="dmNewUser" placeholder="Nombre de usuario" list="communityUsersList" style="margin:0;">
-                  <button class="ghost small" onclick="startNewConversation()">Ir</button>
-                </div>
-                <datalist id="communityUsersList"></datalist>
-              </div>
-              <div class="divider" style="margin:12px 0;"></div>
-              <div id="dmConversationList"><p class="muted">Cargando conversaciones...</p></div>
-            </div>
-            <div class="dm-chat" id="dmChatArea">
-              <div class="dm-empty">
-                <div class="mark" style="width:52px;height:52px;margin:0 auto 10px;"><svg class="ic" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.4 8.4 0 0 1-8.8 8.4 8.9 8.9 0 0 1-3.6-.7L3 21l1.8-5.4A8.4 8.4 0 1 1 21 11.5Z"></path></svg></div>
-                <p class="muted">Selecciona una conversación o escribe un nombre de usuario para empezar a chatear.</p>
-              </div>
-            </div>
-          </div>
-        </div>
+        <div class="panel-card hidden" id="communityDetail"></div>
       </div>
 
       <!-- ---------- RANKING ---------- -->
@@ -657,19 +457,11 @@
 
       <!-- ---------- SETTINGS ---------- -->
       <div class="tab-panel" id="tab-settings">
-        <div class="panel-card settings-account-bar">
-          <div class="row" style="gap:10px;">
-            <div class="avatar-preview" style="width:40px;height:40px;" id="settingsMiniAvatar"><svg class="ic" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"></circle><path d="M4 21a8 8 0 0 1 16 0"></path></svg></div>
-            <div><strong id="currentUsernameLabel2"></strong><div class="muted" style="font-size:.78em;">Sesión iniciada</div></div>
-          </div>
-          <button class="ghost danger" onclick="logout()"><svg class="ic" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg> Cerrar sesión</button>
-        </div>
         <div class="subtab-bar">
           <button class="subtab-btn active" data-sub="set-sync" onclick="showSub('set-sync')">Sincronización</button>
           <button class="subtab-btn" data-sub="set-profile" onclick="showSub('set-profile')">Perfil</button>
           <button class="subtab-btn" data-sub="set-username" onclick="showSub('set-username')">Usuario</button>
           <button class="subtab-btn" data-sub="set-appearance" onclick="showSub('set-appearance')">Apariencia</button>
-          <button class="subtab-btn" data-sub="set-accessibility" onclick="showSub('set-accessibility')">Accesibilidad</button>
           <button class="subtab-btn" data-sub="set-data" onclick="showSub('set-data')">Datos</button>
           <button class="subtab-btn" data-sub="set-danger" onclick="showSub('set-danger')">Cuenta</button>
         </div>
@@ -682,7 +474,7 @@
               <button class="flex1 ghost" onclick="goEditConnection()">Editar conexión</button>
               <button class="flex1 ghost" onclick="syncNow()">Sincronizar ahora</button>
             </div>
-            <p class="muted" style="margin-top:14px;">Configura el mismo repositorio y token en cada dispositivo para compartir cuentas, ranking y progreso entre ellos. Los datos se guardan en varios archivos: <code>accounts.json</code>, <code>media.json</code>, <code>ranking.json</code>, <code>exercises.json</code>, <code>social.json</code>, <code>posts.json</code>, <code>messages.json</code>, <code>notifications.json</code> y <code>stories.json</code>.</p>
+            <p class="muted" style="margin-top:14px;">Configura el mismo repositorio y token en cada dispositivo para compartir cuentas, ranking y progreso entre ellos. Los datos se guardan en varios archivos: <code>accounts.json</code>, <code>media.json</code>, <code>ranking.json</code>, <code>exercises.json</code>, <code>social.json</code>.</p>
           </div>
         </div>
         <div class="sub-panel" id="sub-set-profile">
@@ -696,17 +488,6 @@
                 <button type="button" onclick="openCameraModal('avatar', false)">Usar cámara</button>
                 <button type="button" class="ghost danger" onclick="removeAvatar()">Quitar foto</button>
               </div>
-            </div>
-          </div>
-          <div class="panel-card">
-            <h2>Foto de portada</h2>
-            <p class="muted">Se muestra en la parte superior de tu perfil público.</p>
-            <div class="profile-cover-preview" id="coverPreview"></div>
-            <div class="upload-control">
-              <input type="file" id="coverFile" accept="image/*" onchange="uploadCoverPhoto(event)">
-              <button type="button" onclick="document.getElementById('coverFile').click()">Subir portada</button>
-              <button type="button" onclick="openCameraModal('cover', false)">Usar cámara</button>
-              <button type="button" class="ghost danger" onclick="removeCoverPhoto()">Quitar portada</button>
             </div>
           </div>
           <div class="panel-card">
@@ -731,31 +512,6 @@
             <div class="row"><span>Modo claro</span><label class="switch"><input type="checkbox" id="themeToggle2" onchange="toggleTheme()"><span class="slider-toggle"></span></label></div>
           </div>
         </div>
-        <div class="sub-panel" id="sub-set-accessibility">
-          <div class="panel-card">
-            <h2>Accesibilidad</h2>
-            <p class="muted">Ajusta la app para que sea más cómoda de leer y usar.</p>
-            <label for="a11yFontScale">Tamaño de texto</label>
-            <select id="a11yFontScale" onchange="updateAccessibilitySetting('fontScale', this.value)">
-              <option value="normal">Normal</option>
-              <option value="large">Grande</option>
-              <option value="xlarge">Muy grande</option>
-            </select>
-            <div class="row" style="margin-top:14px; justify-content:space-between;">
-              <span>Alto contraste</span>
-              <label class="switch"><input type="checkbox" id="a11yHighContrast" onchange="updateAccessibilitySetting('highContrast', this.checked)"><span class="slider-toggle"></span></label>
-            </div>
-            <div class="row" style="margin-top:10px; justify-content:space-between;">
-              <span>Reducir animaciones y movimiento</span>
-              <label class="switch"><input type="checkbox" id="a11yReduceMotion" onchange="updateAccessibilitySetting('reduceMotion', this.checked)"><span class="slider-toggle"></span></label>
-            </div>
-            <div class="row" style="margin-top:10px; justify-content:space-between;">
-              <span>Botones y campos más grandes (objetivo táctil ampliado)</span>
-              <label class="switch"><input type="checkbox" id="a11yLargeTargets" onchange="updateAccessibilitySetting('largeTargets', this.checked)"><span class="slider-toggle"></span></label>
-            </div>
-            <p class="muted" style="margin-top:14px;">Estos ajustes se guardan en tu cuenta y se aplican automáticamente en cualquier dispositivo donde inicies sesión.</p>
-          </div>
-        </div>
         <div class="sub-panel" id="sub-set-username">
           <div class="panel-card">
             <h2>Cambiar nombre de usuario</h2>
@@ -765,23 +521,6 @@
             <label>Confirma tu contraseña actual</label>
             <input type="password" id="changeUsernamePassword" placeholder="Contraseña">
             <div class="button-group"><button class="flex1" onclick="changeUsername()">Cambiar nombre de usuario</button></div>
-          </div>
-          <div class="panel-card">
-            <h2>Cambiar contraseña</h2>
-            <label>Contraseña actual</label>
-            <input type="password" id="currentPasswordInput" placeholder="Contraseña actual">
-            <label>Nueva contraseña</label>
-            <input type="password" id="newPasswordInput" placeholder="Nueva contraseña" oninput="updateChangePwChecklist()">
-            <ul class="pw-checklist" id="changePwChecklist">
-              <li data-rule="len">Al menos 8 caracteres</li>
-              <li data-rule="upper">Una letra mayúscula</li>
-              <li data-rule="lower">Una letra minúscula</li>
-              <li data-rule="num">Un número</li>
-              <li data-rule="special">Un carácter especial</li>
-            </ul>
-            <label>Repite la nueva contraseña</label>
-            <input type="password" id="newPasswordConfirmInput" placeholder="Repite la nueva contraseña">
-            <div class="button-group"><button class="flex1" onclick="changePassword()">Cambiar contraseña</button></div>
           </div>
         </div>
         <div class="sub-panel" id="sub-set-data">
@@ -809,54 +548,42 @@
       <footer class="small-note">Wilks Pro — calculadoras y seguimiento de fuerza, con base de datos compartida</footer>
     </div>
   </div>
-</div>
 
-<nav class="mobile-nav">
+  <nav class="mobile-nav">
     <button class="mobile-nav-item active" data-tab="dashboard" onclick="showTab('dashboard')">
-      <svg class="ic" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"></rect><rect x="14" y="3" width="7" height="7" rx="1"></rect><rect x="3" y="14" width="7" height="7" rx="1"></rect><rect x="14" y="14" width="7" height="7" rx="1"></rect></svg>
+      <svg class="ic" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"></rect><rect x="14" y="3" width="7" height="7" rx="1"></rect><rect x="3" y="14" width="7" height="7" rx="1"></rect><rect x="14" y="14" width="7" height="7" rx="1"></rect></svg>
       Panel
     </button>
+    <button class="mobile-nav-item" data-tab="calculators" onclick="showTab('calculators')">
+      <svg class="ic" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="2"></rect><line x1="8" y1="6" x2="16" y2="6"></line></svg>
+      Calc.
+    </button>
     <button class="mobile-nav-item" data-tab="training" onclick="showTab('training')">
-      <svg class="ic" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="4" width="14" height="17" rx="2"></rect><rect x="9" y="2" width="6" height="4" rx="1"></rect></svg>
+      <svg class="ic" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="4" width="14" height="17" rx="2"></rect><rect x="9" y="2" width="6" height="4" rx="1"></rect></svg>
       Entreno
     </button>
-    <button class="mobile-nav-item mobile-nav-item-center" data-tab="community" onclick="showTab('community')">
-      <span class="mobile-nav-center-badge"><svg class="ic" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.2"></circle><path d="M2.5 20a6.5 6.5 0 0 1 13 0"></path><path d="M17 8h4M19 6v4"></path></svg></span>
-      Comunidad
-    </button>
-    <button class="mobile-nav-item" data-tab="progress" onclick="showTab('progress')">
-      <svg class="ic" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 17 9 11 13 15 21 6"></polyline></svg>
-      Progreso
-    </button>
-    <button class="mobile-nav-item" data-tab="more" onclick="openMoreSheet()">
-      <svg class="ic" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="12" r="1.6"></circle><circle cx="12" cy="12" r="1.6"></circle><circle cx="19" cy="12" r="1.6"></circle></svg>
-      Más
-    </button>
-  </nav>
-
-  <!-- Hoja "Más" (móvil): resto de secciones -->
-  <div class="bottom-sheet-backdrop" id="moreSheetBackdrop" onclick="closeMoreSheet()"></div>
-  <div class="bottom-sheet" id="moreSheet">
-    <div class="bottom-sheet-handle"></div>
-    <h3 style="margin:4px 0 12px;">Más secciones</h3>
-    <button class="sheet-item" data-tab="calculators" onclick="showTab('calculators'); closeMoreSheet();">
-      <svg class="ic" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="2"></rect><line x1="8" y1="6" x2="16" y2="6"></line></svg>
-      Calculadoras
-    </button>
-    <button class="sheet-item" data-tab="health" onclick="showTab('health'); closeMoreSheet();">
-      <svg class="ic" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-4.35-9.5-8.5C.7 8.6 3 4.5 7 4.5c2 0 3.6 1.4 5 3.3 1.4-1.9 3-3.3 5-3.3 4 0 6.3 4.1 4.5 8-2.5 4.15-9.5 8.5-9.5 8.5Z"></path></svg>
+    <button class="mobile-nav-item" data-tab="health" onclick="showTab('health')">
+      <svg class="ic" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-4.35-9.5-8.5C.7 8.6 3 4.5 7 4.5c2 0 3.6 1.4 5 3.3 1.4-1.9 3-3.3 5-3.3 4 0 6.3 4.1 4.5 8-2.5 4.15-9.5 8.5-9.5 8.5Z"></path></svg>
       Salud
     </button>
-    <button class="sheet-item" data-tab="ranking" onclick="showTab('ranking'); closeMoreSheet();">
-      <svg class="ic" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4h10v5a5 5 0 0 1-10 0V4Z"></path></svg>
+    <button class="mobile-nav-item" data-tab="progress" onclick="showTab('progress')">
+      <svg class="ic" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 17 9 11 13 15 21 6"></polyline></svg>
+      Progreso
+    </button>
+    <button class="mobile-nav-item" data-tab="community" onclick="showTab('community')">
+      <svg class="ic" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.2"></circle><path d="M2.5 20a6.5 6.5 0 0 1 13 0"></path></svg>
+      Gente
+    </button>
+    <button class="mobile-nav-item" data-tab="ranking" onclick="showTab('ranking')">
+      <svg class="ic" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4h10v5a5 5 0 0 1-10 0V4Z"></path></svg>
       Ranking
     </button>
-    <button class="sheet-item" data-tab="settings" onclick="showTab('settings'); closeMoreSheet();">
-      <svg class="ic" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle></svg>
+    <button class="mobile-nav-item" data-tab="settings" onclick="showTab('settings')">
+      <svg class="ic" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle></svg>
       Ajustes
     </button>
-    <button class="sheet-item" onclick="closeMoreSheet()">Cancelar</button>
-  </div>
+  </nav>
+</div>
 
 <!-- Cámara -->
 <div class="camera-modal" id="cameraModal">
@@ -866,7 +593,6 @@
     <div class="camera-controls">
       <span id="cameraTimer" class="muted"></span>
       <button class="ghost" onclick="closeCameraModal()">Cancelar</button>
-      <button class="ghost" id="cameraSwitchBtn" onclick="switchCameraFacing()" title="Cambiar entre cámara frontal y trasera"><svg class="ic" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M23 4v6h-6"></path><path d="M1 20v-6h6"></path><path d="M3.5 9a8.5 8.5 0 0 1 14.6-4.9L23 10M1 14l4.9 5.9A8.5 8.5 0 0 0 20.5 15"></path></svg> Cambiar cámara</button>
       <button id="cameraPhotoBtn" onclick="takeCameraPhoto()">Tomar foto</button>
       <button id="cameraVideoBtn" class="hidden" onclick="toggleCameraVideoRecording()">Grabar vídeo</button>
     </div>
@@ -874,44 +600,6 @@
 </div>
 
 <div class="lightbox" id="lightbox" onclick="closeLightbox()"><img id="lightboxImg" src="" alt="Imagen ampliada"></div>
-
-<!-- Visor de Historias -->
-<div class="story-viewer" id="storyViewer">
-  <div class="story-viewer-inner">
-    <div class="story-progress-row" id="storyProgressRow"></div>
-    <div class="story-header">
-      <div class="avatar-preview" style="width:32px;height:32px;" id="storyViewerAvatar"></div>
-      <strong id="storyViewerUser"></strong>
-      <span class="muted" id="storyViewerTime"></span>
-      <button class="story-close-btn" onclick="closeStoryViewer()">✕</button>
-    </div>
-    <div class="story-content" id="storyViewerContent"></div>
-    <div class="story-nav-zones">
-      <div class="story-nav-zone" onclick="storyPrev()"></div>
-      <div class="story-nav-zone" onclick="storyNext()"></div>
-    </div>
-    <div class="story-footer" id="storyViewerFooter"></div>
-  </div>
-</div>
-
-<!-- Crear historia -->
-<div class="camera-modal" id="createStoryModal">
-  <div class="camera-modal-inner">
-    <h2 style="color:#fff;">Nueva historia</h2>
-    <div id="storyComposerPreview" class="post-image-preview hidden" style="max-width:280px;">
-      <img id="storyComposerPreviewImg" src="" alt="">
-    </div>
-    <textarea id="storyComposerText" rows="2" maxlength="180" placeholder="Escribe algo (opcional)" style="max-width:320px;"></textarea>
-    <div class="camera-controls">
-      <input type="file" id="storyImageFile" accept="image/*" style="display:none;" onchange="stageStoryImage(event)">
-      <button class="ghost" onclick="document.getElementById('storyImageFile').click()">Elegir foto</button>
-      <button class="ghost" onclick="openCameraModal('story', false)">Cámara</button>
-      <button class="ghost" onclick="closeCreateStoryModal()">Cancelar</button>
-      <button onclick="publishStory()">Publicar historia</button>
-    </div>
-  </div>
-</div>
-
 <div class="toast-wrap" id="toastWrap"></div>
 
 <script src="storage.js"></script>
