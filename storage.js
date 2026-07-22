@@ -603,9 +603,18 @@ async function togglePostLike(postId, byUser){
   }, `Me gusta en ${postId}`);
 }
 async function addPostComment(postId, fromUser, text){
-  const comment = { id:Date.now(), from:fromUser, text, date:new Date().toLocaleString('es-ES') };
+  const comment = { id:Date.now(), from:fromUser, text, date:new Date().toLocaleString('es-ES'), likes:[] };
   await mutatePost(postId, post=>{ post.comments = post.comments || []; post.comments.push(comment); }, `Comentario en ${postId}`);
   return comment;
+}
+async function toggleCommentLike(postId, commentId, username){
+  await mutatePost(postId, post=>{
+    const c = (post.comments||[]).find(c=>c.id===commentId);
+    if(!c) return;
+    c.likes = c.likes || [];
+    const idx = c.likes.indexOf(username);
+    if(idx>=0) c.likes.splice(idx,1); else c.likes.push(username);
+  }, `Like en comentario ${commentId}`);
 }
 async function deletePostComment(postId, commentId, byUser){
   await mutatePost(postId, post=>{

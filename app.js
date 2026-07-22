@@ -1867,7 +1867,10 @@ function renderCommunityFeed(){
     el.innerHTML = `<div class="panel-card"><p class="muted">${emptyMsgs[feedFilter] || (feedSearchQuery||feedHashtagFilter ? 'No se han encontrado publicaciones con ese criterio.' : 'No hay publicaciones para mostrar todavía. ¡Sé el primero en compartir algo!')}</p></div>`;
     return;
   }
-  el.innerHTML = list.map(p=>renderPostCard(p)).join('');
+  if(feedSortMode==='popular'){
+    list = [...list].sort((a,b)=> engagementScore(b) - engagementScore(a));
+  }
+  el.innerHTML = renderFeedWithDateSeparators(list);
 }
 let feedFollowingCache = null;
 async function primeFollowingCache(){
@@ -1877,6 +1880,38 @@ async function primeFollowingCache(){
   }catch(e){ feedFollowingCache = new Set(); }
 }
 
+let feedSortMode = 'recent';
+function toggleFeedSort(){
+  feedSortMode = feedSortMode==='recent' ? 'popular' : 'recent';
+  const btn = document.getElementById('feedSortBtn');
+  if(btn) btn.textContent = feedSortMode==='popular' ? '🔥 Populares' : '🕐 Recientes';
+  renderCommunityFeed();
+}
+function engagementScore(p){
+  return Object.keys(p.reactions||{}).length + (p.comments||[]).length*2 + (p.shares||[]).length*3;
+}
+function feedDateLabel(iso){
+  const d = new Date(iso); const now = new Date();
+  const dOnly = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  const nOnly = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const diffDays = Math.round((nOnly-dOnly)/86400000);
+  if(diffDays===0) return 'Hoy';
+  if(diffDays===1) return 'Ayer';
+  if(diffDays<7) return 'Esta semana';
+  if(diffDays<30) return 'Este mes';
+  return 'Más antiguas';
+}
+function renderFeedWithDateSeparators(list){
+  if(feedSortMode==='popular') return list.map(p=>renderPostCard(p)).join('');
+  let lastLabel = null;
+  let html = '';
+  list.forEach(p=>{
+    const label = feedDateLabel(p.createdAt);
+    if(label!==lastLabel){ html += `<div class="feed-date-separator"><span>${label}</span></div>`; lastLabel = label; }
+    html += renderPostCard(p);
+  });
+  return html;
+}
 function timeAgo(iso){
   const diffMs = Date.now() - new Date(iso).getTime();
   const mins = Math.floor(diffMs/60000);
@@ -1972,7 +2007,11 @@ function renderPostCard(p){
       </div>
       <div class="post-comments ${commentsOpen?'':'hidden'}" id="postComments-${p.id}">
         <div class="post-comments-list">
-          ${(p.comments||[]).map(c=>`<div class="post-comment"><strong onclick="jumpToProfile('${c.from.replace(/'/g,"\\'")}')">${escapeHTML(c.from)}</strong> <span>${linkifyPostText(c.text)}</span><div class="muted post-time">${escapeHTML(c.date)} · <span class="reply-link" onclick="replyToComment('${p.id}','${c.from.replace(/'/g,"\\'")}')">Responder</span></div></div>`).join('') || '<p class="muted" style="margin:6px 0;">Sé el primero en comentar.</p>'}
+          ${(p.comments||[]).map(c=>{
+            const cLiked = (c.likes||[]).includes(currentUser);
+            const cLikeCount = (c.likes||[]).length;
+            return `<div class="post-comment"><strong onclick="jumpToProfile('${c.from.replace(/'/g,"\\'")}')">${escapeHTML(c.from)}</strong> <span>${linkifyPostText(c.text)}</span><div class="muted post-time">${escapeHTML(c.date)} · <span class="reply-link" onclick="replyToComment('${p.id}','${c.from.replace(/'/g,"\\'")}')">Responder</span> · <span class="reply-link ${cLiked?'liked-text':''}" onclick="handleToggleCommentLike('${p.id}',${c.id})">Me gusta${cLikeCount?` (${cLikeCount})`:''}</span></div></div>`;
+          }).join('') || '<p class="muted" style="margin:6px 0;">Sé el primero en comentar.</p>'}
         </div>
         <div class="row" style="margin-top:8px; gap:6px; position:relative;">
           <input type="text" placeholder="Escribe un comentario... usa @usuario" id="postCommentInput-${p.id}" style="margin:0;" oninput="handleMentionTypeahead(this,'mentionList-${p.id}')" onkeydown="if(event.key==='Enter'){handlePostComment('${p.id}');}">
@@ -2025,6 +2064,17 @@ function togglePostComments(postId){
   if(feedOpenComments.has(postId)) feedOpenComments.delete(postId); else feedOpenComments.add(postId);
   renderCommunityFeed();
   if(feedOpenComments.has(postId)){ const inp = document.getElementById(`postCommentInput-${postId}`); if(inp) inp.focus(); }
+}
+async function handleToggleCommentLike(postId, commentId){
+  try{
+    await toggleCommentLike(postId, commentId, currentUser);
+    const post = communityFeedCache.find(p=>p.id===postId);
+    if(post){
+      const c = (post.comments||[]).find(c=>c.id===commentId);
+      if(c){ c.likes = c.likes || []; const idx = c.likes.indexOf(currentUser); if(idx>=0) c.likes.splice(idx,1); else c.likes.push(currentUser); }
+    }
+    renderCommunityFeed();
+  }catch(e){ toast('Error: ' + e.message, 'error'); }
 }
 async function handlePostComment(postId){
   const input = document.getElementById(`postCommentInput-${postId}`);

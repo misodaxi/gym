@@ -537,6 +537,7 @@
             <button class="chip-filter" data-filter="following" onclick="setFeedFilter('following')">Siguiendo</button>
             <button class="chip-filter" data-filter="saved" onclick="setFeedFilter('saved')">Guardados</button>
             <button class="chip-filter" data-filter="mine" onclick="setFeedFilter('mine')">Mis publicaciones</button>
+            <button class="ghost small" id="feedSortBtn" onclick="toggleFeedSort()">🕐 Recientes</button>
             <button class="ghost small" style="margin-left:auto;" onclick="loadCommunityFeed()"><svg class="ic" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.5 9a8.5 8.5 0 0 1 14.6-4.9L23 10M1 14l4.9 5.9A8.5 8.5 0 0 0 20.5 15"></path></svg> Actualizar</button>
           </div>
           <div id="feedHashtagBar" class="feed-filter-bar hidden"></div>
