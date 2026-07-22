@@ -193,6 +193,30 @@
         "notes": "",
         "mediaId": "m1784696541549",
         "videoLink": null
+      },
+      {
+        "id": 1784747328492,
+        "date": "2026-07-22",
+        "exercise": "Press banca",
+        "weight": 213,
+        "reps": 2,
+        "sets": 1,
+        "rir": null,
+        "notes": "",
+        "mediaId": "m1784747328492",
+        "videoLink": null
+      },
+      {
+        "id": 1784747344413,
+        "date": "2026-07-22",
+        "exercise": "qwe",
+        "weight": 213,
+        "reps": 2,
+        "sets": 1,
+        "rir": null,
+        "notes": "",
+        "mediaId": "m1784747344413",
+        "videoLink": null
       }
     ],
     "measurements": [],
@@ -924,6 +948,10 @@
       },
       {
         "date": "2026-07-21",
+        "count": 0
+      },
+      {
+        "date": "2026-07-22",
         "count": 0
       }
     ],
