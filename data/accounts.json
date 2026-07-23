@@ -42,10 +42,6 @@
     "nutrition": [],
     "steps": [],
     "sleep": [],
-    "water": {
-      "date": "2026-07-19",
-      "count": 1
-    },
     "settings": {
       "plateInventory": {
         "5": {
@@ -84,7 +80,13 @@
       "kcalGoal": 1888,
       "stepsGoal": 10000,
       "waterServingMl": 300,
-      "waterGoalMl": 3000
+      "waterGoalMl": 3000,
+      "accessibility": {
+        "fontScale": "normal",
+        "highContrast": false,
+        "reduceMotion": false,
+        "largeTargets": false
+      }
     },
     "profile": {
       "age": 19,
@@ -93,8 +95,27 @@
       "bio": "Holaaa tus muertoooos",
       "isPublic": true
     },
-    "theme": "dark",
-    "createdAt": "2026-07-19T20:31:49.947Z"
+    "theme": "light",
+    "createdAt": "2026-07-19T20:31:49.947Z",
+    "routineTemplates": [],
+    "workoutSessions": [],
+    "savedPosts": [],
+    "trainingPlans": [],
+    "customChallenges": [],
+    "challenges": {
+      "dailyCompletions": {},
+      "levels": {}
+    },
+    "waterLog": [
+      {
+        "date": "2026-07-19",
+        "count": 1
+      },
+      {
+        "date": "2026-07-23",
+        "count": 0
+      }
+    ]
   },
   "misodaxi": {
     "password": "8b73227dfc0cea11dfef929d91274da093a02fd8ec345c09f85756cf7cbc05ce",
