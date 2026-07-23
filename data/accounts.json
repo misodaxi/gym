@@ -895,6 +895,35 @@
         ],
         "totalSeconds": 35,
         "endedAt": "2026-07-22T05:04:38.684Z"
+      },
+      {
+        "id": 1784765042757,
+        "templateId": null,
+        "templateName": "queque · pierna",
+        "date": "2026-07-23",
+        "lastSessionDate": null,
+        "exercises": [
+          {
+            "name": "squat",
+            "sets": [
+              {
+                "weight": 80,
+                "reps": "",
+                "rir": "",
+                "notes": "",
+                "setSeconds": null,
+                "restSeconds": null,
+                "mediaId": null,
+                "done": false,
+                "prevWeight": 80,
+                "prevReps": "",
+                "prevIsActual": false
+              }
+            ]
+          }
+        ],
+        "totalSeconds": 5,
+        "endedAt": "2026-07-23T00:04:07.901Z"
       }
     ],
     "challenges": {
