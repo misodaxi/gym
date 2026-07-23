@@ -71,17 +71,17 @@
       <div class="topbar-actions">
         <span class="chip" id="syncChip">Modo local</span>
         <span class="chip" id="streakChip">0 días</span>
-        <button class="topbar-icon-btn" onclick="quickJumpCommunity('comm-notifications')" title="Notificaciones">
+        <button class="topbar-icon-btn" onclick="quickJumpCommunity('comm-notifications')" title="Notificaciones" aria-label="Notificaciones">
           <svg class="ic" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
           <span class="badge-dot hidden" id="topbarNotifDot"></span>
         </button>
-        <button class="topbar-icon-btn" onclick="quickJumpCommunity('comm-messages')" title="Mensajes">
+        <button class="topbar-icon-btn" onclick="quickJumpCommunity('comm-messages')" title="Mensajes" aria-label="Mensajes">
           <svg class="ic" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.4 8.4 0 0 1-8.8 8.4 8.9 8.9 0 0 1-3.6-.7L3 21l1.8-5.4A8.4 8.4 0 1 1 21 11.5Z"></path></svg>
           <span class="badge-dot hidden" id="topbarDmDot"></span>
         </button>
         <span class="chip" id="userChip">—</span>
         <label class="switch" title="Modo claro">
-          <input type="checkbox" id="themeToggle" onchange="toggleTheme()">
+          <input type="checkbox" id="themeToggle" onchange="toggleTheme()" aria-label="Activar modo claro">
           <span class="slider-toggle"></span>
         </label>
       </div>
@@ -728,7 +728,7 @@
         <div class="sub-panel" id="sub-set-appearance">
           <div class="panel-card">
             <h2>Apariencia</h2>
-            <div class="row"><span>Modo claro</span><label class="switch"><input type="checkbox" id="themeToggle2" onchange="toggleTheme()"><span class="slider-toggle"></span></label></div>
+            <div class="row"><span>Modo claro</span><label class="switch"><input type="checkbox" id="themeToggle2" onchange="toggleTheme()" aria-label="Activar modo claro"><span class="slider-toggle"></span></label></div>
           </div>
         </div>
         <div class="sub-panel" id="sub-set-accessibility">
@@ -811,28 +811,29 @@
   </div>
 </div>
 
-<nav class="mobile-nav">
-    <button class="mobile-nav-item active" data-tab="dashboard" onclick="showTab('dashboard')">
-      <svg class="ic" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"></rect><rect x="14" y="3" width="7" height="7" rx="1"></rect><rect x="3" y="14" width="7" height="7" rx="1"></rect><rect x="14" y="14" width="7" height="7" rx="1"></rect></svg>
-      Panel
-    </button>
-    <button class="mobile-nav-item" data-tab="training" onclick="showTab('training')">
-      <svg class="ic" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="4" width="14" height="17" rx="2"></rect><rect x="9" y="2" width="6" height="4" rx="1"></rect></svg>
-      Entreno
-    </button>
-    <button class="mobile-nav-item mobile-nav-item-center" data-tab="community" onclick="showTab('community')">
-      <span class="mobile-nav-center-badge"><svg class="ic" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.2"></circle><path d="M2.5 20a6.5 6.5 0 0 1 13 0"></path><path d="M17 8h4M19 6v4"></path></svg></span>
-      Comunidad
-    </button>
-    <button class="mobile-nav-item" data-tab="progress" onclick="showTab('progress')">
-      <svg class="ic" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 17 9 11 13 15 21 6"></polyline></svg>
-      Progreso
-    </button>
-    <button class="mobile-nav-item" data-tab="more" onclick="openMoreSheet()">
-      <svg class="ic" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="12" r="1.6"></circle><circle cx="12" cy="12" r="1.6"></circle><circle cx="19" cy="12" r="1.6"></circle></svg>
-      Más
-    </button>
-  </nav>
+<nav class="mobile-nav" role="navigation" aria-label="Navegación principal">
+  <button class="mobile-nav-item active" data-tab="dashboard" onclick="showTab('dashboard')" aria-label="Panel" aria-current="page">
+    <svg class="ic" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"></rect><rect x="14" y="3" width="7" height="7" rx="1"></rect><rect x="3" y="14" width="7" height="7" rx="1"></rect><rect x="14" y="14" width="7" height="7" rx="1"></rect></svg>
+    <span>Panel</span>
+  </button>
+  <button class="mobile-nav-item" data-tab="training" onclick="showTab('training')" aria-label="Entreno">
+    <svg class="ic" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="4" width="14" height="17" rx="2"></rect><rect x="9" y="2" width="6" height="4" rx="1"></rect></svg>
+    <span>Entreno</span>
+  </button>
+  <button class="mobile-nav-item mobile-nav-item-center" data-tab="community" onclick="showTab('community')" aria-label="Comunidad">
+    <span class="mobile-nav-center-badge"><svg class="ic" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.2"></circle><path d="M2.5 20a6.5 6.5 0 0 1 13 0"></path><path d="M17 8h4M19 6v4"></path></svg></span>
+    <span>Comunidad</span>
+  </button>
+  <button class="mobile-nav-item" data-tab="progress" onclick="showTab('progress')" aria-label="Progreso">
+    <svg class="ic" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 17 9 11 13 15 21 6"></polyline></svg>
+    <span>Progreso</span>
+  </button>
+  <button class="mobile-nav-item" data-tab="more" onclick="openMoreSheet()" aria-label="Más opciones" aria-haspopup="true" aria-expanded="false" id="moreNavBtn">
+    <svg class="ic" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="12" r="1.6"></circle><circle cx="12" cy="12" r="1.6"></circle><circle cx="19" cy="12" r="1.6"></circle></svg>
+    <span>Más</span>
+  </button>
+</nav>
+
 
   <!-- Hoja "Más" (móvil): resto de secciones -->
   <div class="bottom-sheet-backdrop" id="moreSheetBackdrop" onclick="closeMoreSheet()"></div>
@@ -883,7 +884,7 @@
       <div class="avatar-preview" style="width:32px;height:32px;" id="storyViewerAvatar"></div>
       <strong id="storyViewerUser"></strong>
       <span class="muted" id="storyViewerTime"></span>
-      <button class="story-close-btn" onclick="closeStoryViewer()">✕</button>
+      <button class="story-close-btn" onclick="closeStoryViewer()" aria-label="Cerrar historia">✕</button>
     </div>
     <div class="story-content" id="storyViewerContent"></div>
     <div class="story-nav-zones">

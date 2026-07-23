@@ -211,7 +211,9 @@ async function showTab(name){
   document.querySelectorAll('.side-link[data-tab]').forEach(b=>b.classList.toggle('active', b.dataset.tab===name));
   const moreTabs = ['calculators','health','ranking','settings'];
   document.querySelectorAll('.mobile-nav-item[data-tab]').forEach(b=>{
-    b.classList.toggle('active', b.dataset.tab===name || (b.dataset.tab==='more' && moreTabs.includes(name)));
+    const isActive = b.dataset.tab===name || (b.dataset.tab==='more' && moreTabs.includes(name));
+    b.classList.toggle('active', isActive);
+    if(isActive) b.setAttribute('aria-current','page'); else b.removeAttribute('aria-current');
   });
   document.querySelectorAll('.sheet-item[data-tab]').forEach(b=>b.classList.toggle('active', b.dataset.tab===name));
   document.querySelectorAll('.tab-panel').forEach(p=>p.classList.toggle('active', p.id === 'tab-'+name));
@@ -771,20 +773,15 @@ function calcPlates(){
     const meta = PLATE_META[p];
     const w = Math.round(meta.diameter * 2.05);
     const h = Math.round(w * 0.62);
-    const showLabel = meta.diameter >= 31;
-    const brandSize = Math.max(5, Math.round(w*0.044));
-    const numSize = Math.max(10, Math.round(w*0.16));
-    return `<div class="plate-disc" style="width:${w}px; height:${h}px; margin-left:${i===0?0:-Math.round(w*0.6)}px; z-index:${used.length-i}; animation-delay:${i*0.04}s;" title="${p} kg">
+    const showLabel = meta.diameter >= 25;
+    const numSize = Math.max(11, Math.round(w*0.2));
+    return `<div class="plate-disc" style="width:${w}px; height:${h}px; margin-left:${i===0?0:-Math.round(w*0.6)}px; z-index:${i+1}; animation-delay:${i*0.04}s;" title="${p} kg">
       <span class="plate-ring-shadow"></span>
       <span class="plate-ring-outer" style="background:${meta.color};"></span>
       <span class="plate-ring-color" style="background:${meta.ring};"></span>
       <span class="plate-ring-inner" style="background:${meta.color};"></span>
       <span class="plate-disc-hub"></span>
-      ${showLabel?`
-        <span class="plate-disc-text">
-          <span class="plate-disc-brand" style="color:${meta.ring}; font-size:${brandSize}px;">IRONSIDE</span>
-          <span class="plate-disc-label" style="color:${meta.ring}; font-size:${numSize}px;">${p}</span>
-        </span>`:''}
+      ${showLabel?`<span class="plate-disc-label" style="color:${meta.ring}; font-size:${numSize}px;">${p}</span>`:''}
     </div>`;
   }).join('');
   vizEl.innerHTML = `<div class="plate-stack plate-stack-3d">${platesHtml}</div><div class="bar-line-3d"></div>`;
@@ -808,6 +805,17 @@ function calcBMI(){
   document.getElementById('bmiResult').classList.remove('hidden');
   document.getElementById('bmiResult').innerHTML = `<p>IMC: <span class="wilks-score">${bmi.toFixed(1)}</span> (${cat})</p>`;
 }
+document.addEventListener('keydown', (e)=>{
+  if(e.key !== 'Escape') return;
+  const moreSheet = document.getElementById('moreSheet');
+  if(moreSheet && moreSheet.classList.contains('open')){ closeMoreSheet(); return; }
+  const lightbox = document.getElementById('lightbox');
+  if(lightbox && lightbox.classList.contains('open')){ closeLightbox(); return; }
+  const cameraModal = document.getElementById('cameraModal');
+  if(cameraModal && cameraModal.classList.contains('open')){ closeCameraModal(); return; }
+  const storyViewer = document.getElementById('storyViewer');
+  if(storyViewer && storyViewer.classList.contains('open')){ closeStoryViewer(); return; }
+});
 document.addEventListener('change', (e)=>{
   if(e.target && e.target.id==='bfGender'){
     document.getElementById('bfHipWrap').style.display = e.target.value==='female' ? 'block' : 'none';
@@ -2227,10 +2235,16 @@ let dmPollHandle = null;
 function openMoreSheet(){
   document.getElementById('moreSheetBackdrop').classList.add('open');
   document.getElementById('moreSheet').classList.add('open');
+  const btn = document.getElementById('moreNavBtn');
+  if(btn) btn.setAttribute('aria-expanded','true');
+  const firstItem = document.querySelector('#moreSheet .sheet-item');
+  if(firstItem) firstItem.focus();
 }
 function closeMoreSheet(){
   document.getElementById('moreSheetBackdrop').classList.remove('open');
   document.getElementById('moreSheet').classList.remove('open');
+  const btn = document.getElementById('moreNavBtn');
+  if(btn){ btn.setAttribute('aria-expanded','false'); btn.focus(); }
 }
 async function quickJumpCommunity(subId){
   await showTab('community');
