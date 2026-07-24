@@ -318,7 +318,19 @@
       "heightCm": 160,
       "weightKg": 80,
       "bio": "",
-      "isPublic": false
+      "isPublic": false,
+      "gender": "male",
+      "publicFields": {
+        "age": true,
+        "height": true,
+        "weight": true,
+        "bio": true,
+        "wilks": true,
+        "workoutCount": true,
+        "streak": true,
+        "rank": true,
+        "bodyMap": true
+      }
     },
     "theme": "dark",
     "createdAt": "2026-07-19T21:06:00.001Z",
@@ -945,6 +957,92 @@
         ],
         "totalSeconds": 5,
         "endedAt": "2026-07-23T00:04:07.901Z"
+      },
+      {
+        "id": 1784887720705,
+        "templateId": 1784510975089,
+        "templateName": "asdasd",
+        "date": "2026-07-24",
+        "lastSessionDate": "2026-07-22",
+        "exercises": [
+          {
+            "name": "Press banca",
+            "sets": [
+              {
+                "weight": "",
+                "reps": "",
+                "rir": "23",
+                "notes": "234",
+                "setSeconds": null,
+                "restSeconds": null,
+                "mediaId": null,
+                "done": false,
+                "prevWeight": "234",
+                "prevReps": "234",
+                "prevIsActual": false
+              },
+              {
+                "weight": "",
+                "reps": "",
+                "rir": "",
+                "notes": "",
+                "setSeconds": null,
+                "restSeconds": null,
+                "mediaId": null,
+                "done": false,
+                "prevWeight": "234",
+                "prevReps": "",
+                "prevIsActual": false
+              }
+            ]
+          },
+          {
+            "name": "asdasd",
+            "sets": [
+              {
+                "weight": "",
+                "reps": "",
+                "rir": "",
+                "notes": "",
+                "setSeconds": null,
+                "restSeconds": null,
+                "mediaId": null,
+                "done": false,
+                "prevWeight": "",
+                "prevReps": "",
+                "prevIsActual": false
+              },
+              {
+                "weight": "",
+                "reps": "",
+                "rir": "",
+                "notes": "",
+                "setSeconds": null,
+                "restSeconds": null,
+                "mediaId": null,
+                "done": false,
+                "prevWeight": "",
+                "prevReps": "",
+                "prevIsActual": false
+              },
+              {
+                "weight": "",
+                "reps": "",
+                "rir": "",
+                "notes": "",
+                "setSeconds": null,
+                "restSeconds": null,
+                "mediaId": null,
+                "done": false,
+                "prevWeight": "",
+                "prevReps": "",
+                "prevIsActual": false
+              }
+            ]
+          }
+        ],
+        "totalSeconds": 7,
+        "endedAt": "2026-07-24T10:08:48.498Z"
       }
     ],
     "challenges": {
