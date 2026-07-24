@@ -238,6 +238,19 @@
         "notes": "",
         "mediaId": "m1784747344413",
         "videoLink": null
+      },
+      {
+        "id": 1784887866987,
+        "date": "2026-07-24",
+        "exercise": "Press de banca en máquina",
+        "exerciseId": "bench-press__machine",
+        "weight": 200,
+        "reps": 7,
+        "sets": 1,
+        "rir": null,
+        "notes": "",
+        "mediaId": null,
+        "videoLink": null
       }
     ],
     "measurements": [],
