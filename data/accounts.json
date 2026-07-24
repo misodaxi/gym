@@ -264,6 +264,19 @@
         "notes": "",
         "mediaId": null,
         "videoLink": null
+      },
+      {
+        "id": 1784888192281,
+        "date": "2026-07-24",
+        "exercise": "Press de banca con mancuernas",
+        "exerciseId": "bench-press__dumbbell",
+        "weight": 100,
+        "reps": 15,
+        "sets": 1,
+        "rir": null,
+        "notes": "",
+        "mediaId": null,
+        "videoLink": null
       }
     ],
     "measurements": [],
