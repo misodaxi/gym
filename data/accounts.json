@@ -251,6 +251,19 @@
         "notes": "",
         "mediaId": null,
         "videoLink": null
+      },
+      {
+        "id": 1784887931968,
+        "date": "2026-07-24",
+        "exercise": "Press de banca con barra",
+        "exerciseId": "bench-press__barbell",
+        "weight": 200,
+        "reps": 8,
+        "sets": 1,
+        "rir": null,
+        "notes": "",
+        "mediaId": null,
+        "videoLink": null
       }
     ],
     "measurements": [],
