@@ -91,6 +91,7 @@
       <!-- ---------- DASHBOARD ---------- -->
       <div class="tab-panel active" id="tab-dashboard">
         <div class="panel-card"><h2>Resumen</h2><div class="grid grid-4" id="dashboardStats"></div></div>
+        <div class="panel-card" id="bodyMapCard"></div>
         <div class="panel-card"><h2>Evolución de Wilks</h2><canvas id="dashboardChart" height="100"></canvas></div>
         <div class="grid grid-2">
           <div class="panel-card"><h2>Agua de hoy</h2><div id="waterWidget"></div></div>
@@ -229,6 +230,7 @@
       <div class="tab-panel" id="tab-training">
         <div class="subtab-bar">
           <button class="subtab-btn active" data-sub="tr-log" onclick="showSub('tr-log')">Registro</button>
+          <button class="subtab-btn" data-sub="tr-exercises" onclick="showSub('tr-exercises')">Ejercicios</button>
           <button class="subtab-btn" data-sub="tr-pr" onclick="showSub('tr-pr')">Récords (PRs)</button>
           <button class="subtab-btn" data-sub="tr-routines" onclick="showSub('tr-routines')">Rutinas</button>
           <button class="subtab-btn" data-sub="tr-plan" onclick="showSub('tr-plan')">Planificación</button>
@@ -266,6 +268,25 @@
             </div>
             <div id="workoutList"><p class="muted">Aún no hay sesiones registradas.</p></div>
           </div>
+        </div>
+        <div class="sub-panel" id="sub-tr-exercises">
+          <div class="panel-card">
+            <h2>Catálogo de ejercicios</h2>
+            <p class="muted">Lista cerrada y curada de más de 500 ejercicios. Esta es la lista con la que se registran series, plantillas y planificación.</p>
+            <div class="grid grid-2">
+              <div><label>Buscar ejercicio</label><input type="text" id="exerciseSearchInput" placeholder="Ej: press banca, sentadila..." oninput="renderExerciseCatalogList()"></div>
+              <div><label>Grupo muscular</label>
+                <select id="exerciseMuscleFilter" onchange="renderExerciseCatalogList()">
+                  <option value="">Todos los grupos</option>
+                </select>
+              </div>
+            </div>
+            <label>Objetivo</label>
+            <div class="feed-filter-bar" id="exerciseObjectiveFilterBar"></div>
+            <div id="exerciseCatalogCount" class="muted" style="margin:8px 0;"></div>
+            <div id="exerciseCatalogList" class="exercise-catalog-grid"></div>
+          </div>
+          <div class="panel-card hidden" id="exerciseDetailCard"></div>
         </div>
         <div class="sub-panel" id="sub-tr-pr">
           <div class="panel-card">
@@ -716,6 +737,11 @@
               <div><label>Altura (cm)</label><input type="number" id="profileHeight"></div>
               <div><label>Peso (kg)</label><input type="number" id="profileWeight"></div>
             </div>
+            <label>Género (para el diagrama corporal del panel)</label>
+            <select id="profileGender">
+              <option value="male">Hombre</option>
+              <option value="female">Mujer</option>
+            </select>
             <label>Biografía</label>
             <textarea id="profileBio" placeholder="Cuéntale algo a la comunidad..."></textarea>
             <div class="row" style="margin-top:14px; justify-content:space-between;">
@@ -723,6 +749,11 @@
               <label class="switch"><input type="checkbox" id="profilePublicToggle" onchange="toggleProfilePublic()"><span class="slider-toggle"></span></label>
             </div>
             <div class="button-group"><button class="flex1 ghost" onclick="saveProfileFields()">Guardar datos</button></div>
+          </div>
+          <div class="panel-card">
+            <h2>Qué se muestra en tu perfil público</h2>
+            <p class="muted">Elige qué datos puede ver el resto de la comunidad en tu ficha de perfil.</p>
+            <div class="privacy-toggle-list" id="privacyToggleList"></div>
           </div>
         </div>
         <div class="sub-panel" id="sub-set-appearance">

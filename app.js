@@ -140,43 +140,46 @@ function challengeLevelLabel(def, level){
 function computeChallengeXP(accObj){
   const acc = accObj || account;
   if(!acc) return 0;
-  let xp = 0;
-  const levels = (acc.challenges && acc.challenges.levels) || {};
-  Object.entries(levels).forEach(([id, lvl])=>{
-    for(let l=1; l<=lvl; l++) xp += tierXP(l);
+  const tiers = [];
+  // Retos: se cuentan TODOS (también los que aún no has empezado, como nivel 0) para exigir consistencia real.
+  CHALLENGE_DEFS.forEach(c=>{ tiers.push((acc.challenges && acc.challenges.levels && acc.challenges.levels[c.id]) || 0); });
+  (acc.customChallenges||[]).forEach(c=>{ if(c.completed) tiers.push(c.difficulty||3); });
+  // Ejercicios: solo cuentan los que tienes marca registrada (no se penaliza por los 500 que no hayas probado).
+  buildExerciseCatalog().forEach(ex=>{
+    const best = getBestMarkForExercise(ex, acc);
+    if(best!=null) tiers.push(tierForExercise(ex, acc));
   });
-  (acc.customChallenges||[]).forEach(c=>{ if(c.completed) xp += tierXP(c.difficulty||3); });
-  const streak = computeDailyChallengeStreak(acc);
-  xp += Math.min(streak, 60) * 5; // hasta 300 XP de bonus por racha diaria
-  return xp;
+  if(tiers.length===0) return 0;
+  return tiers.reduce((s,t)=>s+t,0) / tiers.length;
 }
 const RANK_THRESHOLDS = [
   {name:'Bronce', min:0, color:'#a5672f'},
-  {name:'Plata', min:300, color:'#9a9aa3'},
-  {name:'Oro', min:800, color:'#d4af37'},
-  {name:'Platino', min:1500, color:'#6fd4c9'},
-  {name:'Diamante', min:2500, color:'#7fb3ff'},
-  {name:'Leyenda', min:4000, color:'#c86fe0'},
+  {name:'Plata', min:1.3, color:'#9a9aa3'},
+  {name:'Oro', min:2.5, color:'#d4af37'},
+  {name:'Platino', min:3.6, color:'#6fd4c9'},
+  {name:'Diamante', min:4.6, color:'#7fb3ff'},
+  {name:'Leyenda', min:5.5, color:'#c86fe0'},
 ];
-function getRankForXP(xp){
+function getRankForXP(avgTier){
   let current = RANK_THRESHOLDS[0], next = RANK_THRESHOLDS[1];
   for(let i=0;i<RANK_THRESHOLDS.length;i++){
-    if(xp >= RANK_THRESHOLDS[i].min){ current = RANK_THRESHOLDS[i]; next = RANK_THRESHOLDS[i+1] || null; }
+    if(avgTier >= RANK_THRESHOLDS[i].min){ current = RANK_THRESHOLDS[i]; next = RANK_THRESHOLDS[i+1] || null; }
   }
   return { current, next };
 }
 function renderChallengeRankCard(){
   const el = document.getElementById('challengeRankCard');
   if(!el || !account) return;
-  const xp = computeChallengeXP();
-  const { current, next } = getRankForXP(xp);
-  const pct = next ? Math.min(100, ((xp-current.min)/(next.min-current.min))*100) : 100;
+  const avgTier = computeChallengeXP();
+  const { current, next } = getRankForXP(avgTier);
+  const pct = next ? Math.min(100, ((avgTier-current.min)/(next.min-current.min))*100) : 100;
   el.innerHTML = `
     <div class="rank-hero">
       <div class="rank-hero-badge" style="border-color:${current.color}; color:${current.color};">${iconFilled(rankIconName(current.name),24)}</div>
       <div style="flex:1; min-width:180px;">
         <h2 style="margin:0;">Rango: <span style="color:${current.color};">${current.name}</span></h2>
-        <p class="muted" style="margin:2px 0 8px;">${xp} XP acumulados${next?` · ${next.min-xp} XP para ${next.name}`:' · Rango máximo alcanzado'}</p>
+        <p class="muted" style="margin:2px 0 8px;">Puntuación media: ${avgTier.toFixed(2)} / 6${next?` · necesitas ${next.min.toFixed(2)} de media para ${next.name}`:' · Rango máximo alcanzado'}</p>
+        <p class="muted" style="margin:0 0 8px; font-size:.78em;">Tu rango es la media de tus mejores marcas en todos los retos y en cada ejercicio que hayas registrado: para llegar a Diamante o Leyenda necesitas ser consistente en (casi) todo, no solo destacar en una cosa.</p>
         <div class="progress-track"><div class="progress-fill ${!next?'complete':''}" style="width:${pct}%; background:${current.color};"></div></div>
       </div>
     </div>
@@ -218,7 +221,7 @@ async function showTab(name){
   document.querySelectorAll('.sheet-item[data-tab]').forEach(b=>b.classList.toggle('active', b.dataset.tab===name));
   document.querySelectorAll('.tab-panel').forEach(p=>p.classList.toggle('active', p.id === 'tab-'+name));
   document.getElementById('pageTitle').textContent = TAB_TITLES[name] || '';
-  if(name==='dashboard') renderDashboard();
+  if(name==='dashboard'){ renderDashboard(); renderBodyMap(); }
   if(name==='training'){ renderWorkouts(); renderPRBoard(); renderExerciseDatalist(); renderTemplateList(); renderActiveSession(); }
   if(name==='health'){ renderNutrition(); renderSteps(); renderSleep(); }
   if(name==='progress'){ renderMeasurements(); renderGoals(); renderAchievements(); renderPhotoGallery(); renderDailyChallenge(); renderChallengeRankCard(); renderChallengeCategoryFilter(); renderMilestoneChallenges(); renderCustomChallenges(); }
@@ -252,6 +255,7 @@ async function showSub(name){
   if(name==='comm-messages') loadDmInbox();
   if(name==='comm-notifications') loadNotifications();
   if(name==='tr-plan'){ renderPlanList(); renderTodayPlanCard(); if(!document.getElementById('planDaysBuilder').children.length) addPlanSplitDay(); }
+  if(name==='tr-exercises') initExerciseCatalogUI();
 }
 function renderAll(){
   renderDashboard(); renderWorkouts(); renderPRBoard(); renderMeasurements(); renderGoals();
@@ -424,6 +428,10 @@ async function removeCoverPhoto(){
   renderProfile();
   toast('Portada eliminada.');
 }
+const PUBLIC_FIELD_LABELS = {
+  age:'Edad', height:'Altura', weight:'Peso', bio:'Biografía', wilks:'Mejor Wilks',
+  workoutCount:'Nº de entrenamientos', streak:'Racha de retos', rank:'Rango general', bodyMap:'Diagrama corporal'
+};
 function renderProfileFields(){
   if(!account) return;
   const p = account.profile || {};
@@ -431,7 +439,24 @@ function renderProfileFields(){
   document.getElementById('profileHeight').value = p.heightCm ?? '';
   document.getElementById('profileWeight').value = p.weightKg ?? '';
   document.getElementById('profileBio').value = p.bio || '';
+  document.getElementById('profileGender').value = p.gender || 'male';
   document.getElementById('profilePublicToggle').checked = p.isPublic !== false;
+  const pf = p.publicFields || {};
+  const listEl = document.getElementById('privacyToggleList');
+  if(listEl){
+    listEl.innerHTML = Object.entries(PUBLIC_FIELD_LABELS).map(([key,label])=>`
+      <div class="row" style="justify-content:space-between; margin-top:8px;">
+        <span>${label}</span>
+        <label class="switch"><input type="checkbox" data-privacy-key="${key}" ${pf[key]!==false?'checked':''} onchange="togglePublicField('${key}', this.checked)"><span class="slider-toggle"></span></label>
+      </div>
+    `).join('');
+  }
+}
+async function togglePublicField(key, value){
+  account.profile = account.profile || {};
+  account.profile.publicFields = account.profile.publicFields || {};
+  account.profile.publicFields[key] = value;
+  try{ await saveAccount(); }catch(e){ toast('Error: ' + e.message, 'error'); }
 }
 async function saveProfileFields(){
   account.profile = account.profile || {};
@@ -439,7 +464,8 @@ async function saveProfileFields(){
   account.profile.heightCm = parseFloat(document.getElementById('profileHeight').value) || null;
   account.profile.weightKg = parseFloat(document.getElementById('profileWeight').value) || null;
   account.profile.bio = document.getElementById('profileBio').value.trim();
-  try{ await saveAccount(); toast('Datos de perfil guardados.'); }catch(e){ toast('Error: ' + e.message, 'error'); }
+  account.profile.gender = document.getElementById('profileGender').value;
+  try{ await saveAccount(); toast('Datos de perfil guardados.'); renderBodyMap(); }catch(e){ toast('Error: ' + e.message, 'error'); }
 }
 async function toggleProfilePublic(){
   account.profile = account.profile || {};
@@ -620,11 +646,23 @@ function lineChartConfig(labels, data, label, suggestedMax){
    FÓRMULAS: 1RM (Epley, unificada), WILKS, DOTS
 ========================================================= */
 function epley1RM(weight, reps){ return parseFloat((weight*(1+reps/30)).toFixed(1)); }
+function brzycki1RM(weight, reps){ if(reps>=37) return null; return parseFloat((weight*36/(37-reps)).toFixed(1)); }
 function calculate1RM(weight, reps){ if(reps<1 || reps>30) return null; return epley1RM(weight, reps); }
 function wilksScoreCalc(gender, bodyWeight, total){
   const coeff = {
     male:[-216.0475144,16.2606339,-0.002388645,-0.00113732,7.01863E-06,-1.291E-08],
     female:[594.31747775582,-27.23842536447,0.82112226871,-0.00930733913,4.731582E-05,-9.054E-08]
+  }[gender];
+  const denom = coeff[0]+coeff[1]*bodyWeight+coeff[2]*Math.pow(bodyWeight,2)+coeff[3]*Math.pow(bodyWeight,3)+coeff[4]*Math.pow(bodyWeight,4)+coeff[5]*Math.pow(bodyWeight,5);
+  return (total*500)/denom;
+}
+/* Wilks 2020 (revisión oficial publicada por Powerlifting Australia en feb. 2020): mismo formato de
+   polinomio de grado 5, coeficientes recalculados para corregir el sesgo del Wilks original en los
+   pesos corporales extremos. Fuente: powerliftingaustralia.com/news/2020/02/wilks-formula-2-released/ */
+function wilks2020ScoreCalc(gender, bodyWeight, total){
+  const coeff = {
+    male:[47.46178854,8.472061379,0.07369410346,-0.001395833811,7.07665973070743E-06,-1.20804336482315E-08],
+    female:[-125.4255398,13.71219419,-0.03307250631,-0.001050400051,9.38773881462799E-06,-2.3334613884954E-08]
   }[gender];
   const denom = coeff[0]+coeff[1]*bodyWeight+coeff[2]*Math.pow(bodyWeight,2)+coeff[3]*Math.pow(bodyWeight,3)+coeff[4]*Math.pow(bodyWeight,4)+coeff[5]*Math.pow(bodyWeight,5);
   return (total*500)/denom;
@@ -665,14 +703,17 @@ async function calculateWilks(){
   if(bench1RM===null || squat1RM===null || deadlift1RM===null){ toast('Las repeticiones deben estar entre 1 y 30.', 'error'); return; }
   const total1RM = bench1RM + squat1RM + deadlift1RM;
   const wilksScore = wilksScoreCalc(gender, bodyWeight, total1RM);
+  const wilks2020Score = wilks2020ScoreCalc(gender, bodyWeight, total1RM);
   const dotsScore = dotsScoreCalc(gender, bodyWeight, total1RM);
   const level = wilksLevel(wilksScore);
   document.getElementById('result').classList.remove('hidden');
   document.getElementById('result').innerHTML = `
-    <p>Puntaje de Wilks: <span class="wilks-score">${wilksScore.toFixed(2)}</span> (${level})</p>
+    <p>Puntaje de Wilks (clásico, 1994): <span class="wilks-score">${wilksScore.toFixed(2)}</span> (${level})</p>
+    <p>Puntaje de Wilks 2020: <span class="wilks-score">${wilks2020Score.toFixed(2)}</span></p>
     <p>Puntaje DOTS: <span class="wilks-score">${dotsScore.toFixed(2)}</span></p>
     <p>Total estimado (1RM): <span class="wilks-score">${total1RM.toFixed(1)} kg</span></p>
     <p class="muted">1RM estimado con la fórmula de Epley: peso × (1 + reps/30). Mayor precisión en series de 1 a 10 repeticiones.</p>
+    <p class="muted">El Wilks clásico (1994) es el más usado como referencia histórica; Powerlifting Australia publicó una revisión oficial en 2020 que corrige el sesgo del original en pesos corporales extremos. La IPF usa hoy su propia fórmula (IPF GL Points) y USAPL/USPA usan DOTS — por eso mostramos varias.</p>
   `;
   account.history.push({ date: new Date().toLocaleString('es-ES'), gender, bodyWeight, benchPress, benchReps, squat, squatReps, deadlift, deadliftReps, wilksScore, dotsScore, level, total1RM });
   try{ await saveAccount(); await updateRanking(); toast('Cálculo guardado y sincronizado.'); }
@@ -686,8 +727,13 @@ function calcStandalone1RM(){
   if(isNaN(w) || isNaN(r)){ toast('Completa peso y repeticiones.', 'error'); return; }
   const rm = calculate1RM(w, r);
   if(rm===null){ toast('Las repeticiones deben estar entre 1 y 30.', 'error'); return; }
+  const rmBrzycki = brzycki1RM(w, r);
   document.getElementById('rmResult').classList.remove('hidden');
-  document.getElementById('rmResult').innerHTML = `<p>1RM estimado: <span class="wilks-score">${rm} kg</span></p><p class="muted">Fórmula de Epley: peso × (1 + reps/30).</p>`;
+  document.getElementById('rmResult').innerHTML = `
+    <p>1RM estimado (Epley): <span class="wilks-score">${rm} kg</span></p>
+    ${rmBrzycki!=null?`<p>1RM estimado (Brzycki): <span class="wilks-score">${rmBrzycki} kg</span></p>`:''}
+    <p class="muted">Epley: peso × (1 + reps/30) — de referencia habitual entre 1 y 10 repeticiones, tiende a estimar algo más alto a partir de ahí. Brzycki: peso × 36 / (37 − reps) — más conservador con series de más repeticiones. Si ambas difieren mucho, usa la media.</p>
+  `;
   const pcts = [50,60,65,70,75,80,85,90,95,100];
   let rows = pcts.map(p=>`<tr><td>${p}%</td><td>${(rm*p/100).toFixed(1)} kg</td></tr>`).join('');
   document.getElementById('rmTable').innerHTML = `<h3>Tabla de porcentajes</h3><table><thead><tr><th>% de 1RM</th><th>Peso</th></tr></thead><tbody>${rows}</tbody></table>`;
@@ -801,9 +847,14 @@ function calcBMI(){
   if(isNaN(w) || isNaN(h) || h<=0){ toast('Completa peso y altura.', 'error'); return; }
   const bmi = w/(h*h);
   let cat;
-  if(bmi<18.5) cat='Bajo peso'; else if(bmi<25) cat='Normal'; else if(bmi<30) cat='Sobrepeso'; else cat='Obesidad';
+  if(bmi<18.5) cat='Bajo peso';
+  else if(bmi<25) cat='Normal';
+  else if(bmi<30) cat='Sobrepeso';
+  else if(bmi<35) cat='Obesidad clase I';
+  else if(bmi<40) cat='Obesidad clase II';
+  else cat='Obesidad clase III';
   document.getElementById('bmiResult').classList.remove('hidden');
-  document.getElementById('bmiResult').innerHTML = `<p>IMC: <span class="wilks-score">${bmi.toFixed(1)}</span> (${cat})</p>`;
+  document.getElementById('bmiResult').innerHTML = `<p>IMC: <span class="wilks-score">${bmi.toFixed(1)}</span> (${cat})</p><p class="muted">Categorías según la clasificación vigente de la OMS. El IMC no distingue masa muscular de grasa: en personas muy musculadas puede sobreestimar el riesgo real.</p>`;
 }
 document.addEventListener('keydown', (e)=>{
   if(e.key !== 'Escape') return;
@@ -835,7 +886,7 @@ function calcBodyFat(){
     bf = 495/(1.29579 - 0.35004*Math.log10(waist+hip-neck) + 0.22100*Math.log10(height)) - 450;
   }
   document.getElementById('bfResult').classList.remove('hidden');
-  document.getElementById('bfResult').innerHTML = `<p>Grasa corporal estimada: <span class="wilks-score">${bf.toFixed(1)}%</span></p><p class="muted">Método Navy: es una estimación, no un diagnóstico médico.</p>`;
+  document.getElementById('bfResult').innerHTML = `<p>Grasa corporal estimada: <span class="wilks-score">${bf.toFixed(1)}%</span></p><p class="muted">Método Navy (Hodgdon & Beckett, 1984), validado con ±3-4% de margen frente a la pesada hidrostática. Es una estimación, no un diagnóstico médico; la precisión depende mucho de medir bien el contorno.</p>`;
 }
 function calcTDEE(){
   const gender = document.getElementById('tdeeGender').value;
@@ -864,6 +915,7 @@ function calcTDEE(){
       <tr><td>Grasa</td><td>${fat.toFixed(0)} g</td><td>${fatCals.toFixed(0)}</td></tr>
       <tr><td>Carbohidratos</td><td>${carbs.toFixed(0)} g</td><td>${(carbs*4).toFixed(0)}</td></tr>
     </tbody></table>
+    <p class="muted">BMR calculado con la ecuación de Mifflin-St Jeor (1990), la más precisa de las fórmulas estándar en revisiones recientes. Proteína a 2 g/kg (dentro del rango 1.4–2.2 g/kg recomendado por la ISSN para deportistas), grasa al 25% de las calorías y el resto en carbohidratos.</p>
     <div class="button-group"><button class="flex1 ghost" onclick="applyTdeeAsKcalGoal(${targetCals.toFixed(0)})">Usar como objetivo diario en Nutrición</button></div>
   `;
 }
@@ -921,7 +973,8 @@ function clearPendingWorkoutMedia(){ pendingWorkoutMedia = null; document.getEle
 
 async function addWorkout(){
   const date = document.getElementById('wkDate').value || todayStr();
-  const exercise = document.getElementById('wkExercise').value.trim();
+  const exerciseInput = document.getElementById('wkExercise');
+  const exerciseTyped = exerciseInput.value.trim();
   const weight = parseFloat(document.getElementById('wkWeight').value);
   const reps = parseFloat(document.getElementById('wkReps').value);
   const sets = parseFloat(document.getElementById('wkSets').value) || 1;
@@ -929,7 +982,19 @@ async function addWorkout(){
   const rir = rirRaw==='' ? null : parseFloat(rirRaw);
   const notes = document.getElementById('wkNotes').value.trim();
   const videoLink = document.getElementById('wkVideoLink').value.trim();
-  if(!exercise || isNaN(weight) || isNaN(reps)){ toast('Completa ejercicio, peso y repeticiones.', 'error'); return; }
+  if(!exerciseTyped || isNaN(weight) || isNaN(reps)){ toast('Completa ejercicio, peso y repeticiones.', 'error'); return; }
+  let matchedEx = exerciseInput.dataset.exerciseId ? getExerciseById(exerciseInput.dataset.exerciseId) : null;
+  if(!matchedEx) matchedEx = getExerciseByName(exerciseTyped);
+  if(!matchedEx){
+    const suggestions = searchExercises(exerciseTyped).slice(0,3);
+    if(suggestions.length){
+      toast(`"${exerciseTyped}" no está en el catálogo. ¿Quisiste decir "${suggestions[0].es}"? Búscalo en Entreno → Ejercicios.`, 'error');
+    } else {
+      toast('Ese ejercicio no existe en el catálogo cerrado. Búscalo en Entreno → Ejercicios y usa "Registrar una serie".', 'error');
+    }
+    return;
+  }
+  const exercise = matchedEx.es;
   const prevBestEntry = account.workouts
     .filter(w=>w.exercise.toLowerCase()===exercise.toLowerCase())
     .reduce((best,w)=> (epley1RM(w.weight,w.reps) > (best?epley1RM(best.weight,best.reps):0)) ? w : best, null);
@@ -941,12 +1006,12 @@ async function addWorkout(){
     mediaStore.workoutMedia = mediaStore.workoutMedia || {};
     mediaStore.workoutMedia[mediaId] = pendingWorkoutMedia;
   }
-  account.workouts.push({ id: Date.now(), date, exercise, weight, reps, sets, rir, notes, mediaId, videoLink: videoLink || null });
+  account.workouts.push({ id: Date.now(), date, exercise, exerciseId: matchedEx.id, weight, reps, sets, rir, notes, mediaId, videoLink: videoLink || null });
   try{
     await saveAccount();
     if(mediaId){ await persistMediaStoreFor(currentUser, mediaStore); }
-    await registerExerciseIfNew(exercise, currentUser);
   }catch(e){ toast('Error al sincronizar: ' + e.message, 'error'); }
+  delete exerciseInput.dataset.exerciseId;
   document.getElementById('wkExercise').value='';
   document.getElementById('wkWeight').value='';
   document.getElementById('wkReps').value='';
@@ -1012,13 +1077,11 @@ function renderPRBoard(){
 /* =========================================================
    COMPARAR EJERCICIOS (categorías creadas por usuarios)
 ========================================================= */
-async function renderExerciseDatalist(){
-  try{
-    const registry = await getExerciseRegistry();
-    const dl = document.getElementById('exerciseList');
-    if(!dl) return;
-    dl.innerHTML = Object.values(registry).map(e=>`<option value="${escapeHTML(e.label)}"></option>`).join('');
-  }catch(e){}
+function renderExerciseDatalist(){
+  const dl = document.getElementById('exerciseList');
+  if(!dl) return;
+  const catalog = buildExerciseCatalog();
+  dl.innerHTML = catalog.map(e=>`<option value="${escapeHTML(e.es)}"></option>`).join('');
 }
 async function loadExerciseLeaderboard(){
   const raw = document.getElementById('compareExercise').value;
@@ -1682,15 +1745,28 @@ async function openCommunityProfile(username){
     const rank = getRankForXP(computeChallengeXP(acc)).current;
     const badges = getAchievementDefs().filter(d=>d.check(acc));
     const pinnedPost = social.pinnedPostId ? (await fetchPostsByAuthor(username)).find(p=>p.id===social.pinnedPostId) : null;
+    const isMe = username===currentUser;
+    const pf = p.publicFields || {};
+    const showField = (key)=> isMe || pf[key]!==false;
+    const statsLine = [
+      showField('age') && p.age ? p.age+' años' : null,
+      showField('height') && p.heightCm ? p.heightCm+' cm' : null,
+      showField('weight') && p.weightKg ? p.weightKg+' kg' : null,
+    ].filter(Boolean).join(' · ');
+    const secondLine = [
+      showField('wilks') ? `Mejor Wilks: ${bestWilks?bestWilks.toFixed(1):'—'}` : null,
+      showField('workoutCount') ? `${(acc.workouts||[]).length} entrenamientos` : null,
+      showField('streak') && streak>0 ? `🔥 ${streak} días de racha` : null,
+    ].filter(Boolean).join(' · ');
     detailEl.innerHTML = `
       ${media.cover?`<div class="profile-cover"><img src="${media.cover}" alt=""></div>`:''}
       <div class="row" style="gap:14px; align-items:flex-start; ${media.cover?'margin-top:-30px;':''}">
         <div class="avatar-preview profile-detail-avatar" style="width:72px;height:72px;">${media.avatar?`<img src="${media.avatar}" alt="">`:icon('user',30)}</div>
         <div style="flex:1;">
-          <h2 style="margin:0;">${escapeHTML(username)} ${rankBadgeInline(rank)}</h2>
-          <p class="muted">${p.age?p.age+' años · ':''}${p.heightCm?p.heightCm+' cm · ':''}${p.weightKg?p.weightKg+' kg':''}</p>
-          <p>${escapeHTML(p.bio||'')}</p>
-          <p class="muted">Mejor Wilks: ${bestWilks?bestWilks.toFixed(1):'—'} · ${(acc.workouts||[]).length} entrenamientos${streak>0?` · 🔥 ${streak} días de racha`:''}</p>
+          <h2 style="margin:0;">${escapeHTML(username)} ${showField('rank')?rankBadgeInline(rank):''}</h2>
+          ${statsLine?`<p class="muted">${statsLine}</p>`:''}
+          ${showField('bio')?`<p>${escapeHTML(p.bio||'')}</p>`:''}
+          ${secondLine?`<p class="muted">${secondLine}</p>`:''}
           <div class="profile-stat-row">
             <span><strong>${postsCount}</strong> publicaciones</span>
             <span><strong>${followStats.followers}</strong> seguidores</span>
@@ -1699,6 +1775,7 @@ async function openCommunityProfile(username){
           ${badges.length?`<div class="profile-badges">${badges.map(d=>`<span class="badge unlocked" title="${escapeHTML(d.desc)}">${icon('award',12)} ${escapeHTML(d.name)}</span>`).join('')}</div>`:''}
         </div>
       </div>
+      ${showField('bodyMap') ? `<div class="panel-card" style="margin-top:10px;"><h3 style="margin-top:0;">Mapa muscular</h3>${renderBodyMapSvg(acc)}</div>` : ''}
       <div class="button-group">
         ${username!==currentUser?`<button class="flex1 ${iFollow?'ghost':''}" onclick="handleToggleFollow('${username.replace(/'/g,"\\'")}')">${iFollow?icon('check',14)+' Siguiendo':'+ Seguir'}</button>`:''}
         <button class="flex1 ${iGaveKudos?'':'ghost'}" onclick="handleToggleKudos('${username.replace(/'/g,"\\'")}')">${icon('award',14)} Apoyo (${social.kudos||0})</button>
@@ -3227,6 +3304,192 @@ function startSessionFromPlan(planId, dateStr){
   startSessionTimer();
   renderActiveSession();
   toast('Sesión iniciada desde tu plan: ' + occ.splitDayName);
+}
+
+/* =========================================================
+   CATÁLOGO DE EJERCICIOS: navegación, búsqueda y rango por marca
+========================================================= */
+let exerciseCatalogInited = false;
+function initExerciseCatalogUI(){
+  if(!exerciseCatalogInited){
+    const muscleSel = document.getElementById('exerciseMuscleFilter');
+    MUSCLE_GROUPS.forEach(m=>{ const opt = document.createElement('option'); opt.value = m; opt.textContent = m; muscleSel.appendChild(opt); });
+    const objBar = document.getElementById('exerciseObjectiveFilterBar');
+    objBar.innerHTML = `<button class="chip-filter active" data-obj="" onclick="setExerciseObjectiveFilter('')">Todos</button>` +
+      EXERCISE_OBJECTIVES.map(o=>`<button class="chip-filter" data-obj="${o}" onclick="setExerciseObjectiveFilter('${o}')">${o}</button>`).join('');
+    exerciseCatalogInited = true;
+  }
+  renderExerciseCatalogList();
+}
+let exerciseObjectiveFilter = '';
+function setExerciseObjectiveFilter(o){
+  exerciseObjectiveFilter = o;
+  document.querySelectorAll('#exerciseObjectiveFilterBar .chip-filter').forEach(b=>b.classList.toggle('active', b.dataset.obj===o));
+  renderExerciseCatalogList();
+}
+function getBestMarkForExercise(ex, accObj){
+  const acc = accObj || account;
+  if(!acc) return null;
+  const matches = (acc.workouts||[]).filter(w=>
+    w.exerciseId===ex.id || (w.exercise && (w.exercise.toLowerCase()===ex.en.toLowerCase() || w.exercise.toLowerCase()===ex.es.toLowerCase()))
+  );
+  if(matches.length===0) return null;
+  if(ex.scoreType==='strength-bw' || ex.scoreType==='strength-abs'){
+    const best = matches.reduce((m,w)=>Math.max(m, w.weight||0), 0);
+    return best>0 ? best : null;
+  }
+  if(ex.scoreType==='reps' || ex.scoreType==='distance'){
+    const best = matches.reduce((m,w)=>Math.max(m, w.reps||0), 0);
+    return best>0 ? best : null;
+  }
+  if(ex.scoreType==='time'){
+    const best = matches.reduce((m,w)=>Math.max(m, w.reps||0), 0); // el tiempo en segundos se guarda en "reps" al no haber campo dedicado
+    return best>0 ? best : null;
+  }
+  return null;
+}
+function tierForExercise(ex, accObj){
+  const acc = accObj || account;
+  const best = getBestMarkForExercise(ex, acc);
+  if(best==null) return 0;
+  if(ex.scoreType==='strength-bw' || ex.scoreType==='strength-abs'){
+    const bw = acc.profile && acc.profile.weightKg ? acc.profile.weightKg : null;
+    return strengthTierForExercise(ex, bw, best);
+  }
+  return repsOrTimeTier(ex.scoreType, best);
+}
+function renderExerciseCatalogList(){
+  const el = document.getElementById('exerciseCatalogList');
+  const countEl = document.getElementById('exerciseCatalogCount');
+  if(!el) return;
+  const query = document.getElementById('exerciseSearchInput').value;
+  const muscle = document.getElementById('exerciseMuscleFilter').value;
+  const results = searchExercises(query, { muscle, objective: exerciseObjectiveFilter||null });
+  countEl.textContent = `${results.length} ejercicio(s) encontrados`;
+  const slice = results.slice(0, 60);
+  el.innerHTML = slice.map(ex=>{
+    const tier = tierForExercise(ex);
+    const tm = tierMeta(tier||1);
+    return `<div class="exercise-card" onclick="openExerciseDetail('${ex.id}')">
+      <div class="exercise-card-pict" style="${tier>0?`color:${tm.color}; background:${tm.color}18;`:''}">${exercisePictogramSvg(ex.pattern)}</div>
+      <div class="exercise-card-body">
+        <strong>${escapeHTML(ex.es)}</strong>
+        <div class="muted exercise-card-en">${escapeHTML(ex.en)}</div>
+        <div class="exercise-card-tags">
+          <span class="chip-filter" style="pointer-events:none;">${escapeHTML(ex.muscle)}</span>
+          ${ex.objectives.slice(0,2).map(o=>`<span class="chip-filter" style="pointer-events:none;">${escapeHTML(o)}</span>`).join('')}
+        </div>
+      </div>
+      <div class="exercise-card-rank" title="${tier>0?'Rango: '+tm.name:'Sin marca registrada'}" style="color:${tier>0?tm.color:'var(--text-dim)'};">${iconFilled(tier>0?rankIconName(tm.name):'award', 16)}</div>
+    </div>`;
+  }).join('') || '<p class="muted">No se han encontrado ejercicios con ese criterio.</p>';
+  if(results.length>60) countEl.textContent += ' (mostrando los primeros 60, afina la búsqueda para ver más)';
+}
+function openExerciseDetail(id){
+  const ex = getExerciseById(id);
+  if(!ex) return;
+  const card = document.getElementById('exerciseDetailCard');
+  card.classList.remove('hidden');
+  card.scrollIntoView({ behavior:'smooth', block:'start' });
+  const tier = tierForExercise(ex);
+  const best = getBestMarkForExercise(ex);
+  const tm = tierMeta(tier||1);
+  const unitLabel = ex.scoreType==='time' ? 's' : (ex.scoreType==='reps'||ex.scoreType==='distance' ? 'reps' : 'kg');
+  card.innerHTML = `
+    <div class="row" style="justify-content:space-between; align-items:flex-start;">
+      <div class="row" style="gap:14px; align-items:flex-start;">
+        <div class="exercise-detail-pict" style="${tier>0?`color:${tm.color}; background:${tm.color}18;`:''}">${exercisePictogramSvg(ex.pattern)}</div>
+        <div>
+          <h2 style="margin:0;">${escapeHTML(ex.es)}</h2>
+          <p class="muted" style="margin:2px 0;">${escapeHTML(ex.en)}</p>
+        </div>
+      </div>
+      <button class="ghost small" onclick="document.getElementById('exerciseDetailCard').classList.add('hidden')">Cerrar</button>
+    </div>
+    <div class="exercise-card-tags" style="margin:8px 0;">
+      <span class="chip-filter" style="pointer-events:none;">${escapeHTML(ex.muscle)}</span>
+      ${ex.objectives.map(o=>`<span class="chip-filter" style="pointer-events:none;">${escapeHTML(o)}</span>`).join('')}
+    </div>
+    <div class="exercise-rank-row">
+      <div class="xp-rank-badge-lg" style="color:${tier>0?tm.color:'var(--text-dim)'}; border-color:${tier>0?tm.color:'var(--border)'}; background:${tier>0?tm.color+'22':'transparent'};">
+        ${iconFilled(tier>0?rankIconName(tm.name):'award', 14)} ${tier>0?tm.name:'Sin marca registrada'}
+      </div>
+      ${best!=null?`<span class="muted">Tu mejor marca: <strong>${best} ${unitLabel}</strong></span>`:'<span class="muted">Registra una serie con este ejercicio para obtener tu rango.</span>'}
+    </div>
+    <p class="exercise-desc-text">${escapeHTML(ex.desc)}</p>
+    <h3>Cómo realizarlo</h3>
+    <ol class="exercise-steps">${ex.steps.map(s=>`<li>${escapeHTML(s)}</li>`).join('')}</ol>
+    <div class="button-group">
+      <button onclick="quickLogExercise('${ex.id}')">Registrar una serie de este ejercicio</button>
+    </div>
+  `;
+}
+/* =========================================================
+   DIAGRAMA CORPORAL: silueta coloreada por el rango de cada grupo muscular
+========================================================= */
+function computeMuscleGroupTier(muscleGroup, accObj){
+  const acc = accObj || account;
+  const exercises = buildExerciseCatalog().filter(e=>e.muscle===muscleGroup);
+  let maxTier = 0;
+  exercises.forEach(ex=>{ const t = tierForExercise(ex, acc); if(t>maxTier) maxTier = t; });
+  return maxTier;
+}
+function bodyMapRegionColor(tier){ return tier>0 ? tierMeta(tier).color : 'var(--panel-alt2)'; }
+function renderBodyMapSvg(accObj){
+  const acc = accObj || account;
+  const gender = (acc.profile && acc.profile.gender) || 'male';
+  const tiers = {};
+  MUSCLE_GROUPS.forEach(m=>{ tiers[m] = computeMuscleGroupTier(m, acc); });
+  const cShoulders = bodyMapRegionColor(tiers['Hombros']);
+  const cChest = bodyMapRegionColor(tiers['Pecho']);
+  const cArms = bodyMapRegionColor(Math.max(tiers['Bíceps'], tiers['Tríceps']));
+  const cForearms = bodyMapRegionColor(tiers['Antebrazos']);
+  const cAbs = bodyMapRegionColor(tiers['Abdomen']);
+  const cUpperLeg = bodyMapRegionColor(Math.max(tiers['Cuádriceps'], tiers['Isquiotibiales']));
+  const cLowerLeg = bodyMapRegionColor(tiers['Gemelos']);
+  const cHips = bodyMapRegionColor(tiers['Glúteos']);
+  const hipW = gender==='female' ? 34 : 26;
+  const waistW = gender==='female' ? 16 : 22;
+  const shoulderW = gender==='female' ? 26 : 32;
+  const svg = `
+  <svg viewBox="0 0 100 190" class="body-map-svg" xmlns="http://www.w3.org/2000/svg">
+    <ellipse cx="50" cy="14" rx="11" ry="13" fill="var(--panel-alt2)" stroke="var(--border)" stroke-width="0.6"></ellipse>
+    <rect x="46" y="25" width="8" height="8" fill="var(--panel-alt2)"></rect>
+    <ellipse cx="${50-shoulderW/2}" cy="34" rx="9" ry="7" fill="${cShoulders}" stroke="var(--border)" stroke-width="0.6"></ellipse>
+    <ellipse cx="${50+shoulderW/2}" cy="34" rx="9" ry="7" fill="${cShoulders}" stroke="var(--border)" stroke-width="0.6"></ellipse>
+    <path d="M ${50-waistW/2} 38 Q 50 33 ${50+waistW/2} 38 L ${50+waistW/2+6} 78 Q 50 84 ${50-waistW/2-6} 78 Z" fill="${cChest}" stroke="var(--border)" stroke-width="0.6"></path>
+    <path d="M ${50-waistW/2-4} 78 L ${50+waistW/2+4} 78 L ${50+hipW/2} 108 L ${50-hipW/2} 108 Z" fill="${cAbs}" stroke="var(--border)" stroke-width="0.6"></path>
+    <rect x="${50-hipW/2-2}" y="104" width="${hipW+4}" height="14" rx="6" fill="${cHips}" stroke="var(--border)" stroke-width="0.6"></rect>
+    <rect x="${50-shoulderW/2-10}" y="40" width="9" height="34" rx="4.5" fill="${cArms}" stroke="var(--border)" stroke-width="0.6"></rect>
+    <rect x="${50+shoulderW/2+1}" y="40" width="9" height="34" rx="4.5" fill="${cArms}" stroke="var(--border)" stroke-width="0.6"></rect>
+    <rect x="${50-shoulderW/2-9}" y="74" width="8" height="30" rx="4" fill="${cForearms}" stroke="var(--border)" stroke-width="0.6"></rect>
+    <rect x="${50+shoulderW/2+2}" y="74" width="8" height="30" rx="4" fill="${cForearms}" stroke="var(--border)" stroke-width="0.6"></rect>
+    <rect x="${50-hipW/2}" y="116" width="15" height="38" rx="6" fill="${cUpperLeg}" stroke="var(--border)" stroke-width="0.6"></rect>
+    <rect x="${50+hipW/2-15}" y="116" width="15" height="38" rx="6" fill="${cUpperLeg}" stroke="var(--border)" stroke-width="0.6"></rect>
+    <rect x="${50-hipW/2+1}" y="154" width="13" height="30" rx="5" fill="${cLowerLeg}" stroke="var(--border)" stroke-width="0.6"></rect>
+    <rect x="${50+hipW/2-14}" y="154" width="13" height="30" rx="5" fill="${cLowerLeg}" stroke="var(--border)" stroke-width="0.6"></rect>
+  </svg>`;
+  const legend = MUSCLE_GROUPS.map(m=>{
+    const t = tiers[m];
+    const tm = t>0 ? tierMeta(t) : null;
+    return `<span class="body-map-legend-item"><span class="body-map-legend-dot" style="background:${t>0?tm.color:'var(--panel-alt2)'};"></span>${escapeHTML(m)}${t>0?` · ${tm.name}`:''}</span>`;
+  }).join('');
+  return `<div class="body-map-wrap">${svg}<div class="body-map-legend">${legend}</div></div>`;
+}
+function renderBodyMap(){
+  const el = document.getElementById('bodyMapCard');
+  if(!el || !account) return;
+  el.innerHTML = `<h2 style="margin-top:0;">Tu mapa muscular</h2><p class="muted">Cada zona se colorea según el rango de tu mejor marca registrada en ese grupo.</p>` + renderBodyMapSvg(account);
+}
+
+function quickLogExercise(id){
+  const ex = getExerciseById(id);
+  if(!ex) return;
+  showTab('training').then(()=>{
+    showSub('tr-log');
+    const input = document.getElementById('wkExercise');
+    if(input){ input.value = ex.es; input.dataset.exerciseId = ex.id; input.focus(); }
+  });
 }
 
 /* =========================================================
