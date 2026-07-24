@@ -303,6 +303,19 @@
         "notes": "",
         "mediaId": null,
         "videoLink": null
+      },
+      {
+        "id": 1784888564581,
+        "date": "2026-07-24",
+        "exercise": "Jalón al pecho agarre ancho",
+        "exerciseId": "lat-pulldown__wide-grip",
+        "weight": 150,
+        "reps": 1,
+        "sets": 1,
+        "rir": null,
+        "notes": "",
+        "mediaId": null,
+        "videoLink": null
       }
     ],
     "measurements": [],
