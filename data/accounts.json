@@ -410,7 +410,7 @@
         "bodyMap": true
       }
     },
-    "theme": "light",
+    "theme": "dark",
     "createdAt": "2026-07-19T21:06:00.001Z",
     "routineTemplates": [
       {
@@ -1183,6 +1183,10 @@
       {
         "date": "2026-07-25",
         "count": 4
+      },
+      {
+        "date": "2026-08-08",
+        "count": 0
       }
     ],
     "savedPosts": [
