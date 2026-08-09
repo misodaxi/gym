@@ -93,6 +93,7 @@
         <div class="panel-card"><h2>Resumen</h2><div class="grid grid-4" id="dashboardStats"></div></div>
         <div class="panel-card" id="bodyMapCard"></div>
         <div class="panel-card"><h2>Evolución de Wilks</h2><canvas id="dashboardChart" height="100"></canvas></div>
+        <div class="panel-card"><h2>Constancia (último año)</h2><div id="consistencyHeatmap"></div></div>
         <div class="grid grid-2">
           <div class="panel-card"><h2>Agua de hoy</h2><div id="waterWidget"></div></div>
           <div class="panel-card"><h2>Logros recientes</h2><div id="dashboardBadges"></div></div>
@@ -145,6 +146,16 @@
             <div class="button-group"><button class="flex1" onclick="calcStandalone1RM()">Calcular 1RM</button></div>
             <div id="rmResult" class="result hidden"></div>
             <div id="rmTable"></div>
+          </div>
+          <div class="panel-card" id="warmupCard" style="display:none;">
+            <h2>Calculadora de series de calentamiento</h2>
+            <p class="muted">A partir del 1RM calculado arriba, genera una progresión de series de calentamiento hasta tu peso de trabajo de hoy.</p>
+            <div class="grid grid-2">
+              <div><label>Peso de la barra (kg)</label><input type="number" id="warmupBar" value="20"></div>
+              <div><label>% de 1RM para hoy</label><input type="number" id="warmupTargetPct" value="85" min="30" max="100"></div>
+            </div>
+            <div class="button-group"><button class="flex1 ghost" onclick="calcWarmupSets()">Generar calentamiento</button></div>
+            <div id="warmupResult"></div>
           </div>
         </div>
         <div class="sub-panel" id="sub-calc-plates">
@@ -644,7 +655,7 @@
         <!-- MENSAJES (DM) -->
         <div class="sub-panel" id="sub-comm-messages">
           <div class="panel-card dm-shell">
-            <div class="dm-sidebar">
+            <div class="dm-sidebar" id="dmSidebar">
               <div class="dm-sidebar-head">
                 <label style="margin-top:0;">Nuevo mensaje</label>
                 <div class="row" style="gap:6px;">
@@ -652,8 +663,11 @@
                   <button class="ghost small" onclick="startNewConversation()">Ir</button>
                 </div>
                 <datalist id="communityUsersList"></datalist>
+                <div class="dm-search-wrap">
+                  <span class="dm-search-icon">🔎</span>
+                  <input type="text" id="dmSearchInput" placeholder="Buscar conversación..." oninput="filterDmConversations()">
+                </div>
               </div>
-              <div class="divider" style="margin:12px 0;"></div>
               <div id="dmConversationList"><p class="muted">Cargando conversaciones...</p></div>
             </div>
             <div class="dm-chat" id="dmChatArea">
@@ -906,6 +920,16 @@
 </div>
 
 <div class="lightbox" id="lightbox" onclick="closeLightbox()"><img id="lightboxImg" src="" alt="Imagen ampliada"></div>
+
+<div class="pr-celebration" id="prCelebration" onclick="if(event.target===this) closePRCelebration()">
+  <div class="pr-celebration-inner">
+    <div class="pr-confetti" id="prConfetti"></div>
+    <div class="pr-celebration-icon">🏆</div>
+    <h2>¡Nuevo PR!</h2>
+    <p id="prCelebrationText"></p>
+    <button class="ghost small" onclick="closePRCelebration()">Cerrar</button>
+  </div>
+</div>
 
 <!-- Visor de Historias -->
 <div class="story-viewer" id="storyViewer">

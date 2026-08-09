@@ -224,7 +224,7 @@ async function showTab(name){
   if(name==='dashboard'){ renderDashboard(); renderBodyMap(); }
   if(name==='training'){ renderWorkouts(); renderPRBoard(); renderExerciseDatalist(); renderTemplateList(); renderActiveSession(); }
   if(name==='health'){ renderNutrition(); renderSteps(); renderSleep(); }
-  if(name==='progress'){ renderMeasurements(); renderGoals(); renderAchievements(); renderPhotoGallery(); renderDailyChallenge(); renderChallengeRankCard(); renderChallengeCategoryFilter(); renderMilestoneChallenges(); renderCustomChallenges(); }
+  if(name==='progress'){ renderMeasurements(); renderGoals(); renderAchievements(); renderPhotoGallery(); renderDailyChallenge(); renderChallengeRankCard(); renderChallengeCategoryFilter(); renderMilestoneChallenges(); renderCustomChallenges(); renderExerciseProgressChart(); }
   if(name==='community'){ loadCommunityFeed(); refreshDmUnreadIndicator(); refreshNotifUnreadIndicator(); }
   if(name==='ranking') loadRanking();
   if(name==='calculators') renderPlateInventoryForm();
@@ -244,6 +244,7 @@ async function showSub(name){
   if(name==='calc-plates') renderPlateInventoryForm();
   if(name==='calc-progression') {}
   if(name==='pr-photos') renderPhotoGallery();
+  if(name==='pr-exprogress') renderExerciseProgressChart();
   if(name==='tr-log') renderWorkouts();
   if(name==='tr-pr') renderPRBoard();
   if(name==='tr-compare') renderExerciseDatalist();
@@ -721,6 +722,7 @@ async function calculateWilks(){
   renderDashboard();
 }
 function resetForm(){ document.getElementById('wilksForm').reset(); document.getElementById('result').classList.add('hidden'); }
+let lastCalculated1RM = null;
 function calcStandalone1RM(){
   const w = parseFloat(document.getElementById('rmWeight').value);
   const r = parseFloat(document.getElementById('rmReps').value);
@@ -737,6 +739,41 @@ function calcStandalone1RM(){
   const pcts = [50,60,65,70,75,80,85,90,95,100];
   let rows = pcts.map(p=>`<tr><td>${p}%</td><td>${(rm*p/100).toFixed(1)} kg</td></tr>`).join('');
   document.getElementById('rmTable').innerHTML = `<h3>Tabla de porcentajes</h3><table><thead><tr><th>% de 1RM</th><th>Peso</th></tr></thead><tbody>${rows}</tbody></table>`;
+  lastCalculated1RM = rm;
+  const warmupCard = document.getElementById('warmupCard');
+  if(warmupCard) warmupCard.style.display = '';
+}
+/* ---- Calculadora de series de calentamiento (a partir del 1RM) ---- */
+const WARMUP_STEPS = [
+  { pct:40, reps:8 },
+  { pct:55, reps:5 },
+  { pct:70, reps:3 },
+  { pct:85, reps:2 },
+  { pct:93, reps:1 }
+];
+function roundToPlate(weight, bar){
+  const step = 2.5;
+  const rounded = Math.round(weight/step)*step;
+  return Math.max(bar, rounded);
+}
+function calcWarmupSets(){
+  if(lastCalculated1RM==null){ toast('Primero calcula tu 1RM arriba.', 'error'); return; }
+  const bar = parseFloat(document.getElementById('warmupBar').value) || 20;
+  const targetPct = parseFloat(document.getElementById('warmupTargetPct').value);
+  if(isNaN(targetPct) || targetPct<=0 || targetPct>100){ toast('Indica un % de 1RM válido (1-100).', 'error'); return; }
+  const targetWeight = roundToPlate(lastCalculated1RM * targetPct/100, bar);
+  const steps = WARMUP_STEPS.filter(s=>s.pct < targetPct).map(s=>({
+    pct: s.pct, reps: s.reps, weight: roundToPlate(lastCalculated1RM * s.pct/100, bar)
+  }));
+  const rows = [
+    `<tr><td>Barra vacía</td><td>${bar} kg</td><td>8-10</td></tr>`,
+    ...steps.map((s,i)=>`<tr><td>Calentamiento ${i+1} (${s.pct}%)</td><td>${s.weight} kg</td><td>${s.reps}</td></tr>`),
+    `<tr><td><strong>Serie de trabajo (${targetPct}%)</strong></td><td><strong>${targetWeight} kg</strong></td><td>según tu plan</td></tr>`
+  ].join('');
+  document.getElementById('warmupResult').innerHTML = `
+    <table><thead><tr><th>Serie</th><th>Peso</th><th>Reps</th></tr></thead><tbody>${rows}</tbody></table>
+    <p class="muted">Progresión orientativa hacia tu peso de trabajo. Pesos redondeados a 2.5 kg. Ajusta las series según cómo te sientas ese día.</p>
+  `;
 }
 
 /* =========================================================
@@ -866,6 +903,8 @@ document.addEventListener('keydown', (e)=>{
   if(cameraModal && cameraModal.classList.contains('open')){ closeCameraModal(); return; }
   const storyViewer = document.getElementById('storyViewer');
   if(storyViewer && storyViewer.classList.contains('open')){ closeStoryViewer(); return; }
+  const prCelebration = document.getElementById('prCelebration');
+  if(prCelebration && prCelebration.classList.contains('open')){ closePRCelebration(); return; }
 });
 document.addEventListener('change', (e)=>{
   if(e.target && e.target.id==='bfGender'){
@@ -971,6 +1010,44 @@ function renderPendingWorkoutMediaPreview(){
 }
 function clearPendingWorkoutMedia(){ pendingWorkoutMedia = null; document.getElementById('wkMedia').value=''; renderPendingWorkoutMediaPreview(); }
 
+function bestExisting1RM(exercise){
+  const entry = account.workouts
+    .filter(w=>w.exercise.toLowerCase()===exercise.toLowerCase())
+    .reduce((best,w)=> (epley1RM(w.weight,w.reps) > (best?epley1RM(best.weight,best.reps):0)) ? w : best, null);
+  return { entry, rm: entry ? epley1RM(entry.weight, entry.reps) : 0 };
+}
+let prCelebrationTimer = null;
+function openPRCelebration(exercise, oldRM, newRM){
+  const overlay = document.getElementById('prCelebration');
+  if(!overlay) return;
+  const pct = oldRM > 0 ? Math.round((newRM - oldRM) / oldRM * 100) : null;
+  const textEl = document.getElementById('prCelebrationText');
+  if(textEl){
+    textEl.textContent = pct!=null
+      ? `${exercise}: 1RM estimado de ${oldRM} kg → ${newRM} kg (+${pct}%).`
+      : `${exercise}: nuevo 1RM estimado de ${newRM} kg.`;
+  }
+  const confettiEl = document.getElementById('prConfetti');
+  if(confettiEl){
+    const colors = ['var(--gold)','var(--purple)','#ffffff'];
+    confettiEl.innerHTML = Array.from({length:28}).map(()=>{
+      const left = (Math.random()*100).toFixed(1);
+      const delay = (Math.random()*0.35).toFixed(2);
+      const dur = (1.5+Math.random()*0.9).toFixed(2);
+      const color = colors[Math.floor(Math.random()*colors.length)];
+      const rot = Math.round(Math.random()*360);
+      return `<span style="left:${left}%; animation-delay:${delay}s; animation-duration:${dur}s; background:${color}; transform:rotate(${rot}deg);"></span>`;
+    }).join('');
+  }
+  overlay.classList.add('open');
+  clearTimeout(prCelebrationTimer);
+  prCelebrationTimer = setTimeout(closePRCelebration, 4200);
+}
+function closePRCelebration(){
+  const overlay = document.getElementById('prCelebration');
+  if(overlay) overlay.classList.remove('open');
+  clearTimeout(prCelebrationTimer);
+}
 async function addWorkout(){
   const date = document.getElementById('wkDate').value || todayStr();
   const exerciseInput = document.getElementById('wkExercise');
@@ -983,7 +1060,11 @@ async function addWorkout(){
   const notes = document.getElementById('wkNotes').value.trim();
   const videoLink = document.getElementById('wkVideoLink').value.trim();
   if(!exerciseTyped || isNaN(weight) || isNaN(reps)){ toast('Completa ejercicio, peso y repeticiones.', 'error'); return; }
-  let matchedEx = exerciseInput.dataset.exerciseId ? getExerciseById(exerciseInput.dataset.exerciseId) : null;
+  let matchedEx = null;
+  if(exerciseInput.dataset.exerciseId){
+    const candidate = getExerciseById(exerciseInput.dataset.exerciseId);
+    if(candidate && candidate.es.toLowerCase()===exerciseTyped.toLowerCase()) matchedEx = candidate;
+  }
   if(!matchedEx) matchedEx = getExerciseByName(exerciseTyped);
   if(!matchedEx){
     const suggestions = searchExercises(exerciseTyped).slice(0,3);
@@ -995,10 +1076,7 @@ async function addWorkout(){
     return;
   }
   const exercise = matchedEx.es;
-  const prevBestEntry = account.workouts
-    .filter(w=>w.exercise.toLowerCase()===exercise.toLowerCase())
-    .reduce((best,w)=> (epley1RM(w.weight,w.reps) > (best?epley1RM(best.weight,best.reps):0)) ? w : best, null);
-  const prevBest1RM = prevBestEntry ? epley1RM(prevBestEntry.weight, prevBestEntry.reps) : 0;
+  const { entry: prevBestEntry, rm: prevBest1RM } = bestExisting1RM(exercise);
   const new1RM = epley1RM(weight, reps);
   let mediaId = null;
   if(pendingWorkoutMedia){
@@ -1021,8 +1099,14 @@ async function addWorkout(){
   document.getElementById('wkVideoLink').value='';
   clearPendingWorkoutMedia();
   renderWorkouts(); renderPRBoard(); renderDashboard(); renderAchievements(); renderExerciseDatalist();
-  if(new1RM > prevBest1RM){ toast(`Nuevo récord estimado en ${exercise}: ${new1RM} kg.`); }
-  else{ toast('Sesión guardada.'); }
+  if(prevBestEntry && new1RM > prevBest1RM){
+    toast('Sesión guardada.');
+    openPRCelebration(exercise, prevBest1RM, new1RM);
+  } else if(!prevBestEntry){
+    toast(`Primer registro de ${exercise}: 1RM estimado ${new1RM} kg.`);
+  } else {
+    toast('Sesión guardada.');
+  }
 }
 async function deleteWorkout(id){
   account.workouts = account.workouts.filter(w=>w.id!==id);
@@ -1033,10 +1117,10 @@ function renderWorkouts(){
   const el = document.getElementById('workoutList');
   const filterEl = document.getElementById('wkFilter');
   const filter = filterEl ? filterEl.value.trim().toLowerCase() : '';
-  if(!account || account.workouts.length===0){ el.innerHTML = '<p class="muted">Aún no hay sesiones registradas.</p>'; return; }
+  if(!account || account.workouts.length===0){ el.innerHTML = emptyState('dumbbell', 'Aún no hay sesiones registradas. Añade tu primera serie arriba.'); return; }
   let sorted = [...account.workouts].sort((a,b)=> new Date(b.date)-new Date(a.date));
   if(filter) sorted = sorted.filter(w=>w.exercise.toLowerCase().includes(filter));
-  if(sorted.length===0){ el.innerHTML = '<p class="muted">No hay sesiones que coincidan con ese filtro.</p>'; return; }
+  if(sorted.length===0){ el.innerHTML = emptyState('search', 'No hay sesiones que coincidan con ese filtro.'); return; }
   el.innerHTML = sorted.map(w=>{
     const media = w.mediaId ? (mediaStore.workoutMedia||{})[w.mediaId] : null;
     let mediaHtml = '';
@@ -1174,6 +1258,7 @@ async function deleteMeasurement(idx){
   renderMeasurements();
 }
 let measureChartInstance = null;
+let exProgressChartInstance = null;
 function renderMeasurementChart(){
   const metric = document.getElementById('measureMetric').value;
   const data = [...(account?.measurements||[])].sort((a,b)=>new Date(a.date)-new Date(b.date));
@@ -1195,6 +1280,54 @@ function renderMeasurements(){
       <button class="small danger" onclick="deleteMeasurement(${m.idx})">${icon('trash',13)} Borrar</button>
     </div>
   `).join('');
+}
+
+/* ---- Progresión por ejercicio (1RM estimado en el tiempo) ---- */
+function populateExerciseProgressSelect(){
+  const sel = document.getElementById('exProgressSelect');
+  if(!sel || !account) return;
+  const names = [...new Set((account.workouts||[]).map(w=>w.exercise))].sort((a,b)=>a.localeCompare(b,'es'));
+  const prevValue = sel.value;
+  sel.innerHTML = names.length
+    ? names.map(n=>`<option value="${escapeHTML(n)}">${escapeHTML(n)}</option>`).join('')
+    : '<option value="">Sin ejercicios registrados</option>';
+  if(names.includes(prevValue)) sel.value = prevValue;
+}
+function renderExerciseProgressChart(){
+  const sel = document.getElementById('exProgressSelect');
+  const cardEl = document.getElementById('exProgressCard');
+  if(!sel || !account || !cardEl) return;
+  populateExerciseProgressSelect();
+  const exercise = sel.value;
+  if(!exercise){
+    cardEl.innerHTML = emptyState('dumbbell', 'Registra sesiones de un ejercicio en Entreno → Registro para ver su progresión aquí.');
+    return;
+  }
+  if(!document.getElementById('exProgressChart')){
+    cardEl.innerHTML = `<canvas id="exProgressChart" height="100"></canvas><div id="exProgressStats" style="margin-top:14px;"></div>`;
+  }
+  const byDate = {};
+  (account.workouts||[]).filter(w=>w.exercise===exercise).forEach(w=>{
+    const rm = epley1RM(w.weight, w.reps);
+    if(!byDate[w.date] || rm > byDate[w.date]) byDate[w.date] = rm;
+  });
+  const sortedDates = Object.keys(byDate).sort();
+  const labels = sortedDates;
+  const values = sortedDates.map(d=>byDate[d]);
+  const ctx = document.getElementById('exProgressChart').getContext('2d');
+  if(exProgressChartInstance) exProgressChartInstance.destroy();
+  exProgressChartInstance = new Chart(ctx, lineChartConfig(labels, values, '1RM estimado (kg)'));
+  const first = values[0] || 0;
+  const best = values.length ? Math.max(...values) : 0;
+  const pct = first>0 ? Math.round((best-first)/first*100) : 0;
+  document.getElementById('exProgressStats').innerHTML = `
+    <div class="grid grid-3">
+      <div class="stat-card"><div class="stat-top"><span class="stat-label">${icon('flat',13)} Primer registro</span></div><div class="stat-value">${first?first+' kg':'—'}</div></div>
+      <div class="stat-card"><div class="stat-top"><span class="stat-label">${icon('award',13)} Mejor 1RM</span></div><div class="stat-value">${best?best+' kg':'—'}</div></div>
+      <div class="stat-card"><div class="stat-top"><span class="stat-label">${icon('chart',13)} Progreso</span></div><div class="stat-value">${first?`${pct>=0?'+':''}${pct}%`:'—'}</div></div>
+    </div>
+    <p class="muted" style="margin-top:10px;">${sortedDates.length} sesión(es) registradas de ${escapeHTML(exercise)}.</p>
+  `;
 }
 
 /* =========================================================
@@ -1225,7 +1358,7 @@ function renderPhotoGallery(){
   const el = document.getElementById('photoGallery');
   if(!el) return;
   const photos = (mediaStore && mediaStore.progressPhotos) || [];
-  if(photos.length===0){ el.innerHTML = '<p class="muted">Todavía no has añadido fotos de progreso.</p>'; return; }
+  if(photos.length===0){ el.innerHTML = emptyState('image', 'Todavía no has añadido fotos de progreso.'); return; }
   const sorted = [...photos].sort((a,b)=>new Date(b.date)-new Date(a.date));
   el.innerHTML = sorted.map(p=>`
     <div class="photo-card">
@@ -1425,7 +1558,7 @@ async function deleteGoal(id){
 }
 function renderGoals(){
   const el = document.getElementById('goalList');
-  if(!account || account.goals.length===0){ el.innerHTML='<p class="muted">Todavía no has creado objetivos.</p>'; return; }
+  if(!account || account.goals.length===0){ el.innerHTML=emptyState('target', 'Todavía no has creado objetivos.'); return; }
   el.innerHTML = account.goals.map(g=>{
     const done = g.current>=g.target;
     const pct = Math.min(100, Math.max(0, (g.current/g.target)*100)).toFixed(0);
@@ -1502,7 +1635,7 @@ function renderAchievements(){
     const unlockedOnes = defs.filter(d=>d.check(account));
     dashEl.innerHTML = unlockedOnes.length
       ? unlockedOnes.map(d=>`<span class="badge unlocked">${icon('award',14)} ${escapeHTML(d.name)}</span>`).join('')
-      : '<p class="muted">Aún no has desbloqueado logros. Sigue entrenando.</p>';
+      : emptyState('award', 'Aún no has desbloqueado logros. Sigue entrenando.');
   }
 }
 
@@ -1610,10 +1743,10 @@ function renderDashboard(){
   const volume = computeTotalVolume();
   const statsEl = document.getElementById('dashboardStats');
   statsEl.innerHTML = `
-    <div class="stat-card"><div class="stat-top"><span class="stat-label">Último Wilks</span>${trendHtml}</div><div class="stat-value">${lastEntry?lastEntry.wilksScore.toFixed(1):'0'}</div></div>
-    <div class="stat-card"><div class="stat-top"><span class="stat-label">Mejor Wilks</span></div><div class="stat-value">${bestWilks?bestWilks.toFixed(1):'0'}</div></div>
-    <div class="stat-card"><div class="stat-top"><span class="stat-label">Entrenamientos</span></div><div class="stat-value">${account.workouts.length}</div></div>
-    <div class="stat-card"><div class="stat-top"><span class="stat-label">Volumen total</span></div><div class="stat-value">${volume>=1000?(volume/1000).toFixed(1)+'t':volume.toFixed(0)+'kg'}</div></div>
+    <div class="stat-card"><div class="stat-top"><span class="stat-label">${icon('chart',13)} Último Wilks</span>${trendHtml}</div><div class="stat-value">${lastEntry?lastEntry.wilksScore.toFixed(1):'0'}</div></div>
+    <div class="stat-card"><div class="stat-top"><span class="stat-label">${icon('award',13)} Mejor Wilks</span></div><div class="stat-value">${bestWilks?bestWilks.toFixed(1):'0'}</div></div>
+    <div class="stat-card"><div class="stat-top"><span class="stat-label">${icon('dumbbell',13)} Entrenamientos</span></div><div class="stat-value">${account.workouts.length}</div></div>
+    <div class="stat-card"><div class="stat-top"><span class="stat-label">${icon('bars',13)} Volumen total</span></div><div class="stat-value">${volume>=1000?(volume/1000).toFixed(1)+'t':volume.toFixed(0)+'kg'}</div></div>
   `;
   animateStatValues(statsEl);
   const ctx = document.getElementById('dashboardChart').getContext('2d');
@@ -1624,6 +1757,59 @@ function renderDashboard(){
   dashboardChartInstance = new Chart(ctx, lineChartConfig(labels, scores, 'Wilks', 500));
   renderWaterWidget();
   renderAchievements();
+  renderConsistencyHeatmap();
+}
+function renderConsistencyHeatmap(){
+  const el = document.getElementById('consistencyHeatmap');
+  if(!el || !account) return;
+  const counts = {};
+  (account.workouts||[]).forEach(w=>{ counts[w.date] = (counts[w.date]||0)+1; });
+  const today = new Date(); today.setHours(0,0,0,0);
+  const weeks = 52;
+  const totalDays = weeks*7;
+  const start = new Date(today);
+  start.setDate(start.getDate() - (totalDays-1));
+  const dow = (start.getDay()+6)%7; // 0=lunes
+  start.setDate(start.getDate() - dow);
+  const cells = [];
+  const cursor = new Date(start);
+  while(cursor <= today){
+    const key = cursor.toISOString().slice(0,10);
+    cells.push({ date:key, count: counts[key]||0 });
+    cursor.setDate(cursor.getDate()+1);
+  }
+  while(cells.length % 7 !== 0){ cells.push(null); }
+  const cols = cells.length/7;
+  let colsHtml = '';
+  const monthNames = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+  let lastMonth = null, monthLabelsHtml = '';
+  for(let c=0;c<cols;c++){
+    const firstCell = cells[c*7];
+    let monthLabel = '';
+    if(firstCell){
+      const m = new Date(firstCell.date).getMonth();
+      if(m !== lastMonth){ monthLabel = monthNames[m]; lastMonth = m; }
+    }
+    monthLabelsHtml += `<div class="heatmap-month-label">${monthLabel}</div>`;
+    let colCells = '';
+    for(let r=0;r<7;r++){
+      const cell = cells[c*7+r];
+      if(!cell){ colCells += `<div class="heatmap-cell empty"></div>`; continue; }
+      const level = cell.count<=0 ? 0 : cell.count===1 ? 1 : cell.count===2 ? 2 : 3;
+      colCells += `<div class="heatmap-cell level-${level}" title="${cell.date}: ${cell.count} entrenamiento(s)"></div>`;
+    }
+    colsHtml += `<div class="heatmap-col">${colCells}</div>`;
+  }
+  const startKey = start.toISOString().slice(0,10);
+  const activeDays = Object.keys(counts).filter(d=>d>=startKey && d<=today.toISOString().slice(0,10)).length;
+  el.innerHTML = `
+    <div class="heatmap-wrap">
+      <div class="heatmap-months">${monthLabelsHtml}</div>
+      <div class="heatmap-grid">${colsHtml}</div>
+    </div>
+    <div class="heatmap-legend"><span class="muted">Menos</span><span class="heatmap-cell level-0"></span><span class="heatmap-cell level-1"></span><span class="heatmap-cell level-2"></span><span class="heatmap-cell level-3"></span><span class="muted">Más</span></div>
+    <p class="muted" style="margin-top:8px;">${activeDays} día(s) con entrenamiento registrado en el último año.</p>
+  `;
 }
 
 /* =========================================================
@@ -1640,7 +1826,7 @@ async function loadRanking(){
   el.innerHTML = '<p class="muted">Cargando ranking...</p>';
   try{
     const entries = await fetchRankingList();
-    if(entries.length===0){ el.innerHTML = '<p class="muted">Todavía no hay puntajes en el ranking. Sé el primero.</p>'; return; }
+    if(entries.length===0){ el.innerHTML = emptyState('rank-gold', 'Todavía no hay puntajes en el ranking. Sé el primero.'); return; }
     entries.sort((a,b)=>b.bestWilks-a.bestWilks);
     el.innerHTML = entries.map((e,i)=>{
       const rankClass = i===0?'r1':i===1?'r2':i===2?'r3':'';
@@ -1706,7 +1892,7 @@ function renderCommunityTop(){
 function renderCommunityGrid(){
   const grid = document.getElementById('communityGrid');
   if(!grid) return;
-  if(communityProfilesCache.length===0){ grid.innerHTML = '<p class="muted">No hay perfiles públicos todavía.</p>'; return; }
+  if(communityProfilesCache.length===0){ grid.innerHTML = emptyState('users', 'No hay perfiles públicos todavía.'); return; }
   const search = (document.getElementById('communitySearch').value || '').trim().toLowerCase();
   const sortBy = document.getElementById('communitySort').value;
   let list = communityProfilesCache.filter(p=> !search || p.username.toLowerCase().includes(search));
@@ -1714,7 +1900,7 @@ function renderCommunityGrid(){
   if(sortBy==='wilks') list.sort((a,b)=>b.bestWilks-a.bestWilks);
   else if(sortBy==='name') list.sort((a,b)=>a.username.localeCompare(b.username));
   else if(sortBy==='recent') list.sort((a,b)=>(b.acc.createdAt||'').localeCompare(a.acc.createdAt||''));
-  if(list.length===0){ grid.innerHTML = '<p class="muted">No hay perfiles que coincidan con tu búsqueda.</p>'; return; }
+  if(list.length===0){ grid.innerHTML = emptyState('search', 'No hay perfiles que coincidan con tu búsqueda.'); return; }
   grid.innerHTML = `<div class="grid grid-3">` + list.map(p=>`
       <div class="card profile-card" onclick="openCommunityProfile('${p.username.replace(/'/g,"\\'")}')">
         <div class="row" style="gap:10px;">
@@ -1775,7 +1961,7 @@ async function openCommunityProfile(username){
           ${badges.length?`<div class="profile-badges">${badges.map(d=>`<span class="badge unlocked" title="${escapeHTML(d.desc)}">${icon('award',12)} ${escapeHTML(d.name)}</span>`).join('')}</div>`:''}
         </div>
       </div>
-      ${showField('bodyMap') ? `<div class="panel-card" style="margin-top:10px;"><h3 style="margin-top:0;">Mapa muscular</h3>${renderBodyMapSvg(acc)}</div>` : ''}
+      ${showField('bodyMap') ? `<div class="panel-card" style="margin-top:10px;"><h3 style="margin-top:0;">Mapa muscular</h3>${renderBodyMapDualSvg(acc)}</div>` : ''}
       <div class="button-group">
         ${username!==currentUser?`<button class="flex1 ${iFollow?'ghost':''}" onclick="handleToggleFollow('${username.replace(/'/g,"\\'")}')">${iFollow?icon('check',14)+' Siguiendo':'+ Seguir'}</button>`:''}
         <button class="flex1 ${iGaveKudos?'':'ghost'}" onclick="handleToggleKudos('${username.replace(/'/g,"\\'")}')">${icon('award',14)} Apoyo (${social.kudos||0})</button>
@@ -1805,7 +1991,7 @@ async function openCommunityProfile(username){
     if(postsEl){
       postsEl.innerHTML = authorPosts.length
         ? authorPosts.slice(0,6).map(p=>`<div class="list-item" style="align-items:flex-start; cursor:pointer;" onclick="handleTogglePinPost('${username.replace(/'/g,"\\'")}','${p.id}')" title="Click para fijar/quitar del perfil"><span>${escapeHTML((p.text||'').slice(0,120))}${p.text&&p.text.length>120?'…':''}${p.image?' 📷':''}${social.pinnedPostId===p.id?' 📌':''}</span><span class="muted post-time">${timeAgo(p.createdAt)}</span></div>`).join('')
-        : '<p class="muted">Todavía no ha publicado nada.</p>';
+        : emptyState('edit', 'Todavía no ha publicado nada.');
     }
   }catch(e){ detailEl.innerHTML = `<p class="muted">Error: ${escapeHTML(e.message)}</p>`; }
 }
@@ -2351,18 +2537,32 @@ async function loadDmInbox(){
 function renderDmInbox(){
   const listEl = document.getElementById('dmConversationList');
   if(!listEl) return;
-  if(dmInboxCache.length===0){ listEl.innerHTML = '<p class="muted">Todavía no tienes conversaciones. Escribe un usuario arriba para empezar.</p>'; return; }
-  listEl.innerHTML = dmInboxCache.map(c=>`
-    <div class="dm-conv-item ${dmActivePeer===c.other?'active':''}" onclick="openConversation('${c.other.replace(/'/g,"\\'")}')">
-      <div class="avatar-preview" style="width:34px;height:34px;">${(communityMediaCache[c.other]&&communityMediaCache[c.other].avatar)?`<img src="${communityMediaCache[c.other].avatar}" alt="">`:icon('user',16)}</div>
+  const q = (document.getElementById('dmSearchInput')?.value || '').trim().toLowerCase();
+  const filtered = q ? dmInboxCache.filter(c=>c.other.toLowerCase().includes(q)) : dmInboxCache;
+  if(dmInboxCache.length===0){ listEl.innerHTML = emptyState('message', 'Todavía no tienes conversaciones. Escribe un usuario arriba para empezar.'); return; }
+  if(filtered.length===0){ listEl.innerHTML = '<p class="muted">Sin resultados para esa búsqueda.</p>'; return; }
+  listEl.innerHTML = filtered.map(c=>`
+    <div class="dm-conv-item ${dmActivePeer===c.other?'active':''} ${c.unread>0?'has-unread':''}" onclick="openConversation('${c.other.replace(/'/g,"\\'")}')">
+      <div class="avatar-preview" style="width:38px;height:38px;">${(communityMediaCache[c.other]&&communityMediaCache[c.other].avatar)?`<img src="${communityMediaCache[c.other].avatar}" alt="">`:icon('user',17)}</div>
       <div style="flex:1; min-width:0;">
-        <strong>${escapeHTML(c.other)}</strong>
-        <div class="muted dm-last-msg">${escapeHTML((c.last.from===currentUser?'Tú: ':'') + c.last.text)}</div>
+        <div class="dm-conv-top-row"><strong>${escapeHTML(c.other)}</strong>${c.last?`<span class="dm-conv-time">${dmRelativeTime(c.last.date)}</span>`:''}</div>
+        <div class="muted dm-last-msg">${escapeHTML((c.last.from===currentUser?'Tú: ':'') + (c.last.type==='image'?'📷 Foto':c.last.type==='audio'?'🎤 Audio':c.last.type==='sticker'?c.last.sticker+' Sticker':c.last.text))}</div>
       </div>
       ${c.unread>0?`<span class="dm-unread-badge">${c.unread}</span>`:''}
     </div>
   `).join('');
 }
+function dmRelativeTime(dateStr){
+  if(!dateStr) return '';
+  const d = new Date(dateStr);
+  const now = new Date();
+  const sameDay = d.toDateString()===now.toDateString();
+  const yesterday = new Date(now); yesterday.setDate(now.getDate()-1);
+  if(sameDay) return d.toLocaleTimeString('es-ES', { hour:'2-digit', minute:'2-digit' });
+  if(d.toDateString()===yesterday.toDateString()) return 'Ayer';
+  return d.toLocaleDateString('es-ES', { day:'2-digit', month:'2-digit' });
+}
+function filterDmConversations(){ renderDmInbox(); }
 async function startNewConversation(){
   const input = document.getElementById('dmNewUser');
   const username = input.value.trim();
@@ -2405,21 +2605,47 @@ function renderDmBubbleContent(m){
   }
   return `<div>${linkifyPostText(m.text)}</div>`;
 }
+function dmDayLabel(dateStr){
+  const d = new Date(dateStr);
+  const now = new Date();
+  const yesterday = new Date(now); yesterday.setDate(now.getDate()-1);
+  if(d.toDateString()===now.toDateString()) return 'Hoy';
+  if(d.toDateString()===yesterday.toDateString()) return 'Ayer';
+  return d.toLocaleDateString('es-ES', { day:'2-digit', month:'long', year: d.getFullYear()!==now.getFullYear()?'numeric':undefined });
+}
 function renderDmChat(username, msgs){
   const media = communityMediaCache[username] || {};
   const chatArea = document.getElementById('dmChatArea');
+  // Agrupa mensajes: separador de día + burbujas consecutivas del mismo remitente sin repetir hora en cada una
+  let bodyHtml = '';
+  let lastDay = null, lastFrom = null, lastTime = 0;
+  msgs.forEach((m,i)=>{
+    const day = new Date(m.date).toDateString();
+    if(day!==lastDay){ bodyHtml += `<div class="dm-day-sep"><span>${dmDayLabel(m.date)}</span></div>`; lastDay = day; lastFrom = null; }
+    const gap = m.date - lastTime;
+    const grouped = m.from===lastFrom && gap < 5*60*1000;
+    const isLast = i===msgs.length-1 || msgs[i+1].from!==m.from || new Date(msgs[i+1].date).toDateString()!==day;
+    bodyHtml += `
+      <div class="dm-bubble ${m.from===currentUser?'me':'them'} ${m.type==='sticker'?'is-sticker':''} ${grouped?'grouped':''}">
+        ${renderDmBubbleContent(m)}
+        ${isLast?`<div class="dm-bubble-time">${new Date(m.date).toLocaleTimeString('es-ES', { hour:'2-digit', minute:'2-digit' })}</div>`:''}
+      </div>`;
+    lastFrom = m.from; lastTime = new Date(m.date).getTime();
+  });
   chatArea.innerHTML = `
     <div class="dm-chat-head">
-      <div class="avatar-preview" style="width:32px;height:32px;">${media.avatar?`<img src="${media.avatar}" alt="">`:icon('user',16)}</div>
+      <div class="avatar-preview" style="width:34px;height:34px;">${media.avatar?`<img src="${media.avatar}" alt="">`:icon('user',17)}</div>
       <strong>${escapeHTML(username)}</strong>
+      <div class="dm-chat-head-actions">
+        <button class="icon-btn" title="Opciones" onclick="toggleDmChatMenu()">${icon('dots',16)}</button>
+        <div id="dmChatMenu" class="dm-chat-menu hidden">
+          <button onclick="handleDeleteConversation('${username.replace(/'/g,"\\'")}')">${icon('trash',14)} Eliminar conversación</button>
+        </div>
+      </div>
+      <button class="icon-btn dm-chat-close-mobile" title="Volver" onclick="closeDmChatMobile()">${icon('x',16)}</button>
     </div>
     <div class="dm-messages" id="dmMessages">
-      ${msgs.length===0?'<p class="muted" style="padding:14px;">Aún no hay mensajes. ¡Envía el primero!</p>':msgs.map(m=>`
-        <div class="dm-bubble ${m.from===currentUser?'me':'them'} ${m.type==='sticker'?'is-sticker':''}">
-          ${renderDmBubbleContent(m)}
-          <div class="dm-bubble-time">${new Date(m.date).toLocaleString('es-ES', { hour:'2-digit', minute:'2-digit', day:'2-digit', month:'2-digit' })}</div>
-        </div>
-      `).join('')}
+      ${msgs.length===0?'<div class="dm-empty-chat"><p class="muted">Aún no hay mensajes. ¡Envía el primero!</p></div>':bodyHtml}
     </div>
     <div id="dmEmojiPicker" class="dm-picker-panel hidden">${DM_EMOJIS.map(e=>`<button class="dm-picker-emoji" onclick="insertDmEmoji('${e}')">${e}</button>`).join('')}</div>
     <div id="dmStickerPicker" class="dm-picker-panel hidden">${DM_STICKERS.map(e=>`<button class="dm-picker-emoji" onclick="sendDmSticker('${e}')">${e}</button>`).join('')}</div>
@@ -2435,12 +2661,41 @@ function renderDmChat(username, msgs){
       <button type="button" class="icon-btn" title="Enviar foto" onclick="document.getElementById('dmImageFile').click()">${icon('image',16)}</button>
       <button type="button" class="icon-btn" title="Mensaje de voz" onclick="startDmRecording()">🎤</button>
       <input type="text" id="dmMessageInput" placeholder="Escribe un mensaje..." onkeydown="if(event.key==='Enter'){handleSendDm();}">
-      <button onclick="handleSendDm()">${icon('send',15)}</button>
+      <button class="dm-send-btn" onclick="handleSendDm()">${icon('send',15)}</button>
     </div>
   `;
+  document.getElementById('dmChatArea').classList.add('dm-chat-open-mobile');
   const box = document.getElementById('dmMessages');
   if(box) box.scrollTop = box.scrollHeight;
 }
+function closeDmChatMobile(){
+  document.getElementById('dmChatArea').classList.remove('dm-chat-open-mobile');
+}
+function toggleDmChatMenu(){
+  document.getElementById('dmChatMenu').classList.toggle('hidden');
+}
+async function handleDeleteConversation(username){
+  document.getElementById('dmChatMenu').classList.add('hidden');
+  if(!confirm(`¿Eliminar toda la conversación con ${username}? Esta acción no se puede deshacer.`)) return;
+  try{
+    await deleteConversation(currentUser, username);
+    dmActivePeer = null;
+    document.getElementById('dmChatArea').innerHTML = `
+      <div class="dm-empty">
+        <div class="mark" style="width:52px;height:52px;margin:0 auto 10px;">${icon('message',24)}</div>
+        <p class="muted">Selecciona una conversación o escribe un nombre de usuario para empezar a chatear.</p>
+      </div>`;
+    document.getElementById('dmChatArea').classList.remove('dm-chat-open-mobile');
+    await loadDmInbox();
+    toast('Conversación eliminada.');
+  }catch(e){ toast('Error al eliminar: ' + e.message, 'error'); }
+}
+document.addEventListener('click', (e)=>{
+  const menu = document.getElementById('dmChatMenu');
+  if(menu && !menu.classList.contains('hidden') && !menu.contains(e.target) && !e.target.closest('[onclick="toggleDmChatMenu()"]')){
+    menu.classList.add('hidden');
+  }
+});
 function toggleDmEmojiPicker(){
   document.getElementById('dmStickerPicker').classList.add('hidden');
   document.getElementById('dmEmojiPicker').classList.toggle('hidden');
@@ -2918,16 +3173,24 @@ function scrollFeedToTopAndRefresh(){
    RUTINAS: CONSTRUCTOR DE PLANTILLAS
 ========================================================= */
 function addBuilderExercise(){
-  const name = document.getElementById('builderExerciseName').value.trim();
+  const nameInput = document.getElementById('builderExerciseName');
+  const nameTyped = nameInput.value.trim();
   const setsCount = Math.max(1, parseInt(document.getElementById('builderSetsCount').value) || 3);
   const w = document.getElementById('builderDefaultWeight').value;
   const r = document.getElementById('builderDefaultReps').value;
   const rir = document.getElementById('builderDefaultRIR').value;
-  if(!name){ toast('Escribe un nombre de ejercicio.', 'error'); return; }
+  if(!nameTyped){ toast('Escribe un nombre de ejercicio.', 'error'); return; }
+  const matchedEx = getExerciseByName(nameTyped);
+  if(!matchedEx){
+    const suggestions = searchExercises(nameTyped).slice(0,3);
+    toast(suggestions.length ? `"${nameTyped}" no está en el catálogo. ¿Quisiste decir "${suggestions[0].es}"?` : 'Ese ejercicio no existe en el catálogo cerrado. Búscalo en Entreno → Ejercicios.', 'error');
+    return;
+  }
+  const name = matchedEx.es;
   const sets = [];
   for(let i=0;i<setsCount;i++){ sets.push({ targetWeight: w||'', targetReps: r||'', targetRIR: rir||'', notes:'' }); }
-  builderExercises.push({ name, sets });
-  document.getElementById('builderExerciseName').value = '';
+  builderExercises.push({ name, exerciseId: matchedEx.id, sets });
+  nameInput.value = '';
   document.getElementById('builderDefaultWeight').value = '';
   document.getElementById('builderDefaultReps').value = '';
   document.getElementById('builderDefaultRIR').value = '';
@@ -2941,7 +3204,7 @@ function updateBuilderSetField(exIdx, setIdx, field, value){ builderExercises[ex
 function renderBuilderExercises(){
   const el = document.getElementById('builderExerciseList');
   if(!el) return;
-  if(builderExercises.length===0){ el.innerHTML = '<p class="muted">Todavía no has añadido ejercicios a esta plantilla.</p>'; return; }
+  if(builderExercises.length===0){ el.innerHTML = emptyState('dumbbell', 'Todavía no has añadido ejercicios a esta plantilla.'); return; }
   el.innerHTML = builderExercises.map((ex,exIdx)=>`
     <div class="card">
       <div class="row" style="justify-content:space-between;">
@@ -2987,7 +3250,7 @@ function renderTemplateList(){
   const el = document.getElementById('templateList');
   if(!el || !account) return;
   const templates = account.routineTemplates || [];
-  if(templates.length===0){ el.innerHTML = '<p class="muted">Todavía no tienes plantillas guardadas.</p>'; return; }
+  if(templates.length===0){ el.innerHTML = emptyState('bookmark', 'Todavía no tienes plantillas guardadas.'); return; }
   el.innerHTML = templates.map(t=>`
     <div class="list-item">
       <div><strong>${escapeHTML(t.name)}</strong><div class="muted">${t.exercises.length} ejercicio(s) · ${t.exercises.reduce((s,e)=>s+e.sets.length,0)} series en total</div></div>
@@ -3117,7 +3380,7 @@ function renderPlanList(){
   const el = document.getElementById('planList');
   if(!el || !account) return;
   const plans = account.trainingPlans || [];
-  if(plans.length===0){ el.innerHTML = '<p class="muted">Todavía no has creado ningún plan.</p>'; return; }
+  if(plans.length===0){ el.innerHTML = emptyState('calendar', 'Todavía no has creado ningún plan.'); return; }
   el.innerHTML = plans.map(p=>`
     <div class="list-item">
       <div>
@@ -3410,15 +3673,28 @@ function openExerciseDetail(id){
       <span class="chip-filter" style="pointer-events:none;">${escapeHTML(ex.muscle)}</span>
       ${ex.objectives.map(o=>`<span class="chip-filter" style="pointer-events:none;">${escapeHTML(o)}</span>`).join('')}
     </div>
+    <div class="exercise-meta-grid">
+      <div class="exercise-meta-item"><span class="muted">Equipo</span><strong>${escapeHTML(ex.equipment)}</strong></div>
+      <div class="exercise-meta-item"><span class="muted">Dificultad</span><strong>${escapeHTML(ex.difficulty)}</strong></div>
+      <div class="exercise-meta-item"><span class="muted">Músculo principal</span><strong>${escapeHTML(ex.muscle)}</strong></div>
+      <div class="exercise-meta-item"><span class="muted">Categoría de marca</span><strong>${ex.scoreType==='strength-bw'||ex.scoreType==='strength-abs'?'Peso levantado':ex.scoreType==='time'?'Tiempo':'Repeticiones'}</strong></div>
+    </div>
     <div class="exercise-rank-row">
       <div class="xp-rank-badge-lg" style="color:${tier>0?tm.color:'var(--text-dim)'}; border-color:${tier>0?tm.color:'var(--border)'}; background:${tier>0?tm.color+'22':'transparent'};">
         ${iconFilled(tier>0?rankIconName(tm.name):'award', 14)} ${tier>0?tm.name:'Sin marca registrada'}
       </div>
       ${best!=null?`<span class="muted">Tu mejor marca: <strong>${best} ${unitLabel}</strong></span>`:'<span class="muted">Registra una serie con este ejercicio para obtener tu rango.</span>'}
     </div>
+    <h3>Descripción</h3>
     <p class="exercise-desc-text">${escapeHTML(ex.desc)}</p>
+    ${ex.secondary?`<p class="exercise-desc-text"><strong>Músculos secundarios:</strong> ${escapeHTML(ex.secondary)}</p>`:''}
     <h3>Cómo realizarlo</h3>
     <ol class="exercise-steps">${ex.steps.map(s=>`<li>${escapeHTML(s)}</li>`).join('')}</ol>
+    ${ex.mistakes&&ex.mistakes.length?`
+      <h3>Errores comunes</h3>
+      <ul class="exercise-mistakes">${ex.mistakes.map(m=>`<li>${escapeHTML(m)}</li>`).join('')}</ul>
+    `:''}
+    ${ex.tips?`<div class="exercise-tip-box">${icon('award',14)} <div><strong>Consejo</strong><p>${escapeHTML(ex.tips)}</p></div></div>`:''}
     <div class="button-group">
       <button onclick="quickLogExercise('${ex.id}')">Registrar una serie de este ejercicio</button>
     </div>
@@ -3434,52 +3710,124 @@ function computeMuscleGroupTier(muscleGroup, accObj){
   exercises.forEach(ex=>{ const t = tierForExercise(ex, acc); if(t>maxTier) maxTier = t; });
   return maxTier;
 }
-function bodyMapRegionColor(tier){ return tier>0 ? tierMeta(tier).color : 'var(--panel-alt2)'; }
+function bodyMapRegionColor(tier){ return tier>0 ? tierMeta(tier).color : '#5b5b64'; }
+let bodyMapView = 'front';
+function setBodyMapView(view){ bodyMapView = view; renderBodyMap(); }
+
+/* Trapecio de lados rectos: forma 100% predecible (sin curvas Bézier) para piezas del cuerpo. */
+function trapPath(cx, yTop, yBottom, wTop, wBottom){
+  return `M${(cx-wTop/2).toFixed(1)},${yTop} L${(cx+wTop/2).toFixed(1)},${yTop} L${(cx+wBottom/2).toFixed(1)},${yBottom} L${(cx-wBottom/2).toFixed(1)},${yBottom} Z`;
+}
+function svgShape(d, fill, opacity=1, stroked=true){
+  return `<path d="${d}" fill="${fill}" opacity="${opacity}" ${stroked?'stroke="rgba(0,0,0,.22)" stroke-width="0.5"':''}></path>`+
+    `<path d="${d}" fill="url(#muscleHighlight)" opacity="${opacity}"></path>`+
+    `<path d="${d}" fill="url(#muscleShadow)" opacity="${opacity}"></path>`;
+}
+function svgEllipse(cx, cy, rx, ry, fill, opacity=1, stroked=true){
+  const a=cx.toFixed(1), b=cy.toFixed(1), r1=rx.toFixed(1), r2=ry.toFixed(1);
+  return `<ellipse cx="${a}" cy="${b}" rx="${r1}" ry="${r2}" fill="${fill}" opacity="${opacity}" ${stroked?'stroke="rgba(0,0,0,.22)" stroke-width="0.5"':''}></ellipse>`+
+    `<ellipse cx="${a}" cy="${b}" rx="${r1}" ry="${r2}" fill="url(#muscleHighlight)" opacity="${opacity}"></ellipse>`+
+    `<ellipse cx="${a}" cy="${b}" rx="${r1}" ry="${r2}" fill="url(#muscleShadow)" opacity="${opacity}"></ellipse>`;
+}
+function svgDefs(){
+  return `<defs>
+    <radialGradient id="muscleHighlight" gradientUnits="userSpaceOnUse" cx="72" cy="110" r="260">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.24"></stop>
+      <stop offset="60%" stop-color="#ffffff" stop-opacity="0"></stop>
+    </radialGradient>
+    <radialGradient id="muscleShadow" gradientUnits="userSpaceOnUse" cx="146" cy="430" r="320">
+      <stop offset="0%" stop-color="#000000" stop-opacity="0.18"></stop>
+      <stop offset="60%" stop-color="#000000" stop-opacity="0"></stop>
+    </radialGradient>
+  </defs>`;
+}
+
+/* Extremidad orgánica: contorno con curvas Bézier y vientre muscular marcado (nada de bloques rectos). */
+function organicLimb(xTop, yTop, xBot, yBot, wTop, wMid, wBot, bulge=0.42){
+  const yMid = yTop + (yBot-yTop)*bulge;
+  const xMid = xTop + (xBot-xTop)*bulge;
+  const f = n=>n.toFixed(1);
+  return `M${f(xTop-wTop/2)},${f(yTop)}
+    C${f(xTop-wTop/2-2)},${f(yTop+(yMid-yTop)*0.45)} ${f(xMid-wMid/2-1.5)},${f(yMid-(yMid-yTop)*0.4)} ${f(xMid-wMid/2)},${f(yMid)}
+    C${f(xMid-wMid/2+1)},${f(yMid+(yBot-yMid)*0.4)} ${f(xBot-wBot/2-1)},${f(yBot-(yBot-yMid)*0.4)} ${f(xBot-wBot/2)},${f(yBot)}
+    L${f(xBot+wBot/2)},${f(yBot)}
+    C${f(xBot+wBot/2+1)},${f(yBot-(yBot-yMid)*0.4)} ${f(xMid+wMid/2-1)},${f(yMid+(yBot-yMid)*0.4)} ${f(xMid+wMid/2)},${f(yMid)}
+    C${f(xMid+wMid/2+1.5)},${f(yMid-(yMid-yTop)*0.4)} ${f(xTop+wTop/2+2)},${f(yTop+(yMid-yTop)*0.45)} ${f(xTop+wTop/2)},${f(yTop)} Z`;
+}
+/* Torso orgánico: un único contorno continuo hombro→pecho→cintura→cadera con curvas suaves (sin costuras rectas). */
+function torsoOutline(shoulderHalfW, waistHalfW, hipHalfW, shoulderY, waistY, hipY, chestHalfW, chestY){
+  const f = n=>n.toFixed(1);
+  return `M${f(100-shoulderHalfW)},${f(shoulderY)}
+    C${f(100-shoulderHalfW-1.5)},${f(shoulderY+18)} ${f(100-chestHalfW-1)},${f(chestY-16)} ${f(100-chestHalfW)},${f(chestY)}
+    C${f(100-chestHalfW)},${f(chestY+24)} ${f(100-waistHalfW-3)},${f(waistY-22)} ${f(100-waistHalfW)},${f(waistY)}
+    C${f(100-waistHalfW-3)},${f(waistY+13)} ${f(100-hipHalfW+3)},${f(hipY-16)} ${f(100-hipHalfW)},${f(hipY)}
+    L${f(100+hipHalfW)},${f(hipY)}
+    C${f(100+hipHalfW-3)},${f(hipY-16)} ${f(100+waistHalfW+3)},${f(waistY+13)} ${f(100+waistHalfW)},${f(waistY)}
+    C${f(100+waistHalfW+3)},${f(waistY-22)} ${f(100+chestHalfW)},${f(chestY+24)} ${f(100+chestHalfW)},${f(chestY)}
+    C${f(100+chestHalfW+1)},${f(chestY-16)} ${f(100+shoulderHalfW+1.5)},${f(shoulderY+18)} ${f(100+shoulderHalfW)},${f(shoulderY)} Z`;
+}
+function bodyFigureSvg(view, gender, tiers){
+  const genderKey = gender==='female' ? 'female' : 'male';
+  const viewKey = view==='front' ? 'front' : 'back';
+  const data = BODY_MUSCLE_SVG_DATA[genderKey][viewKey];
+  let svg = '';
+  for(const region in data.regions){
+    const broadGroup = MUSCLE_REGION_TO_GROUP[region];
+    const tier = broadGroup ? (tiers[broadGroup]||0) : 0;
+    const color = bodyMapRegionColor(tier);
+    data.regions[region].forEach(d=>{ svg += svgShape(d, color); });
+  }
+  return `<svg viewBox="0 0 ${data.w} ${data.h}" class="body-map-svg" xmlns="http://www.w3.org/2000/svg">${svgDefs()}${svg}</svg>`;
+}
 function renderBodyMapSvg(accObj){
   const acc = accObj || account;
   const gender = (acc.profile && acc.profile.gender) || 'male';
   const tiers = {};
   MUSCLE_GROUPS.forEach(m=>{ tiers[m] = computeMuscleGroupTier(m, acc); });
-  const cShoulders = bodyMapRegionColor(tiers['Hombros']);
-  const cChest = bodyMapRegionColor(tiers['Pecho']);
-  const cArms = bodyMapRegionColor(Math.max(tiers['Bíceps'], tiers['Tríceps']));
-  const cForearms = bodyMapRegionColor(tiers['Antebrazos']);
-  const cAbs = bodyMapRegionColor(tiers['Abdomen']);
-  const cUpperLeg = bodyMapRegionColor(Math.max(tiers['Cuádriceps'], tiers['Isquiotibiales']));
-  const cLowerLeg = bodyMapRegionColor(tiers['Gemelos']);
-  const cHips = bodyMapRegionColor(tiers['Glúteos']);
-  const hipW = gender==='female' ? 34 : 26;
-  const waistW = gender==='female' ? 16 : 22;
-  const shoulderW = gender==='female' ? 26 : 32;
-  const svg = `
-  <svg viewBox="0 0 100 190" class="body-map-svg" xmlns="http://www.w3.org/2000/svg">
-    <ellipse cx="50" cy="14" rx="11" ry="13" fill="var(--panel-alt2)" stroke="var(--border)" stroke-width="0.6"></ellipse>
-    <rect x="46" y="25" width="8" height="8" fill="var(--panel-alt2)"></rect>
-    <ellipse cx="${50-shoulderW/2}" cy="34" rx="9" ry="7" fill="${cShoulders}" stroke="var(--border)" stroke-width="0.6"></ellipse>
-    <ellipse cx="${50+shoulderW/2}" cy="34" rx="9" ry="7" fill="${cShoulders}" stroke="var(--border)" stroke-width="0.6"></ellipse>
-    <path d="M ${50-waistW/2} 38 Q 50 33 ${50+waistW/2} 38 L ${50+waistW/2+6} 78 Q 50 84 ${50-waistW/2-6} 78 Z" fill="${cChest}" stroke="var(--border)" stroke-width="0.6"></path>
-    <path d="M ${50-waistW/2-4} 78 L ${50+waistW/2+4} 78 L ${50+hipW/2} 108 L ${50-hipW/2} 108 Z" fill="${cAbs}" stroke="var(--border)" stroke-width="0.6"></path>
-    <rect x="${50-hipW/2-2}" y="104" width="${hipW+4}" height="14" rx="6" fill="${cHips}" stroke="var(--border)" stroke-width="0.6"></rect>
-    <rect x="${50-shoulderW/2-10}" y="40" width="9" height="34" rx="4.5" fill="${cArms}" stroke="var(--border)" stroke-width="0.6"></rect>
-    <rect x="${50+shoulderW/2+1}" y="40" width="9" height="34" rx="4.5" fill="${cArms}" stroke="var(--border)" stroke-width="0.6"></rect>
-    <rect x="${50-shoulderW/2-9}" y="74" width="8" height="30" rx="4" fill="${cForearms}" stroke="var(--border)" stroke-width="0.6"></rect>
-    <rect x="${50+shoulderW/2+2}" y="74" width="8" height="30" rx="4" fill="${cForearms}" stroke="var(--border)" stroke-width="0.6"></rect>
-    <rect x="${50-hipW/2}" y="116" width="15" height="38" rx="6" fill="${cUpperLeg}" stroke="var(--border)" stroke-width="0.6"></rect>
-    <rect x="${50+hipW/2-15}" y="116" width="15" height="38" rx="6" fill="${cUpperLeg}" stroke="var(--border)" stroke-width="0.6"></rect>
-    <rect x="${50-hipW/2+1}" y="154" width="13" height="30" rx="5" fill="${cLowerLeg}" stroke="var(--border)" stroke-width="0.6"></rect>
-    <rect x="${50+hipW/2-14}" y="154" width="13" height="30" rx="5" fill="${cLowerLeg}" stroke="var(--border)" stroke-width="0.6"></rect>
-  </svg>`;
+  const svg = bodyFigureSvg(bodyMapView, gender, tiers);
+  const frontGroups = ['Hombros','Pecho','Bíceps','Antebrazos','Abdomen','Cuádriceps'];
+  const backGroups = ['Espalda','Hombros','Tríceps','Antebrazos','Glúteos','Isquiotibiales','Gemelos'];
+  const visibleGroups = bodyMapView==='front' ? frontGroups : backGroups;
+  const legend = MUSCLE_GROUPS.map(m=>{
+    const t = tiers[m];
+    const tm = t>0 ? tierMeta(t) : null;
+    const dimmed = !visibleGroups.includes(m);
+    return `<span class="body-map-legend-item ${dimmed?'not-visible':''}"><span class="body-map-legend-dot" style="background:${t>0?tm.color:'var(--panel-alt2)'};"></span>${escapeHTML(m)}${t>0?` · ${tm.name}`:''}</span>`;
+  }).join('');
+  const tierScale = TIER_META.map(tm=>`<span><span class="body-map-legend-dot" style="background:${tm.color};"></span>${tm.name}</span>`).join('');
+  return `
+    <div class="body-map-toggle">
+      <button class="ghost small ${bodyMapView==='front'?'active-toggle':''}" onclick="setBodyMapView('front')">Vista frontal</button>
+      <button class="ghost small ${bodyMapView==='back'?'active-toggle':''}" onclick="setBodyMapView('back')">Vista trasera</button>
+    </div>
+    <div class="body-map-wrap">${svg}<div class="body-map-legend">${legend}</div></div>
+    <div class="body-map-tier-scale">${tierScale}</div>
+  `;
+}
+function renderBodyMapDualSvg(accObj){
+  const acc = accObj || account;
+  const gender = (acc.profile && acc.profile.gender) || 'male';
+  const tiers = {};
+  MUSCLE_GROUPS.forEach(m=>{ tiers[m] = computeMuscleGroupTier(m, acc); });
+  const front = bodyFigureSvg('front', gender, tiers);
+  const back = bodyFigureSvg('back', gender, tiers);
   const legend = MUSCLE_GROUPS.map(m=>{
     const t = tiers[m];
     const tm = t>0 ? tierMeta(t) : null;
     return `<span class="body-map-legend-item"><span class="body-map-legend-dot" style="background:${t>0?tm.color:'var(--panel-alt2)'};"></span>${escapeHTML(m)}${t>0?` · ${tm.name}`:''}</span>`;
   }).join('');
-  return `<div class="body-map-wrap">${svg}<div class="body-map-legend">${legend}</div></div>`;
+  return `
+    <div class="body-map-dual">
+      <div class="body-map-dual-col"><span class="muted body-map-dual-label">Vista frontal</span>${front}</div>
+      <div class="body-map-dual-col"><span class="muted body-map-dual-label">Vista trasera</span>${back}</div>
+    </div>
+    <div class="body-map-legend">${legend}</div>
+  `;
 }
 function renderBodyMap(){
   const el = document.getElementById('bodyMapCard');
   if(!el || !account) return;
-  el.innerHTML = `<h2 style="margin-top:0;">Tu mapa muscular</h2><p class="muted">Cada zona se colorea según el rango de tu mejor marca registrada en ese grupo.</p>` + renderBodyMapSvg(account);
+  el.innerHTML = `<h2 style="margin-top:0;">Tu mapa muscular</h2><p class="muted">Cada zona se colorea según el rango de tu mejor marca registrada en ese grupo. Cambia de vista para ver espalda, glúteos e isquiotibiales.</p>` + renderBodyMapSvg(account);
 }
 
 function quickLogExercise(id){
@@ -3552,10 +3900,17 @@ function startSessionTimer(){
 function pauseSessionTimer(){ clearInterval(sessionTimerInterval); sessionTimerInterval = null; }
 function addSessionExercise(){
   if(!activeSession) return;
-  const name = document.getElementById('sessionNewExerciseName').value.trim();
-  if(!name){ toast('Escribe un ejercicio.', 'error'); return; }
-  activeSession.exercises.push({ name, sets: [] });
-  document.getElementById('sessionNewExerciseName').value = '';
+  const nameInput = document.getElementById('sessionNewExerciseName');
+  const nameTyped = nameInput.value.trim();
+  if(!nameTyped){ toast('Escribe un ejercicio.', 'error'); return; }
+  const matchedEx = getExerciseByName(nameTyped);
+  if(!matchedEx){
+    const suggestions = searchExercises(nameTyped).slice(0,3);
+    toast(suggestions.length ? `"${nameTyped}" no está en el catálogo. ¿Quisiste decir "${suggestions[0].es}"?` : 'Ese ejercicio no existe en el catálogo cerrado. Búscalo en Entreno → Ejercicios.', 'error');
+    return;
+  }
+  activeSession.exercises.push({ name: matchedEx.es, exerciseId: matchedEx.id, sets: [] });
+  nameInput.value = '';
   addSessionSet(activeSession.exercises.length-1);
   renderExerciseDatalist();
 }
@@ -3604,13 +3959,18 @@ async function completeSet(exIdx, setIdx){
   const noteParts = [];
   if(set.notes) noteParts.push(set.notes);
   const rirVal = (set.rir!=='' && set.rir!=null) ? parseFloat(set.rir) : null;
+  const { entry: prevBestEntry, rm: prevBest1RM } = bestExisting1RM(ex.name);
   const workoutEntry = {
-    id: Date.now() + Math.floor(Math.random()*1000), date: activeSession.date, exercise: ex.name,
+    id: Date.now() + Math.floor(Math.random()*1000), date: activeSession.date, exercise: ex.name, exerciseId: ex.exerciseId || null,
     weight, reps, sets:1, rir: rirVal, notes: noteParts.join(' · '), mediaId: set.mediaId || null, videoLink: null, sessionId: activeSession.id
   };
   account.workouts.push(workoutEntry);
-  try{ await saveAccount(); await registerExerciseIfNew(ex.name, currentUser); }
+  try{ await saveAccount(); }
   catch(e){ toast('Error al guardar la serie: ' + e.message, 'error'); }
+  if(prevBestEntry){
+    const newRM = epley1RM(weight, reps);
+    if(newRM > prevBest1RM) openPRCelebration(ex.name, prevBest1RM, newRM);
+  }
 }
 function openSessionSetCamera(exIdx, setIdx){ sessionMediaTarget = { exIdx, setIdx }; openCameraModal('sessionSet', true); }
 async function handleSessionSetFile(event, exIdx, setIdx){
@@ -3676,7 +4036,7 @@ async function saveSessionAsTemplate(){
 function renderActiveSession(){
   const el = document.getElementById('activeSessionArea');
   if(!el) return;
-  if(!activeSession){ el.innerHTML = '<p class="muted">No hay ninguna sesión en curso. Usa una plantilla o inicia un entrenamiento libre.</p>'; return; }
+  if(!activeSession){ el.innerHTML = emptyState('dumbbell', 'No hay ninguna sesión en curso. Usa una plantilla o inicia un entrenamiento libre.'); return; }
   el.innerHTML = `
     <div class="card">
       <div class="row" style="justify-content:space-between;">
@@ -3865,7 +4225,7 @@ function renderCustomChallenges(){
   const el = document.getElementById('customChallengeList');
   if(!el || !account) return;
   const list = account.customChallenges || [];
-  if(list.length===0){ el.innerHTML = '<p class="muted">Todavía no has creado retos propios.</p>'; return; }
+  if(list.length===0){ el.innerHTML = emptyState('target', 'Todavía no has creado retos propios.'); return; }
   el.innerHTML = list.map(c=>{
     const tm = tierMeta(c.difficulty||3);
     return `
