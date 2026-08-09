@@ -316,6 +316,19 @@
         "notes": "",
         "mediaId": null,
         "videoLink": null
+      },
+      {
+        "id": 1786267902940,
+        "date": "2026-08-09",
+        "exercise": "Elevación de talones de pie",
+        "exerciseId": "calf-raise__standing",
+        "weight": 300,
+        "reps": 4,
+        "sets": 1,
+        "rir": null,
+        "notes": "",
+        "mediaId": null,
+        "videoLink": null
       }
     ],
     "measurements": [],
