@@ -397,7 +397,7 @@
       "weightKg": 81,
       "bio": "",
       "isPublic": false,
-      "gender": "male",
+      "gender": "female",
       "publicFields": {
         "age": true,
         "height": true,
