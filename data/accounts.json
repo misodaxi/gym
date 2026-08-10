@@ -1337,11 +1337,23 @@
       }
     },
     "profile": {
-      "age": null,
-      "heightCm": null,
-      "weightKg": null,
-      "bio": "",
-      "isPublic": true
+      "age": 19,
+      "heightCm": 174,
+      "weightKg": 72.7,
+      "bio": "batatatata",
+      "isPublic": true,
+      "gender": "male",
+      "publicFields": {
+        "age": true,
+        "height": true,
+        "weight": true,
+        "bio": true,
+        "wilks": true,
+        "workoutCount": true,
+        "streak": true,
+        "rank": true,
+        "bodyMap": true
+      }
     },
     "theme": "dark",
     "createdAt": "2026-08-10T13:55:05.501Z"
