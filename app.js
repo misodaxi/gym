@@ -644,11 +644,12 @@ function lineChartConfig(labels, data, label, suggestedMax){
 }
 
 /* =========================================================
-   FÓRMULAS: 1RM (Epley, unificada), WILKS, DOTS
+   FÓRMULAS: 1RM (Brzycki, unificada), WILKS, DOTS
 ========================================================= */
-function epley1RM(weight, reps){ return parseFloat((weight*(1+reps/30)).toFixed(1)); }
 function brzycki1RM(weight, reps){ if(reps>=37) return null; return parseFloat((weight*36/(37-reps)).toFixed(1)); }
-function calculate1RM(weight, reps){ if(reps<1 || reps>30) return null; return epley1RM(weight, reps); }
+function calculate1RM(weight, reps){ if(reps<1 || reps>30) return null; return brzycki1RM(weight, reps); }
+/* Envoltorio seguro para cálculos internos (ranking, PRs, gráficos): nunca null, 0 si no es calculable */
+function rm1RM(weight, reps){ const v = brzycki1RM(weight, reps); return v==null ? 0 : v; }
 function wilksScoreCalc(gender, bodyWeight, total){
   const coeff = {
     male:[-216.0475144,16.2606339,-0.002388645,-0.00113732,7.01863E-06,-1.291E-08],
@@ -713,7 +714,7 @@ async function calculateWilks(){
     <p>Puntaje de Wilks 2020: <span class="wilks-score">${wilks2020Score.toFixed(2)}</span></p>
     <p>Puntaje DOTS: <span class="wilks-score">${dotsScore.toFixed(2)}</span></p>
     <p>Total estimado (1RM): <span class="wilks-score">${total1RM.toFixed(1)} kg</span></p>
-    <p class="muted">1RM estimado con la fórmula de Epley: peso × (1 + reps/30). Mayor precisión en series de 1 a 10 repeticiones.</p>
+    <p class="muted">1RM estimado con la fórmula de Brzycki: peso × 36 / (37 − reps). Más conservadora que otras fórmulas en series de más repeticiones.</p>
     <p class="muted">El Wilks clásico (1994) es el más usado como referencia histórica; Powerlifting Australia publicó una revisión oficial en 2020 que corrige el sesgo del original en pesos corporales extremos. La IPF usa hoy su propia fórmula (IPF GL Points) y USAPL/USPA usan DOTS — por eso mostramos varias.</p>
   `;
   account.history.push({ date: new Date().toLocaleString('es-ES'), gender, bodyWeight, benchPress, benchReps, squat, squatReps, deadlift, deadliftReps, wilksScore, dotsScore, level, total1RM });
@@ -729,12 +730,10 @@ function calcStandalone1RM(){
   if(isNaN(w) || isNaN(r)){ toast('Completa peso y repeticiones.', 'error'); return; }
   const rm = calculate1RM(w, r);
   if(rm===null){ toast('Las repeticiones deben estar entre 1 y 30.', 'error'); return; }
-  const rmBrzycki = brzycki1RM(w, r);
   document.getElementById('rmResult').classList.remove('hidden');
   document.getElementById('rmResult').innerHTML = `
-    <p>1RM estimado (Epley): <span class="wilks-score">${rm} kg</span></p>
-    ${rmBrzycki!=null?`<p>1RM estimado (Brzycki): <span class="wilks-score">${rmBrzycki} kg</span></p>`:''}
-    <p class="muted">Epley: peso × (1 + reps/30) — de referencia habitual entre 1 y 10 repeticiones, tiende a estimar algo más alto a partir de ahí. Brzycki: peso × 36 / (37 − reps) — más conservador con series de más repeticiones. Si ambas difieren mucho, usa la media.</p>
+    <p>1RM estimado (Brzycki): <span class="wilks-score">${rm} kg</span></p>
+    <p class="muted">Fórmula de Brzycki: peso × 36 / (37 − reps).</p>
   `;
   const pcts = [50,60,65,70,75,80,85,90,95,100];
   let rows = pcts.map(p=>`<tr><td>${p}%</td><td>${(rm*p/100).toFixed(1)} kg</td></tr>`).join('');
@@ -1013,8 +1012,8 @@ function clearPendingWorkoutMedia(){ pendingWorkoutMedia = null; document.getEle
 function bestExisting1RM(exercise){
   const entry = account.workouts
     .filter(w=>w.exercise.toLowerCase()===exercise.toLowerCase())
-    .reduce((best,w)=> (epley1RM(w.weight,w.reps) > (best?epley1RM(best.weight,best.reps):0)) ? w : best, null);
-  return { entry, rm: entry ? epley1RM(entry.weight, entry.reps) : 0 };
+    .reduce((best,w)=> (rm1RM(w.weight,w.reps) > (best?rm1RM(best.weight,best.reps):0)) ? w : best, null);
+  return { entry, rm: entry ? rm1RM(entry.weight, entry.reps) : 0 };
 }
 let prCelebrationTimer = null;
 function openPRCelebration(exercise, oldRM, newRM){
@@ -1077,7 +1076,7 @@ async function addWorkout(){
   }
   const exercise = matchedEx.es;
   const { entry: prevBestEntry, rm: prevBest1RM } = bestExisting1RM(exercise);
-  const new1RM = epley1RM(weight, reps);
+  const new1RM = rm1RM(weight, reps);
   let mediaId = null;
   if(pendingWorkoutMedia){
     mediaId = 'm' + Date.now();
@@ -1147,7 +1146,7 @@ function renderPRBoard(){
   const byExercise = {};
   account.workouts.forEach(w=>{
     const key = w.exercise.trim().toLowerCase();
-    const rm = epley1RM(w.weight, w.reps);
+    const rm = rm1RM(w.weight, w.reps);
     if(!byExercise[key] || rm > byExercise[key].rm){ byExercise[key] = { name:w.exercise, rm, date:w.date, mediaId:w.mediaId }; }
   });
   const rows = Object.values(byExercise).sort((a,b)=>b.rm-a.rm).map(e=>{
@@ -1181,7 +1180,7 @@ async function loadExerciseLeaderboard(){
       const acc = accountsMap[username];
       const workouts = (acc.workouts||[]).filter(w=>normalizeExerciseKey(w.exercise)===key);
       if(workouts.length===0) return;
-      const best = workouts.reduce((m,w)=>{ const rm = epley1RM(w.weight,w.reps); return rm>m.rm ? {rm,date:w.date} : m; }, {rm:0,date:''});
+      const best = workouts.reduce((m,w)=>{ const rm = rm1RM(w.weight,w.reps); return rm>m.rm ? {rm,date:w.date} : m; }, {rm:0,date:''});
       results.push({ username, rm: best.rm, date: best.date, avatar: (mediaMap[username]&&mediaMap[username].avatar)||null });
     });
     if(results.length===0){ el.innerHTML = '<p class="muted">Nadie ha registrado este ejercicio todavía. Sé el primero.</p>'; return; }
@@ -1308,7 +1307,7 @@ function renderExerciseProgressChart(){
   }
   const byDate = {};
   (account.workouts||[]).filter(w=>w.exercise===exercise).forEach(w=>{
-    const rm = epley1RM(w.weight, w.reps);
+    const rm = rm1RM(w.weight, w.reps);
     if(!byDate[w.date] || rm > byDate[w.date]) byDate[w.date] = rm;
   });
   const sortedDates = Object.keys(byDate).sort();
@@ -3712,16 +3711,39 @@ function computeMuscleGroupTier(muscleGroup, accObj){
 }
 function bodyMapRegionColor(tier){ return tier>0 ? tierMeta(tier).color : '#5b5b64'; }
 let bodyMapView = 'front';
-function setBodyMapView(view){ bodyMapView = view; renderBodyMap(); }
+let pinnedMuscleHighlight = null;
+function applyMuscleHighlight(name){
+  document.querySelectorAll('.body-map-svg .muscle-region').forEach(el=>{
+    el.classList.toggle('active-highlight', el.getAttribute('data-muscle')===name);
+  });
+}
+function clearMuscleHighlight(){
+  document.querySelectorAll('.body-map-svg .muscle-region').forEach(el=>el.classList.remove('active-highlight'));
+}
+function hoverMuscleRegion(name, view){
+  if(bodyMapView !== view){ bodyMapView = view; renderBodyMap(); }
+  applyMuscleHighlight(name);
+}
+function unhoverMuscleRegion(){
+  if(pinnedMuscleHighlight) return;
+  clearMuscleHighlight();
+}
+function tapMuscleRegion(name, view){
+  if(pinnedMuscleHighlight === name){ pinnedMuscleHighlight = null; clearMuscleHighlight(); return; }
+  pinnedMuscleHighlight = name;
+  hoverMuscleRegion(name, view);
+}
+function setBodyMapView(view){ bodyMapView = view; pinnedMuscleHighlight = null; renderBodyMap(); }
 
 /* Trapecio de lados rectos: forma 100% predecible (sin curvas Bézier) para piezas del cuerpo. */
 function trapPath(cx, yTop, yBottom, wTop, wBottom){
   return `M${(cx-wTop/2).toFixed(1)},${yTop} L${(cx+wTop/2).toFixed(1)},${yTop} L${(cx+wBottom/2).toFixed(1)},${yBottom} L${(cx-wBottom/2).toFixed(1)},${yBottom} Z`;
 }
-function svgShape(d, fill, opacity=1, stroked=true){
-  return `<path d="${d}" fill="${fill}" opacity="${opacity}" ${stroked?'stroke="rgba(0,0,0,.22)" stroke-width="0.5"':''}></path>`+
-    `<path d="${d}" fill="url(#muscleHighlight)" opacity="${opacity}"></path>`+
-    `<path d="${d}" fill="url(#muscleShadow)" opacity="${opacity}"></path>`;
+function svgShape(d, fill, opacity=1, stroked=true, region=null){
+  const regionAttrs = region ? ` class="muscle-region" data-muscle="${escapeHTML(region)}"` : '';
+  return `<path d="${d}" fill="${fill}" opacity="${opacity}" ${stroked?'stroke="rgba(0,0,0,.22)" stroke-width="0.5"':''}${regionAttrs}></path>`+
+    `<path d="${d}" fill="url(#muscleHighlight)" opacity="${opacity}" style="pointer-events:none;"></path>`+
+    `<path d="${d}" fill="url(#muscleShadow)" opacity="${opacity}" style="pointer-events:none;"></path>`;
 }
 function svgEllipse(cx, cy, rx, ry, fill, opacity=1, stroked=true){
   const a=cx.toFixed(1), b=cy.toFixed(1), r1=rx.toFixed(1), r2=ry.toFixed(1);
@@ -3739,6 +3761,17 @@ function svgDefs(){
       <stop offset="0%" stop-color="#000000" stop-opacity="0.18"></stop>
       <stop offset="60%" stop-color="#000000" stop-opacity="0"></stop>
     </radialGradient>
+    <linearGradient id="muscleSelectGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffd447">
+        <animate attributeName="stop-color" values="#ffd447;#ff4fa3;#ffd447" dur="2.4s" repeatCount="indefinite"></animate>
+      </stop>
+      <stop offset="50%" stop-color="#ff8fc4">
+        <animate attributeName="stop-color" values="#ff8fc4;#ffd447;#ff8fc4" dur="2.4s" repeatCount="indefinite"></animate>
+      </stop>
+      <stop offset="100%" stop-color="#ff4fa3">
+        <animate attributeName="stop-color" values="#ff4fa3;#ffd447;#ff4fa3" dur="2.4s" repeatCount="indefinite"></animate>
+      </stop>
+    </linearGradient>
   </defs>`;
 }
 
@@ -3775,32 +3808,51 @@ function bodyFigureSvg(view, gender, tiers){
     const broadGroup = MUSCLE_REGION_TO_GROUP[region];
     const tier = broadGroup ? (tiers[broadGroup]||0) : 0;
     const color = bodyMapRegionColor(tier);
-    data.regions[region].forEach(d=>{ svg += svgShape(d, color); });
+    data.regions[region].forEach(d=>{ svg += svgShape(d, color, 1, true, region); });
   }
   return `<svg viewBox="0 0 ${data.w} ${data.h}" class="body-map-svg" xmlns="http://www.w3.org/2000/svg">${svgDefs()}${svg}</svg>`;
+}
+function bodyRegionTier(region, tiers){
+  const broadGroup = MUSCLE_REGION_TO_GROUP[region];
+  return broadGroup ? (tiers[broadGroup]||0) : 0;
+}
+function muscleListColumn(regionNames, tiers, view){
+  return regionNames.map(region=>{
+    const t = bodyRegionTier(region, tiers);
+    const tm = t>0 ? tierMeta(t) : null;
+    return `<button type="button" class="muscle-list-item" onmouseenter="hoverMuscleRegion('${escapeHTML(region)}','${view}')" onmouseleave="unhoverMuscleRegion()" onclick="tapMuscleRegion('${escapeHTML(region)}','${view}')">
+      <span class="body-map-legend-dot" style="background:${t>0?tm.color:'var(--panel-alt2)'};"></span>${escapeHTML(region)}${t>0?` · ${tm.name}`:''}
+    </button>`;
+  }).join('');
 }
 function renderBodyMapSvg(accObj){
   const acc = accObj || account;
   const gender = (acc.profile && acc.profile.gender) || 'male';
+  const genderKey = gender==='female' ? 'female' : 'male';
   const tiers = {};
   MUSCLE_GROUPS.forEach(m=>{ tiers[m] = computeMuscleGroupTier(m, acc); });
   const svg = bodyFigureSvg(bodyMapView, gender, tiers);
-  const frontGroups = ['Hombros','Pecho','Bíceps','Antebrazos','Abdomen','Cuádriceps'];
-  const backGroups = ['Espalda','Hombros','Tríceps','Antebrazos','Glúteos','Isquiotibiales','Gemelos'];
-  const visibleGroups = bodyMapView==='front' ? frontGroups : backGroups;
-  const legend = MUSCLE_GROUPS.map(m=>{
-    const t = tiers[m];
-    const tm = t>0 ? tierMeta(t) : null;
-    const dimmed = !visibleGroups.includes(m);
-    return `<span class="body-map-legend-item ${dimmed?'not-visible':''}"><span class="body-map-legend-dot" style="background:${t>0?tm.color:'var(--panel-alt2)'};"></span>${escapeHTML(m)}${t>0?` · ${tm.name}`:''}</span>`;
-  }).join('');
+  const frontRegions = Object.keys(BODY_MUSCLE_SVG_DATA[genderKey].front.regions);
+  const backRegions = Object.keys(BODY_MUSCLE_SVG_DATA[genderKey].back.regions);
   const tierScale = TIER_META.map(tm=>`<span><span class="body-map-legend-dot" style="background:${tm.color};"></span>${tm.name}</span>`).join('');
   return `
     <div class="body-map-toggle">
       <button class="ghost small ${bodyMapView==='front'?'active-toggle':''}" onclick="setBodyMapView('front')">Vista frontal</button>
       <button class="ghost small ${bodyMapView==='back'?'active-toggle':''}" onclick="setBodyMapView('back')">Vista trasera</button>
     </div>
-    <div class="body-map-wrap">${svg}<div class="body-map-legend">${legend}</div></div>
+    <div class="body-map-layout">
+      <div class="body-map-wrap">${svg}</div>
+      <div class="muscle-list-cols">
+        <div class="muscle-list-col">
+          <h4>Vista frontal</h4>
+          <div class="muscle-list-items">${muscleListColumn(frontRegions, tiers, 'front')}</div>
+        </div>
+        <div class="muscle-list-col">
+          <h4>Vista trasera</h4>
+          <div class="muscle-list-items">${muscleListColumn(backRegions, tiers, 'back')}</div>
+        </div>
+      </div>
+    </div>
     <div class="body-map-tier-scale">${tierScale}</div>
   `;
 }
@@ -3968,7 +4020,7 @@ async function completeSet(exIdx, setIdx){
   try{ await saveAccount(); }
   catch(e){ toast('Error al guardar la serie: ' + e.message, 'error'); }
   if(prevBestEntry){
-    const newRM = epley1RM(weight, reps);
+    const newRM = rm1RM(weight, reps);
     if(newRM > prevBest1RM) openPRCelebration(ex.name, prevBest1RM, newRM);
   }
 }

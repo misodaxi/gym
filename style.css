@@ -680,6 +680,8 @@ footer.small-note{text-align:center; color:var(--text-dim); font-size:.75em; mar
   .body-map-svg{width:190px;}
   .body-map-legend{grid-template-columns:1fr 1fr; justify-items:start; min-width:0;}
   .body-map-dual-col .body-map-svg{width:150px;}
+  .body-map-layout{flex-direction:column; align-items:center;}
+  .muscle-list-cols{width:100%; min-width:0;}
   .rank-hero{flex-direction:column; align-items:flex-start;}
 }
 
@@ -891,6 +893,19 @@ body.a11y-large-targets .switch{transform:scale(1.15); transform-origin:left cen
 .body-map-tier-scale{display:flex; flex-wrap:wrap; gap:10px; margin-top:14px; padding-top:12px; border-top:1px solid var(--border);}
 .body-map-tier-scale span{display:flex; align-items:center; gap:6px; font-size:.76em; color:var(--text-dim);}
 .body-map-tier-scale .body-map-legend-dot{width:9px; height:9px;}
+
+.body-map-layout{display:flex; gap:24px; align-items:flex-start; flex-wrap:wrap; justify-content:center;}
+.body-map-layout .body-map-wrap{flex-shrink:0; margin:0;}
+.muscle-list-cols{display:flex; gap:22px; flex:1; min-width:280px; flex-wrap:wrap;}
+.muscle-list-col{flex:1; min-width:200px;}
+.muscle-list-col h4{margin:0 0 8px; font-size:.72em; text-transform:uppercase; letter-spacing:.5px; color:var(--text-dim); font-weight:700;}
+.muscle-list-items{display:flex; flex-direction:column; gap:1px;}
+.muscle-list-item{display:flex; align-items:center; gap:8px; font-size:.82em; color:var(--text-dim); background:transparent; border:none; text-align:left; padding:5px 6px; border-radius:8px; cursor:pointer; font-family:inherit; transition:background .15s ease, color .15s ease;}
+.muscle-list-item:hover, .muscle-list-item:focus-visible{background:var(--panel-alt2); color:var(--text);}
+.muscle-region{transition:fill .3s ease;}
+.muscle-region.active-highlight{fill:url(#muscleSelectGrad) !important; stroke:#fff !important; stroke-width:2 !important;}
+.muscle-region.active-highlight + path{opacity:0 !important;}
+.muscle-region.active-highlight + path + path{opacity:0 !important;}
 
 /* ---- Lista de privacidad del perfil ---- */
 .privacy-toggle-list{margin-top:6px;}

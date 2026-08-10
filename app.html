@@ -302,7 +302,7 @@
         <div class="sub-panel" id="sub-tr-pr">
           <div class="panel-card">
             <h2>Récords personales estimados</h2>
-            <p class="muted">1RM estimado con la fórmula de Epley a partir de tu registro de entrenamientos.</p>
+            <p class="muted">1RM estimado con la fórmula de Brzycki a partir de tu registro de entrenamientos.</p>
             <div id="prBoard"><p class="muted">Registra sesiones para ver tus récords.</p></div>
           </div>
         </div>
@@ -452,6 +452,7 @@
       <div class="tab-panel" id="tab-progress">
         <div class="subtab-bar">
           <button class="subtab-btn active" data-sub="pr-measure" onclick="showSub('pr-measure')">Medidas</button>
+          <button class="subtab-btn" data-sub="pr-exprogress" onclick="showSub('pr-exprogress')">Ejercicios</button>
           <button class="subtab-btn" data-sub="pr-photos" onclick="showSub('pr-photos')">Fotos</button>
           <button class="subtab-btn" data-sub="pr-goals" onclick="showSub('pr-goals')">Objetivos</button>
           <button class="subtab-btn" data-sub="pr-challenges" onclick="showSub('pr-challenges')">Retos</button>
@@ -477,6 +478,17 @@
             </select>
             <canvas id="measureChart" height="100"></canvas>
             <div id="measureHistory"></div>
+          </div>
+        </div>
+        <div class="sub-panel" id="sub-pr-exprogress">
+          <div class="panel-card">
+            <h2>Progresión por ejercicio</h2>
+            <p class="muted">Evolución de tu 1RM estimado (Brzycki) para un ejercicio concreto, a partir de tus sesiones registradas.</p>
+            <select id="exProgressSelect" onchange="renderExerciseProgressChart()" style="max-width:280px; margin-bottom:12px;"></select>
+            <div id="exProgressCard">
+              <canvas id="exProgressChart" height="100"></canvas>
+              <div id="exProgressStats" style="margin-top:14px;"></div>
+            </div>
           </div>
         </div>
         <div class="sub-panel" id="sub-pr-photos">
