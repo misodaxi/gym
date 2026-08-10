@@ -1287,6 +1287,19 @@
         "notes": "",
         "mediaId": null,
         "videoLink": null
+      },
+      {
+        "id": 1786370547656,
+        "date": "2026-08-10",
+        "exercise": "Press de banca con barra",
+        "exerciseId": "bench-press__barbell",
+        "weight": 130,
+        "reps": 1,
+        "sets": 1,
+        "rir": null,
+        "notes": "",
+        "mediaId": null,
+        "videoLink": null
       }
     ],
     "measurements": [],
@@ -1294,7 +1307,12 @@
     "nutrition": [],
     "steps": [],
     "sleep": [],
-    "waterLog": [],
+    "waterLog": [
+      {
+        "date": "2026-08-10",
+        "count": 0
+      }
+    ],
     "routineTemplates": [],
     "workoutSessions": [],
     "savedPosts": [],
