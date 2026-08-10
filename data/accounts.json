@@ -1274,7 +1274,21 @@
   "mrtrps": {
     "password": "9dc67694ae3ee9bf416637c078018d5ddc772a059101800dedc1e1e2fc4022d7",
     "history": [],
-    "workouts": [],
+    "workouts": [
+      {
+        "id": 1786370510096,
+        "date": "2026-08-10",
+        "exercise": "Press de banca con barra",
+        "exerciseId": "bench-press__barbell",
+        "weight": 110,
+        "reps": 10,
+        "sets": 2,
+        "rir": null,
+        "notes": "",
+        "mediaId": null,
+        "videoLink": null
+      }
+    ],
     "measurements": [],
     "goals": [],
     "nutrition": [],
