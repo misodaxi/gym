@@ -1270,5 +1270,80 @@
         "overrides": {}
       }
     ]
+  },
+  "mrtrps": {
+    "password": "39153b26994827bb5321c8e3085fd988996e3bd65055cfe82808db729d7c2719",
+    "history": [],
+    "workouts": [],
+    "measurements": [],
+    "goals": [],
+    "nutrition": [],
+    "steps": [],
+    "sleep": [],
+    "waterLog": [],
+    "routineTemplates": [],
+    "workoutSessions": [],
+    "savedPosts": [],
+    "trainingPlans": [],
+    "challenges": {
+      "dailyCompletions": {},
+      "levels": {}
+    },
+    "customChallenges": [],
+    "settings": {
+      "plateInventory": {
+        "5": {
+          "enabled": true,
+          "count": ""
+        },
+        "10": {
+          "enabled": true,
+          "count": ""
+        },
+        "15": {
+          "enabled": true,
+          "count": ""
+        },
+        "20": {
+          "enabled": true,
+          "count": ""
+        },
+        "25": {
+          "enabled": true,
+          "count": ""
+        },
+        "2.5": {
+          "enabled": true,
+          "count": ""
+        },
+        "1.25": {
+          "enabled": true,
+          "count": ""
+        },
+        "0.5": {
+          "enabled": false,
+          "count": ""
+        }
+      },
+      "kcalGoal": 2200,
+      "stepsGoal": 10000,
+      "waterServingMl": 250,
+      "waterGoalMl": 2000,
+      "accessibility": {
+        "fontScale": "normal",
+        "highContrast": false,
+        "reduceMotion": false,
+        "largeTargets": false
+      }
+    },
+    "profile": {
+      "age": null,
+      "heightCm": null,
+      "weightKg": null,
+      "bio": "",
+      "isPublic": true
+    },
+    "theme": "dark",
+    "createdAt": "2026-08-10T14:46:56.653Z"
   }
 }
