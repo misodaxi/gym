@@ -1374,7 +1374,7 @@
       "weightKg": 72.7,
       "bio": "batatatata",
       "isPublic": true,
-      "gender": "male",
+      "gender": "female",
       "publicFields": {
         "age": true,
         "height": true,
