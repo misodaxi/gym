@@ -423,7 +423,7 @@
         "bodyMap": true
       }
     },
-    "theme": "dark",
+    "theme": "light",
     "createdAt": "2026-07-19T21:06:00.001Z",
     "routineTemplates": [
       {
@@ -1204,6 +1204,10 @@
       {
         "date": "2026-08-10",
         "count": 1
+      },
+      {
+        "date": "2026-08-11",
+        "count": 0
       }
     ],
     "savedPosts": [
@@ -1269,7 +1273,8 @@
         ],
         "overrides": {}
       }
-    ]
+    ],
+    "wellbeing": []
   },
   "mrtrps": {
     "password": "39153b26994827bb5321c8e3085fd988996e3bd65055cfe82808db729d7c2719",
