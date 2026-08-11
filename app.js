@@ -245,6 +245,7 @@ async function showSub(name){
   if(name==='calc-progression') {}
   if(name==='pr-photos') renderPhotoGallery();
   if(name==='pr-exprogress') renderExerciseProgressChart();
+  if(name==='pr-strengths') renderStrengthProfile();
   if(name==='tr-log') renderWorkouts();
   if(name==='tr-pr') renderPRBoard();
   if(name==='tr-compare') renderExerciseDatalist();
@@ -1329,7 +1330,61 @@ function renderExerciseProgressChart(){
   `;
   document.getElementById('exProgressInsights').innerHTML = renderExerciseInsights(exercise, sortedDates, values);
 }
-/* ---- Detector de estancamiento + predicción de PR ---- */
+/* ---- Perfil de fortalezas y debilidades ---- */
+function computeStrengthProfile(){
+  const catalog = buildExerciseCatalog();
+  const loggedNames = new Set((account.workouts||[]).map(w=>w.exercise));
+  const byName = {};
+  catalog.forEach(ex=>{
+    if(!loggedNames.has(ex.es)) return;
+    const best = getBestMarkForExercise(ex);
+    if(best==null) return;
+    const tier = tierForExercise(ex);
+    if(!byName[ex.es] || tier > byName[ex.es].tier) byName[ex.es] = { name: ex.es, muscle: ex.muscle, tier, best, scoreType: ex.scoreType };
+  });
+  const list = Object.values(byName).sort((a,b)=>b.tier-a.tier);
+  return {
+    strengths: list.slice(0,5),
+    weaknesses: [...list].sort((a,b)=>a.tier-b.tier).slice(0,5),
+    total: list.length
+  };
+}
+function strengthProfileRow(item){
+  const tm = item.tier>0 ? tierMeta(item.tier) : null;
+  const unit = (item.scoreType==='strength-bw'||item.scoreType==='strength-abs') ? ' kg' : (item.scoreType==='time' ? ' s' : ' reps');
+  return `<div class="strength-row">
+    <div><strong>${escapeHTML(item.name)}</strong><div class="muted" style="font-size:.78em;">${escapeHTML(item.muscle)}</div></div>
+    <div class="strength-row-right">
+      <span class="muted">${item.best}${unit}</span>
+      <span class="xp-rank-badge-lg" style="background:${item.tier>0?tm.color:'var(--panel-alt2)'}; color:#151018; border-color:transparent;">${item.tier>0?tm.name:'Sin rango'}</span>
+    </div>
+  </div>`;
+}
+function renderStrengthProfile(){
+  const el = document.getElementById('strengthProfileCard');
+  if(!el || !account) return;
+  const profile = computeStrengthProfile();
+  if(profile.total < 3){
+    el.innerHTML = `<h2>Perfil de fortalezas y debilidades</h2>` + emptyState('chart', 'Registra marcas en al menos 3 ejercicios distintos para ver tu perfil comparativo.');
+    return;
+  }
+  el.innerHTML = `
+    <h2>Perfil de fortalezas y debilidades</h2>
+    <p class="muted">Compara el rango que has alcanzado en cada ejercicio que has registrado, para ver dónde destacas y dónde tienes más margen de mejora.</p>
+    <div class="grid grid-2" style="margin-top:14px; align-items:start;">
+      <div>
+        <h3 style="color:var(--ok);">${icon('award',15)} Tus fortalezas</h3>
+        <div class="strength-list">${profile.strengths.map(strengthProfileRow).join('')}</div>
+      </div>
+      <div>
+        <h3 style="color:var(--danger);">${icon('target',15)} Áreas de mejora</h3>
+        <div class="strength-list">${profile.weaknesses.map(strengthProfileRow).join('')}</div>
+      </div>
+    </div>
+    <p class="muted" style="margin-top:14px;">Basado en ${profile.total} ejercicio(s) con marcas registradas. Cuantos más ejercicios distintos registres, más preciso será este perfil.</p>
+  `;
+}
+
 function detectPlateau(values){
   if(values.length < 4) return { stagnant:false };
   const recent = values.slice(-4);
@@ -1688,6 +1743,39 @@ function renderSleep(){
 /* =========================================================
    OBJETIVOS
 ========================================================= */
+/* ---- Objetivos inversos: plan de hitos intermedios ---- */
+function computeReverseGoalPlan(goal){
+  const diff = goal.target - goal.current;
+  if(diff <= 0) return null;
+  let weeklyRate = null;
+  const ex = getExerciseByName(goal.desc);
+  if(ex){
+    const entries = (account.workouts||[]).filter(w=>w.exercise.toLowerCase()===ex.es.toLowerCase())
+      .map(w=>({date:w.date, rm: rm1RM(w.weight, w.reps)}))
+      .sort((a,b)=>new Date(a.date)-new Date(b.date));
+    if(entries.length>=3){
+      const days = (new Date(entries[entries.length-1].date) - new Date(entries[0].date)) / 86400000;
+      const gain = entries[entries.length-1].rm - entries[0].rm;
+      if(days>14 && gain>0) weeklyRate = gain/(days/7);
+    }
+  }
+  if(!weeklyRate || weeklyRate<=0) weeklyRate = Math.max(diff*0.035, 0.1);
+  const weeksTotal = Math.max(1, Math.ceil(diff/weeklyRate));
+  const numMilestones = Math.min(5, Math.max(2, Math.round(weeksTotal/4)));
+  const milestones = [];
+  for(let i=1;i<=numMilestones;i++){
+    const frac = i/numMilestones;
+    milestones.push({
+      value: Math.round((goal.current + diff*frac)*10)/10,
+      weeks: Math.max(1, Math.round(weeksTotal*frac))
+    });
+  }
+  return { weeklyRate: Math.round(weeklyRate*100)/100, weeksTotal, milestones, estimated: !ex || weeklyRate===Math.max(diff*0.035,0.1) };
+}
+function toggleGoalPlan(id){
+  const el = document.getElementById('goalPlan_'+id);
+  if(el) el.classList.toggle('hidden');
+}
 async function addGoal(){
   const desc = document.getElementById('goalDesc').value.trim();
   const unit = document.getElementById('goalUnit').value.trim();
@@ -1723,6 +1811,7 @@ function renderGoals(){
   el.innerHTML = account.goals.map(g=>{
     const done = g.current>=g.target;
     const pct = Math.min(100, Math.max(0, (g.current/g.target)*100)).toFixed(0);
+    const plan = !done ? computeReverseGoalPlan(g) : null;
     return `
     <div class="card">
       <div class="row" style="justify-content:space-between;">
@@ -1733,10 +1822,18 @@ function renderGoals(){
       <div class="row" style="justify-content:space-between; margin-top:10px;">
         <span class="muted">${pct}% completado</span>
         <div class="row">
+          ${plan?`<button class="small ghost" onclick="toggleGoalPlan(${g.id})">${icon('flat',13)} Ver plan</button>`:''}
           <button class="small ghost" onclick="updateGoalProgress(${g.id})">Actualizar</button>
           <button class="small danger" onclick="deleteGoal(${g.id})">${icon('trash',13)} Borrar</button>
         </div>
       </div>
+      ${plan?`
+      <div class="goal-plan hidden" id="goalPlan_${g.id}">
+        <p class="muted">Al ritmo estimado de <strong>+${plan.weeklyRate}${g.unit||''}/semana</strong>${plan.estimated?' (estimación general, sin histórico suficiente de este ejercicio)':' (según tu progresión reciente)'}, podrías llegar a tu objetivo en unas <strong>${plan.weeksTotal} semanas</strong>. Hitos intermedios sugeridos:</p>
+        <div class="goal-milestones">
+          ${plan.milestones.map((m,i)=>`<div class="goal-milestone"><span class="goal-milestone-num">${i+1}</span><div><strong>${m.value}${g.unit||''}</strong><div class="muted" style="font-size:.76em;">≈ semana ${m.weeks}</div></div></div>`).join('')}
+        </div>
+      </div>`:''}
     </div>`;
   }).join('');
 }
@@ -2683,7 +2780,7 @@ const TOPBAR_SEARCH_PAGES = [
   {label:'Temporizador', tab:'training', sub:'tr-timer'}, {label:'Catálogo de ejercicios', tab:'training', sub:'tr-exercises'},
   {label:'Récords personales', tab:'training', sub:'tr-pr'}, {label:'Preparación', tab:'health', sub:'hl-readiness'}, {label:'Nutrición', tab:'health', sub:'hl-nutrition'},
   {label:'Pasos', tab:'health', sub:'hl-steps'}, {label:'Sueño', tab:'health', sub:'hl-sleep'},
-  {label:'Progresión por ejercicio', tab:'progress', sub:'pr-exprogress'}, {label:'Medidas', tab:'progress', sub:'pr-measure'},
+  {label:'Progresión por ejercicio', tab:'progress', sub:'pr-exprogress'}, {label:'Perfil de fortalezas', tab:'progress', sub:'pr-strengths'}, {label:'Medidas', tab:'progress', sub:'pr-measure'},
   {label:'Fotos de progreso', tab:'progress', sub:'pr-photos'}, {label:'Objetivos', tab:'progress', sub:'pr-goals'},
   {label:'Logros', tab:'progress', sub:'pr-badges'}, {label:'Retos', tab:'progress', sub:'pr-challenges'},
   {label:'Comunidad', tab:'community'}, {label:'Ranking', tab:'ranking'}, {label:'Ajustes', tab:'settings'},
@@ -4067,15 +4164,51 @@ function torsoOutline(shoulderHalfW, waistHalfW, hipHalfW, shoulderY, waistY, hi
     C${f(100+waistHalfW+3)},${f(waistY-22)} ${f(100+chestHalfW)},${f(chestY+24)} ${f(100+chestHalfW)},${f(chestY)}
     C${f(100+chestHalfW+1)},${f(chestY-16)} ${f(100+shoulderHalfW+1.5)},${f(shoulderY+18)} ${f(100+shoulderHalfW)},${f(shoulderY)} Z`;
 }
-function bodyFigureSvg(view, gender, tiers){
+function fatigueColor(level){
+  if(level < 25) return '#2fae64';
+  if(level < 55) return '#e0b429';
+  if(level < 80) return '#e57b1f';
+  return '#dc3545';
+}
+function fatigueLabel(level){
+  if(level < 25) return 'Recuperado';
+  if(level < 55) return 'Fatiga moderada';
+  if(level < 80) return 'Fatiga alta';
+  return 'Muy fatigado';
+}
+function computeMuscleFatigue(){
+  const fatigue = {};
+  MUSCLE_GROUPS.forEach(g=>{ fatigue[g] = 0; });
+  const now = new Date();
+  (account.workouts||[]).forEach(w=>{
+    const ex = getExerciseByName(w.exercise);
+    const muscle = ex ? ex.muscle : null;
+    if(!muscle || !(muscle in fatigue)) return;
+    const daysAgo = (now - new Date(w.date)) / 86400000;
+    if(daysAgo < 0 || daysAgo > 5) return;
+    const setVolume = (w.weight||0) * (w.reps||0) * (w.sets||1);
+    const decay = Math.max(0, 1 - daysAgo/4.5);
+    fatigue[muscle] += setVolume * decay * 0.0035;
+  });
+  Object.keys(fatigue).forEach(k=>{ fatigue[k] = Math.max(0, Math.min(100, Math.round(fatigue[k]))); });
+  return fatigue;
+}
+function bodyRegionColor(region, mode, tiers, fatigue){
+  const broadGroup = MUSCLE_REGION_TO_GROUP[region];
+  if(mode==='fatigue'){
+    const level = broadGroup ? (fatigue[broadGroup]||0) : 0;
+    return fatigueColor(level);
+  }
+  const tier = broadGroup ? (tiers[broadGroup]||0) : 0;
+  return bodyMapRegionColor(tier);
+}
+function bodyFigureSvg(view, gender, mode, tiers, fatigue){
   const genderKey = gender==='female' ? 'female' : 'male';
   const viewKey = view==='front' ? 'front' : 'back';
   const data = BODY_MUSCLE_SVG_DATA[genderKey][viewKey];
   let svg = '';
   for(const region in data.regions){
-    const broadGroup = MUSCLE_REGION_TO_GROUP[region];
-    const tier = broadGroup ? (tiers[broadGroup]||0) : 0;
-    const color = bodyMapRegionColor(tier);
+    const color = bodyRegionColor(region, mode, tiers, fatigue);
     data.regions[region].forEach(d=>{ svg += svgShape(d, color, 1, true, region); });
   }
   return `<svg viewBox="0 0 ${data.w} ${data.h}" class="body-map-svg" xmlns="http://www.w3.org/2000/svg">${svgDefs()}${svg}</svg>`;
@@ -4084,44 +4217,61 @@ function bodyRegionTier(region, tiers){
   const broadGroup = MUSCLE_REGION_TO_GROUP[region];
   return broadGroup ? (tiers[broadGroup]||0) : 0;
 }
-function muscleListColumn(regionNames, tiers, view){
+function muscleListColumn(regionNames, mode, tiers, fatigue, view){
   return regionNames.map(region=>{
-    const t = bodyRegionTier(region, tiers);
-    const tm = t>0 ? tierMeta(t) : null;
+    const color = bodyRegionColor(region, mode, tiers, fatigue);
+    let text;
+    if(mode==='fatigue'){
+      const broadGroup = MUSCLE_REGION_TO_GROUP[region];
+      const level = broadGroup ? (fatigue[broadGroup]||0) : 0;
+      text = `${escapeHTML(region)} · ${fatigueLabel(level)}`;
+    } else {
+      const t = bodyRegionTier(region, tiers);
+      text = `${escapeHTML(region)}${t>0?` · ${tierMeta(t).name}`:''}`;
+    }
     return `<button type="button" class="muscle-list-item" onmouseenter="hoverMuscleRegion('${escapeHTML(region)}','${view}')" onmouseleave="unhoverMuscleRegion()" onclick="tapMuscleRegion('${escapeHTML(region)}','${view}')">
-      <span class="body-map-legend-dot" style="background:${t>0?tm.color:'var(--panel-alt2)'};"></span>${escapeHTML(region)}${t>0?` · ${tm.name}`:''}
+      <span class="body-map-legend-dot" style="background:${color};"></span>${text}
     </button>`;
   }).join('');
 }
+let bodyMapMode = 'tier';
+function setBodyMapMode(mode){ bodyMapMode = mode; pinnedMuscleHighlight = null; renderBodyMap(); }
 function renderBodyMapSvg(accObj){
   const acc = accObj || account;
   const gender = (acc.profile && acc.profile.gender) || 'male';
   const genderKey = gender==='female' ? 'female' : 'male';
   const tiers = {};
   MUSCLE_GROUPS.forEach(m=>{ tiers[m] = computeMuscleGroupTier(m, acc); });
-  const svg = bodyFigureSvg(bodyMapView, gender, tiers);
+  const fatigue = computeMuscleFatigue();
+  const svg = bodyFigureSvg(bodyMapView, gender, bodyMapMode, tiers, fatigue);
   const frontRegions = Object.keys(BODY_MUSCLE_SVG_DATA[genderKey].front.regions);
   const backRegions = Object.keys(BODY_MUSCLE_SVG_DATA[genderKey].back.regions);
-  const tierScale = TIER_META.map(tm=>`<span><span class="body-map-legend-dot" style="background:${tm.color};"></span>${tm.name}</span>`).join('');
+  const scaleHtml = bodyMapMode==='fatigue'
+    ? ['Recuperado','Fatiga moderada','Fatiga alta','Muy fatigado'].map((l,i)=>`<span><span class="body-map-legend-dot" style="background:${[fatigueColor(0),fatigueColor(30),fatigueColor(60),fatigueColor(90)][i]};"></span>${l}</span>`).join('')
+    : TIER_META.map(tm=>`<span><span class="body-map-legend-dot" style="background:${tm.color};"></span>${tm.name}</span>`).join('');
   return `
     <div class="body-map-toggle">
       <button class="ghost small ${bodyMapView==='front'?'active-toggle':''}" onclick="setBodyMapView('front')">Vista frontal</button>
       <button class="ghost small ${bodyMapView==='back'?'active-toggle':''}" onclick="setBodyMapView('back')">Vista trasera</button>
+      <span class="body-map-toggle-sep"></span>
+      <button class="ghost small ${bodyMapMode==='tier'?'active-toggle':''}" onclick="setBodyMapMode('tier')">Rango</button>
+      <button class="ghost small ${bodyMapMode==='fatigue'?'active-toggle':''}" onclick="setBodyMapMode('fatigue')">Fatiga</button>
     </div>
+    ${bodyMapMode==='fatigue' ? '<p class="muted" style="margin:0 0 12px;">Estimado a partir de tu volumen de entrenamiento de los últimos días, con mayor peso a las sesiones más recientes.</p>' : ''}
     <div class="body-map-layout">
       <div class="body-map-wrap">${svg}</div>
       <div class="muscle-list-cols">
         <div class="muscle-list-col">
           <h4>Vista frontal</h4>
-          <div class="muscle-list-items">${muscleListColumn(frontRegions, tiers, 'front')}</div>
+          <div class="muscle-list-items">${muscleListColumn(frontRegions, bodyMapMode, tiers, fatigue, 'front')}</div>
         </div>
         <div class="muscle-list-col">
           <h4>Vista trasera</h4>
-          <div class="muscle-list-items">${muscleListColumn(backRegions, tiers, 'back')}</div>
+          <div class="muscle-list-items">${muscleListColumn(backRegions, bodyMapMode, tiers, fatigue, 'back')}</div>
         </div>
       </div>
     </div>
-    <div class="body-map-tier-scale">${tierScale}</div>
+    <div class="body-map-tier-scale">${scaleHtml}</div>
   `;
 }
 function renderBodyMapDualSvg(accObj){
@@ -4129,8 +4279,8 @@ function renderBodyMapDualSvg(accObj){
   const gender = (acc.profile && acc.profile.gender) || 'male';
   const tiers = {};
   MUSCLE_GROUPS.forEach(m=>{ tiers[m] = computeMuscleGroupTier(m, acc); });
-  const front = bodyFigureSvg('front', gender, tiers);
-  const back = bodyFigureSvg('back', gender, tiers);
+  const front = bodyFigureSvg('front', gender, 'tier', tiers, {});
+  const back = bodyFigureSvg('back', gender, 'tier', tiers, {});
   const legend = MUSCLE_GROUPS.map(m=>{
     const t = tiers[m];
     const tm = t>0 ? tierMeta(t) : null;
