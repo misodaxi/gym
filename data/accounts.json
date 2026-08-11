@@ -1339,7 +1339,13 @@
         "overrides": {}
       }
     ],
-    "wellbeing": []
+    "wellbeing": [
+      {
+        "date": "2026-08-11",
+        "stress": 3,
+        "energy": 1
+      }
+    ]
   },
   "mrtrps": {
     "password": "39153b26994827bb5321c8e3085fd988996e3bd65055cfe82808db729d7c2719",
