@@ -223,7 +223,7 @@ async function showTab(name){
   document.getElementById('pageTitle').textContent = TAB_TITLES[name] || '';
   if(name==='dashboard'){ renderDashboard(); renderBodyMap(); }
   if(name==='training'){ renderWorkouts(); renderPRBoard(); renderExerciseDatalist(); renderTemplateList(); renderActiveSession(); }
-  if(name==='health'){ renderNutrition(); renderSteps(); renderSleep(); }
+  if(name==='health'){ renderReadinessCard(); renderNutrition(); renderSteps(); renderSleep(); }
   if(name==='progress'){ renderMeasurements(); renderGoals(); renderAchievements(); renderPhotoGallery(); renderDailyChallenge(); renderChallengeRankCard(); renderChallengeCategoryFilter(); renderMilestoneChallenges(); renderCustomChallenges(); renderExerciseProgressChart(); }
   if(name==='community'){ loadCommunityFeed(); refreshDmUnreadIndicator(); refreshNotifUnreadIndicator(); }
   if(name==='ranking') loadRanking();
@@ -1303,7 +1303,7 @@ function renderExerciseProgressChart(){
     return;
   }
   if(!document.getElementById('exProgressChart')){
-    cardEl.innerHTML = `<canvas id="exProgressChart" height="100"></canvas><div id="exProgressStats" style="margin-top:14px;"></div>`;
+    cardEl.innerHTML = `<canvas id="exProgressChart" height="100"></canvas><div id="exProgressStats" style="margin-top:14px;"></div><div id="exProgressInsights" style="margin-top:14px;"></div>`;
   }
   const byDate = {};
   (account.workouts||[]).filter(w=>w.exercise===exercise).forEach(w=>{
@@ -1327,6 +1327,70 @@ function renderExerciseProgressChart(){
     </div>
     <p class="muted" style="margin-top:10px;">${sortedDates.length} sesión(es) registradas de ${escapeHTML(exercise)}.</p>
   `;
+  document.getElementById('exProgressInsights').innerHTML = renderExerciseInsights(exercise, sortedDates, values);
+}
+/* ---- Detector de estancamiento + predicción de PR ---- */
+function detectPlateau(values){
+  if(values.length < 4) return { stagnant:false };
+  const recent = values.slice(-4);
+  const recentMax = Math.max(...recent), recentMin = Math.min(...recent);
+  const overallBest = Math.max(...values);
+  const bestIdx = values.lastIndexOf(overallBest);
+  const sessionsSinceBest = values.length - 1 - bestIdx;
+  const spread = recentMax>0 ? (recentMax-recentMin)/recentMax : 0;
+  if(sessionsSinceBest>=4 && spread < 0.035) return { stagnant:true, sessionsSinceBest };
+  return { stagnant:false };
+}
+function predictNextPR(dates, values){
+  if(values.length < 3) return { possible:false };
+  const t0 = new Date(dates[0]).getTime();
+  const xs = dates.map(d=>(new Date(d).getTime()-t0)/86400000);
+  const ys = values;
+  const n = xs.length;
+  const sumX=xs.reduce((a,b)=>a+b,0), sumY=ys.reduce((a,b)=>a+b,0);
+  const sumXY=xs.reduce((s,x,i)=>s+x*ys[i],0), sumX2=xs.reduce((s,x)=>s+x*x,0);
+  const denom = n*sumX2 - sumX*sumX;
+  if(denom===0) return { possible:false };
+  const slope = (n*sumXY - sumX*sumY) / denom;
+  const intercept = (sumY - slope*sumX) / n;
+  if(slope <= 0.01) return { possible:false };
+  const currentBest = Math.max(...values);
+  const target = Math.round((currentBest + Math.max(currentBest*0.01, 1)) * 10) / 10;
+  const lastDay = xs[xs.length-1];
+  const targetDay = (target - intercept) / slope;
+  const daysUntil = targetDay - lastDay;
+  if(daysUntil <= 0 || daysUntil > 365) return { possible:false };
+  const weeksLow = Math.max(1, Math.floor(daysUntil/7 * 0.7));
+  const weeksHigh = Math.max(weeksLow+1, Math.ceil(daysUntil/7 * 1.3));
+  return { possible:true, target, weeksLow, weeksHigh };
+}
+const PLATEAU_CAUSES = [
+  'Llevas demasiadas semanas con el mismo esquema de series/repeticiones sin variar el estímulo (sobrecarga progresiva estancada).',
+  'El volumen semanal de este grupo muscular puede ser insuficiente — o excesivo, generando fatiga acumulada.',
+  'El descanso entre sesiones de este ejercicio podría no ser suficiente para recuperarte del todo.',
+  'El sueño o la nutrición de las últimas semanas pueden estar limitando tu recuperación.',
+  'Podrías haber alcanzado el límite de esta variante concreta — cambiar de ángulo, agarre o rango de movimiento a veces desbloquea progreso.',
+];
+function renderExerciseInsights(exercise, sortedDates, values){
+  const plateau = detectPlateau(values);
+  const prediction = predictNextPR(sortedDates, values);
+  let html = '';
+  if(plateau.stagnant){
+    html += `<div class="panel-card insight-card insight-warning">
+      <h3>${icon('flat',15)} Posible estancamiento detectado</h3>
+      <p class="muted">Llevas ${plateau.sessionsSinceBest} sesiones sin superar tu mejor 1RM en ${escapeHTML(exercise)}, con muy poca variación entre ellas.</p>
+      <p style="margin:10px 0 6px; font-weight:600; font-size:.85em;">Posibles causas a revisar:</p>
+      <ul class="insight-list">${PLATEAU_CAUSES.map(c=>`<li>${escapeHTML(c)}</li>`).join('')}</ul>
+    </div>`;
+  }
+  if(prediction.possible){
+    html += `<div class="panel-card insight-card insight-positive">
+      <h3>${icon('chart',15)} Predicción de tu próximo PR</h3>
+      <p>Al ritmo de progresión actual, podrías alcanzar aproximadamente <strong>${prediction.target} kg</strong> de 1RM estimado en <strong>${prediction.weeksLow}–${prediction.weeksHigh} semanas</strong>.</p>
+      <p class="muted" style="margin-top:6px;">Estimación orientativa basada en tu tendencia reciente — se recalcula con cada sesión nueva.</p>
+    </div>`;
+  }
+  return html;
 }
 
 /* =========================================================
@@ -1492,6 +1556,104 @@ function renderSteps(){
   const ctx = canvas.getContext('2d');
   if(stepsChartInstance) stepsChartInstance.destroy();
   stepsChartInstance = new Chart(ctx, barChartConfig(days.map(d=>d.slice(5)), totals, 'pasos'));
+}
+/* ---- Índice de preparación ---- */
+function computeReadinessIndex(){
+  const today = new Date(); today.setHours(0,0,0,0);
+  const daysAgo = d => Math.floor((today - new Date(d)) / 86400000);
+
+  const recentSleep = [...(account.sleep||[])].sort((a,b)=>new Date(b.date)-new Date(a.date)).slice(0,3);
+  const avgSleep = recentSleep.length ? recentSleep.reduce((s,e)=>s+e.hours,0)/recentSleep.length : null;
+  let sleepScore = 70;
+  if(avgSleep!=null){
+    if(avgSleep>=7 && avgSleep<=9) sleepScore = 100;
+    else if(avgSleep>=6) sleepScore = 75;
+    else if(avgSleep>=5) sleepScore = 50;
+    else sleepScore = 25;
+  }
+
+  const wellbeingSorted = [...(account.wellbeing||[])].sort((a,b)=>new Date(b.date)-new Date(a.date));
+  const lastWb = wellbeingSorted[0];
+  let stressScore = 70, energyScore = 70;
+  if(lastWb && lastWb.stress!=null) stressScore = Math.max(0, Math.round(100 - (lastWb.stress-1)*11.1));
+  if(lastWb && lastWb.energy!=null) energyScore = Math.round(((lastWb.energy-1)/9)*100);
+
+  const vol = w => (w.weight||0) * (w.reps||0) * (w.sets||1);
+  const last7 = (account.workouts||[]).filter(w=>{ const d=daysAgo(w.date); return d>=0 && d<7; });
+  const prev21 = (account.workouts||[]).filter(w=>{ const d=daysAgo(w.date); return d>=7 && d<28; });
+  const last7Vol = last7.reduce((s,w)=>s+vol(w),0);
+  const prev21AvgWeekly = prev21.length ? prev21.reduce((s,w)=>s+vol(w),0)/3 : last7Vol;
+  let volumeScore = 80;
+  if(prev21AvgWeekly>0){
+    const ratio = last7Vol/prev21AvgWeekly;
+    if(ratio<=1.15) volumeScore = 100;
+    else if(ratio<=1.4) volumeScore = 70;
+    else if(ratio<=1.7) volumeScore = 45;
+    else volumeScore = 20;
+  }
+
+  const recentRir = last7.filter(w=>w.rir!=null && w.rir!=='').map(w=>parseFloat(w.rir)).filter(n=>!isNaN(n));
+  let rirScore = 75;
+  if(recentRir.length){
+    const avgRir = recentRir.reduce((s,r)=>s+r,0)/recentRir.length;
+    if(avgRir>=2.5) rirScore = 100;
+    else if(avgRir>=1.5) rirScore = 80;
+    else if(avgRir>=0.7) rirScore = 55;
+    else rirScore = 30;
+  }
+
+  const total = Math.round(sleepScore*0.28 + stressScore*0.18 + energyScore*0.12 + volumeScore*0.22 + rirScore*0.20);
+  let label, recommendation, colorVar;
+  if(total>=80){ label='Excelente'; recommendation='Buen momento para un día fuerte: puedes buscar cargas altas o intentar un PR si lo tenías planeado.'; colorVar='var(--ok)'; }
+  else if(total>=60){ label='Buena'; recommendation='Entrenamiento normal. Tu cuerpo responde bien a la carga habitual.'; colorVar='var(--gold)'; }
+  else if(total>=40){ label='Moderada'; recommendation='Considera reducir el volumen o la intensidad hoy, y prioriza la técnica antes que la carga.'; colorVar='#f0a020'; }
+  else { label='Baja'; recommendation='Hay señales de fatiga acumulada (sueño corto, RIR bajo o mucho volumen reciente). Un día ligero, de movilidad o de descanso activo te vendrá bien.'; colorVar='var(--danger)'; }
+
+  return { total, label, recommendation, colorVar,
+    breakdown: [
+      { label:'Sueño reciente', score:sleepScore, detail: avgSleep!=null ? `${avgSleep.toFixed(1)} h de media (últimas 3 noches)` : 'Sin registros recientes' },
+      { label:'Estrés', score:stressScore, detail: lastWb && lastWb.stress!=null ? `Nivel ${lastWb.stress}/10 registrado hoy` : 'Sin registro de hoy' },
+      { label:'Energía', score:energyScore, detail: lastWb && lastWb.energy!=null ? `Nivel ${lastWb.energy}/10 registrado hoy` : 'Sin registro de hoy' },
+      { label:'Volumen reciente', score:volumeScore, detail: prev21AvgWeekly>0 ? `${Math.round(last7Vol)} kg esta semana vs ${Math.round(prev21AvgWeekly)} kg de media` : 'Sin histórico suficiente todavía' },
+      { label:'Esfuerzo (RIR)', score:rirScore, detail: recentRir.length ? `RIR medio de ${(recentRir.reduce((s,r)=>s+r,0)/recentRir.length).toFixed(1)} esta semana` : 'Sin RIR registrado esta semana' },
+    ]
+  };
+}
+function renderReadinessCard(){
+  const el = document.getElementById('readinessCard');
+  if(!el || !account) return;
+  const r = computeReadinessIndex();
+  el.innerHTML = `
+    <h2>Índice de preparación</h2>
+    <div class="readiness-hero">
+      <div class="readiness-score" style="color:${r.colorVar};">${r.total}<span>/100</span></div>
+      <div>
+        <div class="readiness-label" style="color:${r.colorVar};">${r.label}</div>
+        <p class="muted" style="margin:4px 0 0;">${r.recommendation}</p>
+      </div>
+    </div>
+    <div class="readiness-breakdown">
+      ${r.breakdown.map(b=>`
+        <div class="readiness-row">
+          <div class="readiness-row-top"><span>${escapeHTML(b.label)}</span><span class="muted">${b.score}/100</span></div>
+          <div class="progress-track"><div class="progress-fill" style="width:${b.score}%;"></div></div>
+          <p class="muted readiness-row-detail">${escapeHTML(b.detail)}</p>
+        </div>
+      `).join('')}
+    </div>
+  `;
+}
+async function saveWellbeingLog(){
+  const date = todayStr();
+  const stress = parseInt(document.getElementById('wbStress').value, 10);
+  const energy = parseInt(document.getElementById('wbEnergy').value, 10);
+  account.wellbeing = account.wellbeing || [];
+  let entry = account.wellbeing.find(w=>w.date===date);
+  if(!entry){ entry = {date}; account.wellbeing.push(entry); }
+  entry.stress = stress; entry.energy = energy;
+  try{ await saveAccount(); }catch(e){ toast('Error: ' + e.message, 'error'); }
+  renderReadinessCard();
+  toast('Registro de bienestar guardado.');
 }
 async function saveSleepLog(){
   const date = document.getElementById('sleepDate').value || todayStr();
@@ -2511,6 +2673,112 @@ function closeMoreSheet(){
 async function quickJumpCommunity(subId){
   await showTab('community');
   showSub(subId);
+}
+
+/* ---- Topbar: búsqueda, añadir rápido, menú de avatar ---- */
+const TOPBAR_SEARCH_PAGES = [
+  {label:'Panel', tab:'dashboard'}, {label:'Calculadoras', tab:'calculators'},
+  {label:'Registro de entrenamiento', tab:'training', sub:'tr-log'}, {label:'Rutinas', tab:'training', sub:'tr-routines'},
+  {label:'Planificación', tab:'training', sub:'tr-plan'}, {label:'Comparar entrenamientos', tab:'training', sub:'tr-compare'},
+  {label:'Temporizador', tab:'training', sub:'tr-timer'}, {label:'Catálogo de ejercicios', tab:'training', sub:'tr-exercises'},
+  {label:'Récords personales', tab:'training', sub:'tr-pr'}, {label:'Preparación', tab:'health', sub:'hl-readiness'}, {label:'Nutrición', tab:'health', sub:'hl-nutrition'},
+  {label:'Pasos', tab:'health', sub:'hl-steps'}, {label:'Sueño', tab:'health', sub:'hl-sleep'},
+  {label:'Progresión por ejercicio', tab:'progress', sub:'pr-exprogress'}, {label:'Medidas', tab:'progress', sub:'pr-measure'},
+  {label:'Fotos de progreso', tab:'progress', sub:'pr-photos'}, {label:'Objetivos', tab:'progress', sub:'pr-goals'},
+  {label:'Logros', tab:'progress', sub:'pr-badges'}, {label:'Retos', tab:'progress', sub:'pr-challenges'},
+  {label:'Comunidad', tab:'community'}, {label:'Ranking', tab:'ranking'}, {label:'Ajustes', tab:'settings'},
+];
+function handleTopbarSearch(q){
+  const resultsEl = document.getElementById('topbarSearchResults');
+  if(!resultsEl) return;
+  const query = q.trim().toLowerCase();
+  if(!query){ resultsEl.classList.add('hidden'); resultsEl.innerHTML=''; return; }
+  const pageMatches = TOPBAR_SEARCH_PAGES.filter(p=>p.label.toLowerCase().includes(query)).slice(0,5);
+  let exerciseMatches = [];
+  try{ exerciseMatches = searchExercises(query).slice(0,6); }catch(e){ exerciseMatches = []; }
+  if(pageMatches.length===0 && exerciseMatches.length===0){
+    resultsEl.innerHTML = '<div class="topbar-search-empty">Sin resultados.</div>';
+    resultsEl.classList.remove('hidden');
+    return;
+  }
+  let html = '';
+  if(pageMatches.length){
+    html += '<div class="topbar-search-group-label">Secciones</div>';
+    html += pageMatches.map(p=>`<button class="topbar-search-item" onclick="topbarSearchGo('${p.tab}',${p.sub?`'${p.sub}'`:'null'})">${icon('search',13)} ${escapeHTML(p.label)}</button>`).join('');
+  }
+  if(exerciseMatches.length){
+    html += '<div class="topbar-search-group-label">Ejercicios</div>';
+    html += exerciseMatches.map(e=>`<button class="topbar-search-item" onclick="topbarSearchGoExercise('${e.id}')">${icon('dumbbell',13)} ${escapeHTML(e.es)}</button>`).join('');
+  }
+  resultsEl.innerHTML = html;
+  resultsEl.classList.remove('hidden');
+}
+async function topbarSearchGo(tab, sub){
+  await showTab(tab);
+  if(sub) showSub(sub);
+  closeTopbarSearch();
+}
+async function topbarSearchGoExercise(exId){
+  await showTab('training');
+  showSub('tr-exercises');
+  const input = document.getElementById('exerciseSearchInput');
+  if(input){ input.value = exId; if(typeof renderExerciseCatalogList==='function') renderExerciseCatalogList(); }
+  closeTopbarSearch();
+}
+function closeTopbarSearch(){
+  const input = document.getElementById('topbarSearch');
+  const resultsEl = document.getElementById('topbarSearchResults');
+  if(input) input.value = '';
+  if(resultsEl){ resultsEl.classList.add('hidden'); resultsEl.innerHTML=''; }
+}
+document.addEventListener('keydown', (e)=>{
+  if((e.ctrlKey||e.metaKey) && e.key==='k'){
+    const input = document.getElementById('topbarSearch');
+    if(input){ e.preventDefault(); input.focus(); }
+  }
+});
+document.addEventListener('click', (e)=>{
+  const searchWrap = document.querySelector('.topbar-search-wrap');
+  if(searchWrap && !searchWrap.contains(e.target)) closeTopbarSearch();
+  const quickAddWrap = document.querySelector('.topbar-quickadd-wrap');
+  if(quickAddWrap && !quickAddWrap.contains(e.target)) closeQuickAddMenu();
+  const avatarWrap = document.querySelector('.topbar-avatar-wrap');
+  if(avatarWrap && !avatarWrap.contains(e.target)) closeAvatarMenu();
+});
+function toggleQuickAddMenu(){
+  const menu = document.getElementById('quickAddMenu');
+  const btn = document.getElementById('quickAddBtn');
+  if(!menu) return;
+  const open = menu.classList.contains('hidden');
+  menu.classList.toggle('hidden', !open);
+  if(btn) btn.setAttribute('aria-expanded', String(open));
+}
+function closeQuickAddMenu(){
+  const menu = document.getElementById('quickAddMenu');
+  const btn = document.getElementById('quickAddBtn');
+  if(menu) menu.classList.add('hidden');
+  if(btn) btn.setAttribute('aria-expanded','false');
+}
+async function quickAddAction(kind){
+  closeQuickAddMenu();
+  if(kind==='workout'){ await showTab('training'); showSub('tr-log'); document.getElementById('wkExercise')?.focus(); }
+  else if(kind==='measurement'){ await showTab('progress'); showSub('pr-measure'); }
+  else if(kind==='goal'){ await showTab('progress'); showSub('pr-goals'); }
+  else if(kind==='post'){ await showTab('community'); showSub('comm-feed'); document.getElementById('postText')?.focus(); }
+}
+function toggleAvatarMenu(){
+  const menu = document.getElementById('avatarMenu');
+  const btn = document.getElementById('avatarMenuBtn');
+  if(!menu) return;
+  const open = menu.classList.contains('hidden');
+  menu.classList.toggle('hidden', !open);
+  if(btn) btn.setAttribute('aria-expanded', String(open));
+}
+function closeAvatarMenu(){
+  const menu = document.getElementById('avatarMenu');
+  const btn = document.getElementById('avatarMenuBtn');
+  if(menu) menu.classList.add('hidden');
+  if(btn) btn.setAttribute('aria-expanded','false');
 }
 async function refreshDmUnreadIndicator(){
   try{
