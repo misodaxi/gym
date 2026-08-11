@@ -452,11 +452,11 @@
         },
         "20": {
           "enabled": true,
-          "count": ""
+          "count": "6"
         },
         "25": {
           "enabled": false,
-          "count": "400"
+          "count": ""
         },
         "2.5": {
           "enabled": true,
