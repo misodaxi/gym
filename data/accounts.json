@@ -1212,6 +1212,92 @@
         ],
         "totalSeconds": 7,
         "endedAt": "2026-07-24T10:08:48.498Z"
+      },
+      {
+        "id": 1786496305136,
+        "templateId": 1784510975089,
+        "templateName": "asdasd",
+        "date": "2026-08-12",
+        "lastSessionDate": "2026-07-24",
+        "exercises": [
+          {
+            "name": "Press banca",
+            "sets": [
+              {
+                "weight": "",
+                "reps": "",
+                "rir": "23",
+                "notes": "234",
+                "setSeconds": null,
+                "restSeconds": null,
+                "mediaId": null,
+                "done": false,
+                "prevWeight": "234",
+                "prevReps": "234",
+                "prevIsActual": false
+              },
+              {
+                "weight": "",
+                "reps": "",
+                "rir": "",
+                "notes": "",
+                "setSeconds": null,
+                "restSeconds": null,
+                "mediaId": null,
+                "done": false,
+                "prevWeight": "234",
+                "prevReps": "",
+                "prevIsActual": false
+              }
+            ]
+          },
+          {
+            "name": "asdasd",
+            "sets": [
+              {
+                "weight": "",
+                "reps": "",
+                "rir": "",
+                "notes": "",
+                "setSeconds": null,
+                "restSeconds": null,
+                "mediaId": null,
+                "done": false,
+                "prevWeight": "",
+                "prevReps": "",
+                "prevIsActual": false
+              },
+              {
+                "weight": "",
+                "reps": "",
+                "rir": "",
+                "notes": "",
+                "setSeconds": null,
+                "restSeconds": null,
+                "mediaId": null,
+                "done": false,
+                "prevWeight": "",
+                "prevReps": "",
+                "prevIsActual": false
+              },
+              {
+                "weight": "",
+                "reps": "",
+                "rir": "",
+                "notes": "",
+                "setSeconds": null,
+                "restSeconds": null,
+                "mediaId": null,
+                "done": false,
+                "prevWeight": "",
+                "prevReps": "",
+                "prevIsActual": false
+              }
+            ]
+          }
+        ],
+        "totalSeconds": 23,
+        "endedAt": "2026-08-12T00:58:49.003Z"
       }
     ],
     "challenges": {
@@ -1359,7 +1445,9 @@
         "stress": 3,
         "energy": 1
       }
-    ]
+    ],
+    "heartRate": [],
+    "injuries": []
   },
   "mrtrps": {
     "password": "39153b26994827bb5321c8e3085fd988996e3bd65055cfe82808db729d7c2719",
